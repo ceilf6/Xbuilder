@@ -44,7 +44,9 @@ export type ListVideoParams = PaginationParams & {
   /** Order by field */
   orderBy?: 'createdAt' | 'updatedAt' | 'viewCount' | 'likeCount' | 'duration'
   /** Sort order */
-  sortOrder?: 'asc' | 'desc'
+  orderDir?: 'asc' | 'desc'
+  /** Include private videos (for owner only) */
+  includePrivate?: boolean
 }
 
 /**

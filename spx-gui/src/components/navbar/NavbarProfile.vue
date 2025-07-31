@@ -24,6 +24,9 @@
         <UIMenuItem @click="handleUserPage">
           {{ $t({ en: 'Profile', zh: '个人主页' }) }}
         </UIMenuItem>
+        <UIMenuItem @click="handleVideos">
+          {{ $t({ en: 'Videos', zh: '视频' }) }}
+        </UIMenuItem>
         <UIMenuItem @click="handleProjects">
           {{ $t({ en: 'Projects', zh: '项目列表' }) }}
         </UIMenuItem>
@@ -96,6 +99,10 @@ const handleAskCopilotAgent = useMessageHandle(
 
 function handleUserPage() {
   router.push(getUserPageRoute(signedInUser.value!.username))
+}
+
+function handleVideos() {
+  router.push(getUserPageRoute(signedInUser.value!.username, 'videos'))
 }
 
 function handleProjects() {
