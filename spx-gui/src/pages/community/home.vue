@@ -37,6 +37,42 @@
       />
     </ProjectsSection>
     <ProjectsSection
+      v-if="isSignedIn()"
+      v-radar="{ name: 'Your videos', desc: 'Section showing user\'s own videos' }"
+      context="home"
+      :num-in-row="numInRow"
+      :link-to="null"
+      :query-ret="myVideos"
+    >
+      <template #title>
+        {{
+          $t({
+            en: 'Your videos',
+            zh: '你的视频'
+          })
+        }}
+      </template>
+      <template #link>
+        {{
+          $t({
+            en: 'View all',
+            zh: '查看所有'
+          })
+        }}
+      </template>
+      <template #empty="emptyProps">
+        <div :style="emptyProps.style" style="display: flex; align-items: center; justify-content: center; color: var(--ui-color-grey-600); font-size: 14px;">
+          {{ $t({ en: 'No videos yet', zh: '暂无视频' }) }}
+        </div>
+      </template>
+      <VideoItem
+        v-for="video in myVideos.data.value"
+        :key="video.id"
+        :video="video"
+        @selected="handleVideoSelected"
+      />
+    </ProjectsSection>
+    <ProjectsSection
       v-radar="{ name: 'Community liking', desc: 'Section showing projects liked by the community' }"
       :link-to="communityLikingRoute"
       context="home"
@@ -126,8 +162,10 @@ import { useResponsive } from '@/components/ui'
 import ProjectsSection from '@/components/community/ProjectsSection.vue'
 import CenteredWrapper from '@/components/community/CenteredWrapper.vue'
 import ProjectItem from '@/components/project/ProjectItem.vue'
+import VideoItem from '@/components/video/VideoItem.vue'
 import MyProjectsEmpty from '@/components/community/MyProjectsEmpty.vue'
 import GuestBanner from '@/components/community/home/banner/GuestBanner.vue'
+import { getMockVideos } from '@/mock/videoData'
 
 usePageTitle([])
 
@@ -154,6 +192,21 @@ const myProjects = useQuery(
   },
   { en: 'Failed to load projects', zh: '加载失败' }
 )
+
+// Mock videos query - in a real implementation, this would call an API
+const myVideos = useQuery(
+  async () => {
+    if (signedInUsername.value == null) return []
+    // Get mock videos for current user
+    return getMockVideos(signedInUsername.value).slice(0, numInRow.value)
+  },
+  { en: 'Failed to load videos', zh: '加载视频失败' }
+)
+
+function handleVideoSelected() {
+  // Handle video selection - could navigate to video player
+  console.log('Video selected')
+}
 
 const communityLikingRoute = getExploreRoute(ExploreOrder.MostLikes)
 
