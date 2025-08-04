@@ -42,8 +42,8 @@ defineProps<{
       {{ $t({ en: 'Projects', zh: '项目' }) }}
     </UserSidebarItem>
     <UserSidebarItem
-      v-radar="{ name: 'Videos link', desc: 'Click to navigate to user videos' }"
-      :to="getUserPageRoute(username, 'videos')"
+      v-radar="{ name: 'Records link', desc: 'Click to navigate to user records' }"
+      :to="getUserPageRoute(username, 'records')"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path
@@ -51,7 +51,7 @@ defineProps<{
           fill="currentColor"
         />
       </svg>
-      {{ $t({ en: 'Videos', zh: '视频' }) }}
+      {{ $t({ en: 'Records', zh: '记录' }) }}
     </UserSidebarItem>
     <UserSidebarItem
       v-radar="{ name: 'Likes link', desc: 'Click to navigate to user liked projects' }"

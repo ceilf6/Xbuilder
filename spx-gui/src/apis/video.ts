@@ -45,22 +45,22 @@ export type ListVideoParams = PaginationParams & {
   orderBy?: 'createdAt' | 'updatedAt' | 'viewCount' | 'likeCount' | 'duration'
   /** Sort order */
   orderDir?: 'asc' | 'desc'
-  /** Include private videos (for owner only) */
+  /** Include private records (for owner only) */
   includePrivate?: boolean
 }
 
 /**
- * List videos with filters and pagination
+ * List records with filters and pagination
  */
 export async function listVideo(params: ListVideoParams): Promise<ByPage<VideoData[]>> {
-  return client.get('/videos', { params }) as Promise<ByPage<VideoData[]>>
+  return client.get('/records', { params }) as Promise<ByPage<VideoData[]>>
 }
 
 /**
  * Get a specific video by owner and name
  */
 export async function getVideo(owner: string, name: string): Promise<VideoData> {
-  return client.get(`/videos/${owner}/${name}`) as Promise<VideoData>
+  return client.get(`/records/${owner}/${name}`) as Promise<VideoData>
 }
 
 /**
@@ -82,7 +82,7 @@ export async function createVideo(params: {
   if (params.thumbnail) formData.append('thumbnail', params.thumbnail)
   if (params.visibility) formData.append('visibility', params.visibility.toString())
 
-  return client.post('/videos', formData) as Promise<VideoData>
+  return client.post('/records', formData) as Promise<VideoData>
 }
 
 /**
@@ -104,35 +104,35 @@ export async function updateVideo(
   if (params.visibility) formData.append('visibility', params.visibility.toString())
   if (params.thumbnail) formData.append('thumbnail', params.thumbnail)
 
-  return client.put(`/videos/${owner}/${name}`, formData) as Promise<VideoData>
+  return client.put(`/records/${owner}/${name}`, formData) as Promise<VideoData>
 }
 
 /**
  * Delete a video
  */
 export async function deleteVideo(owner: string, name: string): Promise<void> {
-  await client.delete(`/videos/${owner}/${name}`)
+  await client.delete(`/records/${owner}/${name}`)
 }
 
 /**
  * Like a video
  */
 export async function likeVideo(owner: string, name: string): Promise<void> {
-  await client.post(`/videos/${owner}/${name}/like`)
+  await client.post(`/records/${owner}/${name}/like`)
 }
 
 /**
  * Unlike a video
  */
 export async function unlikeVideo(owner: string, name: string): Promise<void> {
-  await client.delete(`/videos/${owner}/${name}/like`)
+  await client.delete(`/records/${owner}/${name}/like`)
 }
 
 /**
  * Check if current user has liked a video
  */
 export async function isLikingVideo(owner: string, name: string): Promise<boolean> {
-  const data = await client.get(`/videos/${owner}/${name}/like`) as { isLiking: boolean }
+  const data = await client.get(`/records/${owner}/${name}/like`) as { isLiking: boolean }
   return data.isLiking
 }
 
@@ -140,5 +140,5 @@ export async function isLikingVideo(owner: string, name: string): Promise<boolea
  * Record a video view
  */
 export async function recordVideoView(owner: string, name: string): Promise<void> {
-  await client.post(`/videos/${owner}/${name}/view`)
+  await client.post(`/records/${owner}/${name}/view`)
 }

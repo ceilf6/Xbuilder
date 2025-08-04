@@ -5,7 +5,7 @@ import { getSignedInUsername, useUser } from '@/stores/user'
 import { UIButton } from '@/components/ui'
 import UserContent from '@/components/community/user/content/UserContent.vue'
 import VideoItem from '@/components/video/VideoItem.vue'
-import { getMockVideos } from '@/mock/videoData'
+import { getMockRecords } from '@/mock/videoData'
 
 const props = defineProps<{
   name: string
@@ -17,42 +17,42 @@ const { data: user } = useUser(() => props.name)
 usePageTitle(() => {
   if (user.value == null) return null
   return {
-    en: `Videos of ${user.value.displayName}`,
-    zh: `${user.value.displayName} 的视频`
+    en: `Records of ${user.value.displayName}`,
+    zh: `${user.value.displayName} 的记录`
   }
 })
 
 // Use mock data for now
-const videos = computed(() => getMockVideos())
+const records = computed(() => getMockRecords())
 
-const handleVideoSelected = (videoId: string) => {
-  // TODO: Implement video player route
-  console.log('Selected video:', videoId)
+const handleRecordSelected = (recordId: string) => {
+  // TODO: Implement record player route
+  console.log('Selected record:', recordId)
 }
 
-const createVideo = () => {
-  // TODO: Implement create video functionality
-  console.log('Create video')
+const createRecord = () => {
+  // TODO: Implement create record functionality
+  console.log('Create record')
 }
 </script>
 
 <template>
   <UserContent>
     <div class="toolbar">
-      <UIButton v-if="isSignedInUser" @click="createVideo">
-        {{ $t({ en: 'Create video', zh: '创建视频' }) }}
+      <UIButton v-if="isSignedInUser" @click="createRecord">
+        {{ $t({ en: 'Create record', zh: '创建记录' }) }}
       </UIButton>
     </div>
-    <div v-if="videos.length" class="list">
+    <div v-if="records.length" class="list">
       <VideoItem
-        v-for="video in videos"
-        :key="video.id"
-        :video="video"
-        @selected="handleVideoSelected(video.id)"
+        v-for="record in records"
+        :key="record.id"
+        :video="record"
+        @selected="handleRecordSelected(record.id)"
       />
     </div>
     <div v-else class="empty-message">
-      <span>{{ $t({ en: 'No videos yet', zh: '暂无视频' }) }}</span>
+      <span>{{ $t({ en: 'No records yet', zh: '暂无记录' }) }}</span>
     </div>
   </UserContent>
 </template>

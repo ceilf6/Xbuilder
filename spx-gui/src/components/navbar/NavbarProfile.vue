@@ -24,8 +24,8 @@
         <UIMenuItem @click="handleUserPage">
           {{ $t({ en: 'Profile', zh: '个人主页' }) }}
         </UIMenuItem>
-        <UIMenuItem @click="handleVideos">
-          {{ $t({ en: 'Videos', zh: '视频' }) }}
+        <UIMenuItem @click="handleRecords">
+          {{ $t({ en: 'Records', zh: '记录' }) }}
         </UIMenuItem>
         <UIMenuItem @click="handleProjects">
           {{ $t({ en: 'Projects', zh: '项目列表' }) }}
@@ -101,8 +101,8 @@ function handleUserPage() {
   router.push(getUserPageRoute(signedInUser.value!.username))
 }
 
-function handleVideos() {
-  router.push(getUserPageRoute(signedInUser.value!.username, 'videos'))
+function handleRecords() {
+  router.push(getUserPageRoute(signedInUser.value!.username, 'records'))
 }
 
 function handleProjects() {

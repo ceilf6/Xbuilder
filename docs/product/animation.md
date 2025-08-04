@@ -122,7 +122,7 @@ Only Sprites with Model information can have Skeletal Animations added. For Spri
 Skeletal Animations can come from the following sources:
 
 * Binding common predefined actions to the current Sprite.
-* Uploading or recording videos using a camera, with the system extracting actions based on the videos.
+* Uploading or recording records using a camera, with the system extracting actions based on the records.
 
 	Details TBD.
 

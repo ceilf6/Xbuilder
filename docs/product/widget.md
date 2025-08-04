@@ -18,7 +18,7 @@ Common widgets include, but are not limited to:
 
 * Scoreboards, player information, mini-maps, etc., which display information from the game to the player.
 * Text input boxes, sliders, etc., which help the player input information.
-* Videos, web pages, etc., which embed complex external content into the game interface.
+* Records, web pages, etc., which embed complex external content into the game interface.
 
 Compared to Sprites, users often have relatively weak customization requirements for the appearance and behavior of Widgets, and it is costly to implement them based on basic graphic drawing capabilities. Therefore, we organize common requirements, implement corresponding Widgets, and provide them to users for selection in a way that is high in abstraction, close to specific requirements, and low in customization capabilities.
 

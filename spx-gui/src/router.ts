@@ -20,7 +20,11 @@ export function getProjectPageRoute(owner: string, name: string) {
   return `/project/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`
 }
 
-export type UserTab = 'overview' | 'projects' | 'videos' | 'likes' | 'followers' | 'following'
+export function getVideoPageRoute(owner: string, name: string) {
+  return `/video/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`
+}
+
+export type UserTab = 'overview' | 'projects' | 'records' | 'likes' | 'followers' | 'following'
 
 export function getUserPageRoute(name: string, tab: UserTab = 'overview') {
   const base = `/user/${encodeURIComponent(name)}`
@@ -59,6 +63,14 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/pages/community/home.vue')
       },
       {
+        path: '/mobile',
+        component: () => import('@/pages/community/mobile-home.vue')
+      },
+      {
+        path: '/mobile-game',
+        component: () => import('@/pages/community/mobile-game.vue')
+      },
+      {
         path: '/explore',
         component: () => import('@/pages/community/explore.vue')
       },
@@ -83,8 +95,8 @@ const routes: Array<RouteRecordRaw> = [
             props: true
           },
           {
-            path: 'videos',
-            component: () => import('@/pages/community/user/videos.vue'),
+            path: 'records',
+            component: () => import('@/pages/community/user/records.vue'),
             props: true
           },
           {
@@ -107,6 +119,11 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: '/project/:owner/:name',
         component: () => import('@/pages/community/project.vue'),
+        props: true
+      },
+      {
+        path: '/video/:owner/:name',
+        component: () => import('@/pages/community/video.vue'),
         props: true
       }
     ]
@@ -149,6 +166,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/docs/api/:pathMatch(.*)?',
     component: () => import('@/pages/docs/api.vue')
+  },
+  {
+    path: '/mobile-prototype',
+    component: () => import('@/pages/mobile-prototype.vue')
   }
 ]
 

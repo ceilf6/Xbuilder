@@ -15,12 +15,12 @@
         <UIIcon class="link-icon" type="arrowRightSmall" />
       </RouterUILink>
     </header>
-    <div class="videos-wrapper">
+    <div class="records-wrapper">
       <ListResultWrapper :query-ret="queryRet" :height="254">
         <template v-if="!!slots.empty" #empty="emptyProps">
           <slot name="empty" v-bind="emptyProps"></slot>
         </template>
-        <ul class="videos">
+        <ul class="records">
           <slot></slot>
         </ul>
       </ListResultWrapper>
@@ -88,11 +88,11 @@ const slots = useSlots()
   }
 }
 
-.videos-wrapper {
+.records-wrapper {
   margin-top: 12px;
 }
 
-.videos {
+.records {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -102,13 +102,13 @@ const slots = useSlots()
 }
 
 .context-home {
-  .videos {
+  .records {
     align-content: flex-start;
   }
 }
 
 .context-user {
-  .videos {
+  .records {
     align-content: flex-start;
   }
 }
