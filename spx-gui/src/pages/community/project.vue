@@ -286,6 +286,13 @@ const handleScreenshot = useMessageHandle(
         throw new Error('项目运行器未准备好')
       }
 
+      // 调试：检查项目运行器的详细信息
+      console.log('项目运行器对象:', projectRunner)
+      console.log('项目运行器类型:', typeof projectRunner)
+      console.log('项目运行器构造函数:', projectRunner.constructor.name)
+      console.log('项目运行器所有属性:', Object.getOwnPropertyNames(projectRunner))
+      console.log('项目运行器原型链:', Object.getPrototypeOf(projectRunner))
+
       // 等待项目运行器完全初始化
       let retryCount = 0
       const maxRetries = 100 // 增加重试次数，因为需要等待iframe和游戏引擎完全加载
