@@ -104,6 +104,7 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
 </template>
 
 <style lang="scss" scoped>
+@import '@/components/ui/responsive.scss';
 .full-screen-project-runner {
   position: fixed;
   z-index: 100;
@@ -125,15 +126,12 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   }
 }
 
-.close {
-  transform: scale(1.2);
-}
-
 .container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+
 }
 
 .header {
@@ -144,6 +142,7 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   border-bottom: 1px solid var(--ui-color-grey-400);
   height: 56px;
   color: var(--ui-color-title);
+  
 }
 
 .header-left {
@@ -168,6 +167,8 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   justify-content: flex-end;
   align-items: center;
   padding-right: 20px;
+ 
+
 }
 
 .main {
