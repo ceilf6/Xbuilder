@@ -151,7 +151,7 @@ onMounted(() => {
   background-size: cover;
   background-position: center;
   border-radius: 16px;
-  padding: 24px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -169,7 +169,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   position: relative;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 1;
@@ -211,7 +211,7 @@ onMounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   z-index: 1;
 }
 
@@ -222,7 +222,7 @@ onMounted(() => {
 .game-title {
   font-size: 19px;
   font-weight: 800;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   line-height: 1.3;
   text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
   overflow: hidden;
@@ -234,7 +234,7 @@ onMounted(() => {
 
 .project-stats {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -244,12 +244,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 13px;
   opacity: 0.98;
   background: rgba(255, 255, 255, 0.2);
-  padding: 6px 10px;
-  border-radius: 14px;
+  padding: 8px 12px;
+  border-radius: 16px;
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.2s ease;
@@ -277,7 +277,7 @@ onMounted(() => {
   align-items: center;
   height: 60px;
   background: rgba(255, 255, 255, 0.2);
-  padding: 10px 16px;
+  padding: 12px 20px;
   border-radius: 24px;
   backdrop-filter: blur(4px);
   box-sizing: border-box;
