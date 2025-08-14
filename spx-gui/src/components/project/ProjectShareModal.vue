@@ -152,7 +152,7 @@
   const shareData = {
         title:    'QQ分享卡片示例',
         desc:     '演示QQ卡片分享功能',
-        share_url:'https://xbuilder-sharing-test.gopluscdn.com/',
+        share_url:'https://xbuilder-sharing-test.gopluscdn.com/project/'+props.owner+'/'+props.name,
         image_url:'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
     };
 
@@ -218,7 +218,7 @@
       const projectInfo: ProjectShareInfo = {
         projectName: props.name,
         // projectUrl: `${window.location.origin}/project/${props.owner}/${props.projectName}`, // 根据实际路由调整
-        projectUrl: `https://builder.goplus.org/project/${props.owner}/${props.name}`,
+        projectUrl: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
         description: `这是我在XBuilder上创作的游戏作品《${platform.name}》！🎮 在XBuilder学编程，创造属于你的游戏世界！`,
         thumbnail: props.thumbnail
       }
