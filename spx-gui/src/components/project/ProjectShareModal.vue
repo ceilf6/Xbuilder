@@ -100,11 +100,8 @@
         <div class="qr-section">
           <div class="qr-section-inner">
             <div class="qr-code">
-              <div v-if="selectedPlatform === 'qq' || selectedPlatform === 'wechat'" class="qr-code-container">
+              <div class="qr-code-container">
                 <img :src="qrCodeData" :alt="$t({ en: 'Share QR Code', zh: '分享二维码' })" class="qr-image" />
-              </div>
-              <div v-else-if="selectedPlatform === 'douyin' || selectedPlatform === 'xiaohongshu' || selectedPlatform === 'bilibili'" class="qr-grid">
-                <div v-for="i in 25" :key="i" class="qr-cell" :class="{ filled: Math.random() > 0.5 }"></div>
               </div>
             </div>
             <div class="qr-hint">
@@ -168,6 +165,7 @@
   // Only call mqq API if it exists (when running in QQ browser)
   if (window.mqq) {
     window.mqq.invoke('data', 'setShareInfo', shareData);
+    alert('QQ分享卡片信息已设置')
   }
 
   const selectedPlatform = ref('qq')
@@ -222,7 +220,7 @@
     await handleSocialMediaShare(platform)
   }
 
-  // 处理QQ和微信分享
+  // 处理所有平台分享
   const handleSocialMediaShare = async (platform: any) => {
     try {
 
@@ -264,20 +262,21 @@
 }
 
 .share-main {
-  height: 100%;
   display: flex;
   gap: 24px;
   margin-bottom: 24px;
   justify-content: center;
+  align-items: center;
+  min-height: 0;
 }
 
 .poster-section {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: stretch;
-  height: 100%;
-  max-width: 400px;
+  align-items: center;
+  max-width: 300px;
+  overflow: hidden;
 }
 
 .qr-section {
@@ -286,7 +285,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-width: 220px;
+  min-width: 180px;
+  max-width: 200px;
 }
 
 .qr-section-inner {
@@ -427,28 +427,14 @@
   background: white;
 }
 
-.qr-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
-  width: 100%;
-  height: 100%;
-}
 
-.qr-cell {
-  width: 100%;
-  height: 100%;
-  background: var(--ui-color-grey-200);
-  border-radius: 1px;
-
-  &.filled {
-    background: var(--ui-color-grey-800);
-  }
-}
 
 .qr-hint {
   font-size: 12px;
   color: var(--ui-color-hint-2);
-  line-height: 1.4;
+  line-height: 1.3;
+  text-align: center;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 </style>
