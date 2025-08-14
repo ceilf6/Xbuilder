@@ -198,15 +198,6 @@
         </div>
       </div>
     </div>
-    <!-- 区域选择器 -->
-    <AreaSelector
-      v-if="showAreaSelector && screenshotData"
-      :screenshot-data-url="screenshotData.dataUrl"
-      :screenshot-width="screenshotData.width"
-      :screenshot-height="screenshotData.height"
-      @area-selected="handleAreaSelected"
-      @cancelled="handleAreaSelectionCancelled"
-    />
   </UIFormModal>
 </template>
 
@@ -221,7 +212,6 @@ import DouyinIconSvg from '@/assets/images/抖音.svg?raw'
 import XiaohongshuIconSvg from '@/assets/images/小红书.svg?raw'
 import BilibiliIconSvg from '@/assets/images/bilibili.svg?raw'
 import { ref, computed, onUnmounted, h } from 'vue'
-import AreaSelector from './AreaSelector.vue'
 
 const { t } = useI18n()
 // 新增：创建SVG图标组件
@@ -594,13 +584,6 @@ const startGameCanvasRecording = async () => {
     console.error('开始game-canvas录制失败:', error)
     throw error
   }
-}
-
-// 处理区域选择取消（保留以备将来使用）
-const handleAreaSelectionCancelled = () => {
-  console.log('用户取消了区域选择')
-  // 重置状态到初始状态
-  currentState.value = 'initial'
 }
 
 // 区域录制核心函数（保留以备将来使用）
