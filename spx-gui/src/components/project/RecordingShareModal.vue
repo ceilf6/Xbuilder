@@ -284,14 +284,12 @@ const handleReRecord = () => {
   console.log('用户选择重新录制，状态已重置')
 }
 
-// 区域选择相关状态
-const showAreaSelector = ref(false)
+// 录屏相关状态
 const screenshotData = ref<{
   canvas: HTMLCanvasElement
   dataUrl: string
   width: number
   height: number
-  screenStream?: MediaStream // 保存屏幕流
 } | null>(null)
 const selectedRecordingArea = ref<{
   x: number
@@ -315,8 +313,7 @@ const resetRecordingState = () => {
   qrCodeUrl.value = ''
   qrCodeData.value = ''
 
-  // 重置区域选择相关状态
-  showAreaSelector.value = false
+  // 重置录屏相关状态
   screenshotData.value = null
   selectedRecordingArea.value = null
 
@@ -329,14 +326,6 @@ const resetRecordingState = () => {
     recordingTimer = null
   }
 
-  // 清理媒体流
-  if (mediaStream.value) {
-    mediaStream.value.getTracks().forEach((track) => {
-      track.stop()
-    })
-    mediaStream.value = null
-  }
-
   // 清理视频URL
   if (recordedVideoUrl.value) {
     URL.revokeObjectURL(recordedVideoUrl.value)
@@ -346,11 +335,6 @@ const resetRecordingState = () => {
   if (mediaRecorder.value) {
     mediaRecorder.value = null
   }
-  
-  // 重置区域选择相关状态
-  showAreaSelector.value = false
-  screenshotData.value = null
-  selectedRecordingArea.value = null
 
   console.log('录屏状态已重置到初始状态')
 }
@@ -360,6 +344,7 @@ const props = defineProps<{
   projectName: string
   projectThumbnail?: string
   owner?: string
+  projectRunner?: any // 项目运行器引用
 }>()
 
 // 复制分享链接
@@ -446,75 +431,46 @@ const platforms = computed(() => [
   }
 ])
 
-// 获取屏幕截图的函数
-
-const captureScreenshot = async () => {
+// 从game-canvas获取截图的函数
+const captureGameCanvasScreenshot = async () => {
   try {
-    console.log('开始获取屏幕截图...')
+    console.log('开始从game-canvas获取截图...')
 
-    // 获取屏幕流（不要停止它）
-    const screenStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true // 保持音频，因为后续录制需要
-    })
+    if (!props.projectRunner) {
+      throw new Error('项目运行器未准备好')
+    }
 
-    // 创建video元素来显示流
-    const video = document.createElement('video')
-    video.srcObject = screenStream
-    video.play()
+    // 使用项目运行器的截图方法
+    const screenshot = await props.projectRunner.takeScreenshot()
+    if (!screenshot) {
+      throw new Error('截图方法返回空结果')
+    }
 
-    // 等待视频准备就绪
-    await new Promise<void>((resolve) => {
-      video.onloadedmetadata = () => resolve()
-    })
+    console.log('game-canvas截图获取成功', screenshot.width, 'x', screenshot.height)
 
-    // 等待一帧确保视频已渲染
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    // 创建canvas并绘制当前帧
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
-
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    ctx.drawImage(video, 0, 0)
-
-    const dataUrl = canvas.toDataURL('image/png')
-    console.log('屏幕截图获取成功', canvas.width, 'x', canvas.height)
-
-    // 返回截图信息和活跃的流
+    // 返回截图信息
     return {
-      canvas,
-      dataUrl,
-      width: canvas.width,
-      height: canvas.height,
-      screenStream // 新增：返回活跃的流
+      dataUrl: screenshot.dataURL,
+      width: screenshot.width,
+      height: screenshot.height
     }
   } catch (error) {
-    console.error('获取屏幕截图失败:', error)
+    console.error('获取game-canvas截图失败:', error)
     throw error
   }
 }
 
-// 开始录屏 - 修改为使用区域选择
+// 开始录屏 - 直接从game-canvas录制
 const handleStartRecording = useMessageHandle(
   async () => {
     isStarting.value = true
     try {
       console.log('开始录屏流程...')
 
-      // 第一步：获取屏幕截图
-      const screenshot = await captureScreenshot()
-      screenshotData.value = screenshot
-
-      // 第二步：显示区域选择界面
-      showAreaSelector.value = true
+      // 直接从game-canvas开始录制
+      await startGameCanvasRecording()
     } catch (error) {
       console.error('录制启动失败:', error)
-      // 用户可能取消了屏幕分享选择
-      if (error instanceof Error && error.name === 'NotAllowedError') {
-        console.log('用户取消了屏幕分享')
-      }
       throw error
     } finally {
       isStarting.value = false
@@ -523,148 +479,36 @@ const handleStartRecording = useMessageHandle(
   { en: 'Failed to start recording', zh: '开始录屏失败' }
 )
 
-// 处理区域选择完成
-const handleAreaSelected = async (selectedArea: { x: number; y: number; width: number; height: number }) => {
+// 从game-canvas开始录制
+const startGameCanvasRecording = async () => {
   try {
-    console.log('用户选择了录制区域:', selectedArea)
+    console.log('开始从game-canvas录制...')
 
-    // 保存选择的区域
-    selectedRecordingArea.value = selectedArea
-
-    // 隐藏区域选择器
-    showAreaSelector.value = false
-
-    // 更新状态
-    isRecording.value = true
-    currentState.value = 'recording'
-
-    // 开始区域录制
-    const recorder = await startAreaRecording(selectedArea)
-    mediaRecorder.value = recorder
-
-    // 通知父组件录屏已开始，隐藏弹窗
-    emit('recordingStarted')
-
-    console.log('区域录制已开始')
-  } catch (error) {
-    console.error('开始区域录制失败:', error)
-    // 重置状态
-    showAreaSelector.value = false
-    selectedRecordingArea.value = null
-    throw error
-  }
-}
-
-// 处理区域选择取消 - 修改版
-const handleAreaSelectionCancelled = () => {
-  console.log('用户取消了区域选择')
-
-  // 清理屏幕流
-  if (screenshotData.value?.screenStream) {
-    screenshotData.value.screenStream.getTracks().forEach((track) => {
-      track.stop()
-    })
-  }
-
-  showAreaSelector.value = false
-  screenshotData.value = null
-  selectedRecordingArea.value = null
-
-  // 重置状态到初始状态
-  currentState.value = 'initial'
-}
-
-// 区域录制核心函数
-// 区域录制核心函数 - 修改版（复用屏幕流，避免重复权限请求）
-const startAreaRecording = async (selectedArea: { x: number; y: number; width: number; height: number }) => {
-  try {
-    console.log('开始区域录制:', selectedArea)
-
-    // 使用已有的屏幕流，而不是重新获取
-    const fullScreenStream = screenshotData.value?.screenStream
-
-    if (!fullScreenStream) {
-      throw new Error('屏幕流不可用，需要重新获取权限')
+    if (!props.projectRunner) {
+      throw new Error('项目运行器未准备好')
     }
 
-    console.log('复用现有屏幕流，无需重新请求权限')
-
-    // 检查流是否仍然活跃
-    const videoTracks = fullScreenStream.getVideoTracks()
-    if (videoTracks.length === 0 || videoTracks[0].readyState === 'ended') {
-      throw new Error('屏幕流已结束，需要重新获取权限')
+    // 获取iframe元素
+    const iframeElement = props.projectRunner.$el?.querySelector('iframe')
+    if (!iframeElement) {
+      throw new Error('未找到iframe元素')
     }
 
-    // 创建canvas用于裁剪指定区域
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
-
-    // 设置canvas尺寸为选中区域大小
-    canvas.width = selectedArea.width
-    canvas.height = selectedArea.height
-
-    // 创建video元素来显示完整屏幕流
-    const video = document.createElement('video')
-    video.srcObject = fullScreenStream
-    video.play()
-
-    // 等待视频准备就绪
-    await new Promise<void>((resolve) => {
-      video.onloadedmetadata = () => {
-        console.log('视频流准备就绪，尺寸:', video.videoWidth, 'x', video.videoHeight)
-        resolve()
-      }
-    })
-
-    // 保存原始流引用
-    mediaStream.value = fullScreenStream
-
-    // 开始绘制循环
-    let animationId: number
-    const drawFrame = () => {
-      if (!isRecording.value) {
-        console.log('录制已停止，停止绘制循环')
-        return
-      }
-
-      try {
-        // 将指定区域绘制到canvas
-        ctx.drawImage(
-          video,
-          selectedArea.x,
-          selectedArea.y,
-          selectedArea.width,
-          selectedArea.height, // 源区域
-          0,
-          0,
-          canvas.width,
-          canvas.height // 目标区域
-        )
-        animationId = requestAnimationFrame(drawFrame)
-      } catch (error) {
-        console.error('绘制帧时出错:', error)
-        // 如果绘制出错，停止录制
-        if (isRecording.value) {
-          handleStopRecording.fn()
-        }
-      }
+    // 获取iframe的contentWindow
+    const iframeWindow = iframeElement.contentWindow
+    if (!iframeWindow) {
+      throw new Error('无法访问iframe内容')
     }
 
-    // 开始绘制循环
-    drawFrame()
+    // 获取game-canvas元素
+    const gameCanvas = iframeWindow.document.querySelector('#game-canvas') as HTMLCanvasElement
+    if (!gameCanvas) {
+      throw new Error('未找到game-canvas元素')
+    }
 
     // 从canvas获取录制流
-    const recordingStream = canvas.captureStream(30) // 30fps
+    const recordingStream = gameCanvas.captureStream(30) // 30fps
     console.log('Canvas录制流已创建，帧率: 30fps')
-
-    // 如果需要音频，从原始流中添加音频轨道
-    const audioTracks = fullScreenStream.getAudioTracks()
-    if (audioTracks.length > 0) {
-      recordingStream.addTrack(audioTracks[0])
-      console.log('已添加音频轨道到录制流')
-    } else {
-      console.log('原始流中没有音频轨道')
-    }
 
     // 检查MediaRecorder支持的格式
     let mimeType = 'video/webm'
@@ -678,7 +522,7 @@ const startAreaRecording = async (selectedArea: { x: number; y: number; width: n
     }
     console.log('使用录制格式:', mimeType)
 
-    // 创建MediaRecorder录制处理后的流
+    // 创建MediaRecorder录制canvas流
     const recorder = new MediaRecorder(recordingStream, {
       mimeType: mimeType || undefined
     })
@@ -693,13 +537,7 @@ const startAreaRecording = async (selectedArea: { x: number; y: number; width: n
     }
 
     recorder.onstop = () => {
-      console.log('区域录制停止，开始生成视频文件')
-
-      // 停止绘制循环
-      if (animationId) {
-        cancelAnimationFrame(animationId)
-        console.log('绘制循环已停止')
-      }
+      console.log('game-canvas录制停止，开始生成视频文件')
 
       // 检查是否有录制数据
       if (chunks.length === 0) {
@@ -735,7 +573,12 @@ const startAreaRecording = async (selectedArea: { x: number; y: number; width: n
 
     // 开始录制
     recorder.start(1000) // 每秒生成一个数据块
-    console.log('区域录制已开始，MediaRecorder状态:', recorder.state)
+    console.log('game-canvas录制已开始，MediaRecorder状态:', recorder.state)
+
+    // 更新状态
+    isRecording.value = true
+    currentState.value = 'recording'
+    mediaRecorder.value = recorder
 
     // 开始计时
     recordingTime.value = 0
@@ -743,28 +586,28 @@ const startAreaRecording = async (selectedArea: { x: number; y: number; width: n
       recordingTime.value++
     }, 1000)
 
-    // 监听流结束事件（用户停止分享屏幕）
-    fullScreenStream.getVideoTracks()[0].addEventListener('ended', () => {
-      console.log('屏幕分享流已结束')
-      if (isRecording.value) {
-        console.log('自动停止录制')
-        handleStopRecording.fn()
-      }
-    })
+    // 通知父组件录屏已开始
+    emit('recordingStarted')
 
-    return recorder
+    console.log('game-canvas录制已开始')
   } catch (error) {
-    console.error('区域录制失败:', error)
-
-    // 清理资源
-    if (screenshotData.value?.screenStream) {
-      screenshotData.value.screenStream.getTracks().forEach((track) => {
-        track.stop()
-      })
-    }
-
+    console.error('开始game-canvas录制失败:', error)
     throw error
   }
+}
+
+// 处理区域选择取消（保留以备将来使用）
+const handleAreaSelectionCancelled = () => {
+  console.log('用户取消了区域选择')
+  // 重置状态到初始状态
+  currentState.value = 'initial'
+}
+
+// 区域录制核心函数（保留以备将来使用）
+const startAreaRecording = async (selectedArea: { x: number; y: number; width: number; height: number }) => {
+  // 此函数已不再使用，保留以备将来需要
+  console.log('区域录制功能已废弃，使用game-canvas录制')
+  throw new Error('区域录制功能已废弃')
 }
 
 // 停止录屏
@@ -779,18 +622,6 @@ const handleStopRecording = useMessageHandle(
         mediaRecorder.value.stop()
         console.log('MediaRecorder已停止')
       }
-
-      // ========== 新增：完全停止屏幕分享流 ========
-      if (mediaStream.value) {
-        // 停止所有轨道（视频和音频）
-        mediaStream.value.getTracks().forEach((track) => {
-          track.stop()
-          console.log(`已停止${track.kind}轨道`)
-        })
-        mediaStream.value = null
-        console.log('屏幕分享流已完全停止')
-      }
-      // =============================================
 
       // 2. 重置状态
       isRecording.value = false

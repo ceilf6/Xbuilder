@@ -623,6 +623,7 @@ const remixesRet = useQuery(
       :visible="showRecordingModal"
       :project-name="project.name"
       :project-thumbnail="thumbnailUrl || undefined"
+      :project-runner="projectRunnerRef"
       @cancelled="showRecordingModal = false"
       @resolved="showRecordingModal = false"
       @recording-started="showRecordingModal = false"
