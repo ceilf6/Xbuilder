@@ -132,6 +132,15 @@
   import PosterBackground from './PosterBackground.vue'
   import logoSrc from '@/components/navbar/logo.svg'
 
+  // Type declaration for QQ mqq API
+  declare global {
+    interface Window {
+      mqq: {
+        invoke: (module: string, method: string, data: any) => void
+      }
+    }
+  }
+
   const props = defineProps<{
     visible: boolean
     owner: string
