@@ -90,6 +90,34 @@ watch(iframe, () => {
     emit('console', 'warn', args)
   }
 })
+
+// 添加截图方法
+const takeScreenshot = async () => {
+  const iframeWindow = iframe.value?.contentWindow as IframeWindow | null
+  if (!iframeWindow) {
+    throw new Error('iframe未准备好')
+  }
+
+  // 获取iframe内的game-canvas元素
+  const gameCanvas = iframeWindow.document.querySelector('#game-canvas') as HTMLCanvasElement
+  if (!gameCanvas) {
+    throw new Error('未找到game-canvas元素')
+  }
+
+  // 直接从canvas获取图像数据
+  const dataURL = gameCanvas.toDataURL('image/png')
+  
+  return {
+    dataURL,
+    width: gameCanvas.width,
+    height: gameCanvas.height
+  }
+}
+
+// 暴露截图方法
+defineExpose({
+  takeScreenshot
+})
 </script>
 
 <style scoped lang="scss">

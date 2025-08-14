@@ -28,6 +28,9 @@ defineExpose({
   },
   async rerun() {
     return projectRunnerRef.value?.rerun()
+  },
+  async takeScreenshot() {
+    return projectRunnerRef.value?.takeScreenshot()
   }
 })
 </script>

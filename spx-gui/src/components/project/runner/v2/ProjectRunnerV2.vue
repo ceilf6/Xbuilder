@@ -236,6 +236,27 @@ defineExpose({
   async rerun() {
     await this.stop()
     return this.run()
+  },
+  async takeScreenshot() {
+    const iframeWindow = iframeWindowRef.value
+    if (!iframeWindow) {
+      throw new Error('iframe未准备好')
+    }
+
+    // 获取iframe内的game-canvas元素
+    const gameCanvas = iframeWindow.document.querySelector('#game-canvas') as HTMLCanvasElement
+    if (!gameCanvas) {
+      throw new Error('未找到game-canvas元素')
+    }
+
+    // 直接从canvas获取图像数据
+    const dataURL = gameCanvas.toDataURL('image/png')
+    
+    return {
+      dataURL,
+      width: gameCanvas.width,
+      height: gameCanvas.height
+    }
   }
 })
 </script>

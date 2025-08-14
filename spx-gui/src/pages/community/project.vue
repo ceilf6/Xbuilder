@@ -268,48 +268,27 @@ const handleUnpublish = useMessageHandle(
 const handleScreenshot = useMessageHandle(
   async () => {
     try {
-      // 获取屏幕流（让用户选择要截图的屏幕/窗口）
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false
-      })
+      // 获取项目运行器引用
+      const projectRunner = projectRunnerRef.value
+      if (!projectRunner) {
+        throw new Error('项目运行器未准备好')
+      }
 
-      // 创建video元素来显示流
-      const video = document.createElement('video')
-      video.srcObject = screenStream
-      video.play()
-
-      // 等待视频准备就绪
-      await new Promise<void>((resolve) => {
-        video.onloadedmetadata = () => resolve()
-      })
-
-      // 等待一帧确保视频已渲染
-      await new Promise((resolve) => setTimeout(resolve, 100))
-
-      // 创建canvas并绘制当前帧
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')!
-
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-      ctx.drawImage(video, 0, 0)
-
-      const dataURL = canvas.toDataURL('image/png')
-      screenshotDataUrl.value = dataURL
-      screenshotWidth.value = canvas.width
-      screenshotHeight.value = canvas.height
+      // 使用项目运行器的截图方法
+      const screenshot = await projectRunner.takeScreenshot()
+      if (!screenshot) {
+        throw new Error('截图方法返回空结果')
+      }
       
-      // 停止屏幕流
-      screenStream.getTracks().forEach(track => track.stop())
+      // 设置截图数据
+      screenshotDataUrl.value = screenshot.dataURL
+      screenshotWidth.value = screenshot.width
+      screenshotHeight.value = screenshot.height
       
+      console.log('成功从游戏canvas获取截图', screenshot.width, 'x', screenshot.height)
       isScreenshotModalVisible.value = true
     } catch (error) {
       console.error('截图失败:', error)
-      // 用户可能取消了屏幕分享选择
-      if (error instanceof Error && error.name === 'NotAllowedError') {
-        console.log('用户取消了屏幕分享')
-      }
       throw error
     }
   },

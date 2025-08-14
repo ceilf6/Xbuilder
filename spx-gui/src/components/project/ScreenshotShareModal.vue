@@ -5,25 +5,15 @@
     :auto-focus="false"
     @update:visible="handleClose"
   >
-    <!-- 区域选择器 -->
-    <AreaSelector
-      v-if="showAreaSelector && screenshotDataUrl && screenshotWidth && screenshotHeight"
-      :screenshot-data-url="screenshotDataUrl"
-      :screenshot-width="screenshotWidth"
-      :screenshot-height="screenshotHeight"
-      @area-selected="handleAreaSelected"
-      @cancelled="handleAreaSelectionCancelled"
-    />
-
     <!-- 分享内容 -->
-    <div v-else class="share-content">
+    <div class="share-content">
       <div class="share-title">
         {{ $t({ en: 'This screenshot is great, share it with friends!', zh: '截图这么棒,分享给好友吧!' }) }}
       </div>
       <div class="share-main">
         <div class="poster-section">
           <PosterBackground
-            :img-src="croppedScreenshotDataUrl || screenshotDataUrl"
+            :img-src="screenshotDataUrl"
             img-alt="Screenshot"
             :project-name="projectName"
             :stats="posterStats"
@@ -81,7 +71,6 @@ import { generateProjectQRCode } from '@/utils/qrcode'
 import { UIButton, UIIcon } from '@/components/ui'
 import { UIFormModal } from '@/components/ui/modal'
 import { humanizeCount } from '@/utils/utils'
-import AreaSelector from './AreaSelector.vue'
 import logoSrc from '@/components/navbar/logo.svg'
 
 interface Platform {
@@ -128,8 +117,7 @@ const qrCanvas = ref<HTMLCanvasElement>()
 const projectQrCanvas = ref<HTMLCanvasElement>()
 const isDownloading = ref(false)
 
-// 框选相关状态
-const showAreaSelector = ref(false)
+// 截图相关状态
 const croppedScreenshotDataUrl = ref<string>('')
 const selectedArea = ref<SelectedArea | null>(null)
 
@@ -210,21 +198,18 @@ const posterStats = computed(() => {
   }
 })
 
-// 处理区域选择完成
+// 处理区域选择完成（保留以备将来使用）
 const handleAreaSelected = async (area: SelectedArea) => {
   try {
     selectedArea.value = area
     await cropScreenshot(area)
-    showAreaSelector.value = false
   } catch (error) {
     console.error('裁剪截图失败:', error)
-    showAreaSelector.value = false
   }
 }
 
-// 处理区域选择取消
+// 处理区域选择取消（保留以备将来使用）
 const handleAreaSelectionCancelled = () => {
-  showAreaSelector.value = false
   emit('close')
 }
 
@@ -271,30 +256,21 @@ const cropScreenshot = async (area: SelectedArea) => {
   })
 }
 
-// 监听弹窗显示状态，显示时启动框选
+// 监听弹窗显示状态，显示时直接生成二维码
 watch(() => props.visible, (newVisible) => {
   if (newVisible && props.screenshotDataUrl) {
     // 重置状态
     croppedScreenshotDataUrl.value = ''
     selectedArea.value = null
     
-    // 显示区域选择器
-    showAreaSelector.value = true
-  } else if (!newVisible) {
-    // 关闭时重置状态
-    showAreaSelector.value = false
-    croppedScreenshotDataUrl.value = ''
-    selectedArea.value = null
-  }
-})
-
-// 监听框选状态，框选完成后生成二维码
-watch(() => showAreaSelector.value, (newShowAreaSelector) => {
-  if (!newShowAreaSelector && croppedScreenshotDataUrl.value) {
-    // 框选完成，生成二维码
+    // 生成二维码
     nextTick(() => {
       generateQRCode()
     })
+  } else if (!newVisible) {
+    // 关闭时重置状态
+    croppedScreenshotDataUrl.value = ''
+    selectedArea.value = null
   }
 })
 
@@ -403,11 +379,7 @@ function handleOverlayClick() {
 }
 
 onMounted(() => {
-  if (props.visible && props.screenshotDataUrl) {
-    nextTick(() => {
-      showAreaSelector.value = true
-    })
-  }
+  // 组件挂载时的初始化逻辑（如果需要的话）
 });
 </script>
 

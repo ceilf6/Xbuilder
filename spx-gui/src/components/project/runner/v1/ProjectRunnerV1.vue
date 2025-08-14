@@ -1,6 +1,7 @@
 <template>
   <div class="iframe-container">
     <IframeDisplay
+      ref="iframeDisplayRef"
       v-if="zipData"
       :zip-data="zipData"
       @console="handleConsole"
@@ -64,6 +65,7 @@ const emit = defineEmits<{
 const [thumbnailUrl, thumbnailUrlLoading] = useFileUrl(() => props.project.thumbnail)
 const zipData = ref<ArrayBuffer | null>(null)
 const loading = ref(false)
+const iframeDisplayRef = ref<InstanceType<typeof IframeDisplay>>()
 
 const handleConsole = (type: 'log' | 'warn', args: unknown[]) => {
   emit('console', type, args)
@@ -129,6 +131,13 @@ defineExpose({
   rerun() {
     this.stop()
     return this.run()
+  },
+  async takeScreenshot() {
+    const iframeDisplay = iframeDisplayRef.value
+    if (!iframeDisplay) {
+      throw new Error('iframe未准备好')
+    }
+    return iframeDisplay.takeScreenshot()
   }
 })
 </script>
