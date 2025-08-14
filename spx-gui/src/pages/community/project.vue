@@ -207,7 +207,19 @@ function handleToggleLike() {
 
 const shareProject = useShareProject()
 
-const handleShare = useMessageHandle(() => shareProject(props.owner, props.name), {
+const handleShare = useMessageHandle(async () => {
+  const p = await untilNotNull(project)
+  await shareProject(
+    props.owner, 
+    props.name, 
+    thumbnailUrl.value || '',
+    {
+      viewCount: p.viewCount,
+      likeCount: p.likeCount,
+      remixCount: p.remixCount
+    }
+  )
+}, {
   en: 'Failed to share project',
   zh: '分享项目失败'
 })

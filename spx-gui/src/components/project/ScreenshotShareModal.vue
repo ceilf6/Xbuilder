@@ -22,43 +22,14 @@
       </div>
       <div class="share-main">
         <div class="poster-section">
-          <div class="poster-background">
-            <div class="screenshot-area">
-              <img v-if="croppedScreenshotDataUrl" :src="croppedScreenshotDataUrl" alt="Cropped Screenshot" class="screenshot-image" />
-              <img v-else-if="screenshotDataUrl" :src="screenshotDataUrl" alt="Screenshot" class="screenshot-image" />
-              <div v-else class="screenshot-placeholder">
-                <UIIcon type="file" />
-                <span>{{ $t({ en: 'No screenshot', zh: '暂无截图' }) }}</span>
-              </div>
-            </div>
-            <div class="poster-decoration">
-              <div class="project-info">
-                <div class="game-title">{{ projectName }}</div>
-                <div class="project-stats" v-if="formattedStats">
-                  <div class="stat-item" v-if="formattedStats.viewCount">
-                    <UIIcon type="eye" />
-                    <span>{{ $t(formattedStats.viewCount) }}</span>
-                  </div>
-                  <div class="stat-item" v-if="formattedStats.likeCount">
-                    <UIIcon type="heart" />
-                    <span>{{ $t(formattedStats.likeCount) }}</span>
-                  </div>
-                  <div class="stat-item" v-if="formattedStats.remixCount">
-                    <UIIcon type="remix" />
-                    <span>{{ $t(formattedStats.remixCount) }}</span>
-                  </div>
-                </div>
-              </div>
-              <div style="display: flex; align-items: flex-start; gap: 16px;">
-                <div class="branding">
-                  <img src="@/components/navbar/logo.svg" alt="logo" class="branding-logo" style="height: 40px; vertical-align: middle;" />
-                </div>
-                <div class="project-qrcode">
-                  <canvas ref="projectQrCanvas" class="project-qr-canvas"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PosterBackground
+            :img-src="croppedScreenshotDataUrl || screenshotDataUrl"
+            img-alt="Screenshot"
+            :project-name="projectName"
+            :stats="posterStats"
+            :logo-src="logoSrc"
+            :show-qr="true"
+          />
         </div>
         <div class="qr-section">
           <div class="qr-section-inner">
@@ -103,6 +74,7 @@
 </template>
 
 <script setup lang="ts">
+import PosterBackground from './PosterBackground.vue'
 import { ref, watch, onMounted, nextTick, computed } from 'vue'
 import html2canvas from 'html2canvas'
 import { generateProjectQRCode } from '@/utils/qrcode'
@@ -110,6 +82,7 @@ import { UIButton, UIIcon } from '@/components/ui'
 import { UIFormModal } from '@/components/ui/modal'
 import { humanizeCount } from '@/utils/utils'
 import AreaSelector from './AreaSelector.vue'
+import logoSrc from '@/components/navbar/logo.svg'
 
 interface Platform {
   id: string
@@ -217,16 +190,31 @@ const formattedStats = computed(() => {
   }
 })
 
+// 简单的数字格式化函数
+const formatCount = (count: number): string => {
+  if (count >= 1000000) {
+    return (count / 1000000).toFixed(1) + 'M'
+  } else if (count >= 1000) {
+    return (count / 1000).toFixed(1) + 'K'
+  }
+  return count.toString()
+}
+
+// 计算海报统计数据
+const posterStats = computed(() => {
+  if (!props.projectStats) return undefined
+  return {
+    viewCount: props.projectStats.viewCount ? formatCount(props.projectStats.viewCount) : undefined,
+    likeCount: props.projectStats.likeCount ? formatCount(props.projectStats.likeCount) : undefined,
+    remixCount: props.projectStats.remixCount ? formatCount(props.projectStats.remixCount) : undefined
+  }
+})
+
 // 处理区域选择完成
 const handleAreaSelected = async (area: SelectedArea) => {
   try {
-    console.log('用户选择了区域:', area)
     selectedArea.value = area
-    
-    // 裁剪图片
     await cropScreenshot(area)
-    
-    // 隐藏区域选择器
     showAreaSelector.value = false
   } catch (error) {
     console.error('裁剪截图失败:', error)
@@ -458,14 +446,8 @@ onMounted(() => {
 
 .share-main {
   height: 100%;
-  flex: 1 1 0%;
   display: flex;
-  gap: 32px;
-  justify-content: center;
-  align-items: stretch;
-  min-height: 200px;
-  min-width: 300px;
-  margin-bottom: 24px;
+  gap: 24px;
 }
 
 
@@ -571,7 +553,7 @@ onMounted(() => {
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  /* box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); */
   transition: all 0.3s ease;
   max-height: 400px;
 }

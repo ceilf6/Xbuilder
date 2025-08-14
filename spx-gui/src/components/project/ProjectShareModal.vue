@@ -40,13 +40,13 @@
       <div class="share-methods-section">
         <div class="section-label">{{ $t({ en: 'Share Method', zh: '分享方式' }) }}</div>
         <div class="social-icons">
-                      <div
-              v-for="platform in socialPlatforms"
-              :key="platform.name"
-              class="social-icon"
-              :class="{ active: selectedPlatform === platform.name }"
-              @click="handlePlatformChange(platform)"
-            >
+          <div
+            v-for="platform in socialPlatforms"
+            :key="platform.name"
+            class="social-icon"
+            :class="{ active: selectedPlatform === platform.name }"
+            @click="handlePlatformChange(platform)"
+          >
             <div class="icon-wrapper">
               <img
                 v-if="platform.name === 'qq'"
@@ -84,18 +84,32 @@
         </div>
       </div>
 
-      <!-- 二维码区域 -->
-      <div class="qr-section">
-        <div class="qr-code">
-          <div v-if="selectedPlatform === 'qq' ||  selectedPlatform === 'wechat'" class="qr-code-container">
-            <img :src="qrCodeData" :alt="$t({ en: 'Share QR Code', zh: '分享二维码' })" class="qr-image" />
-          </div>
-          <div v-else-if="selectedPlatform === 'douyin' || selectedPlatform === 'xiaohongshu' || selectedPlatform === 'bilibili'" class="qr-grid">
-            <div v-for="i in 25" :key="i" class="qr-cell" :class="{ filled: Math.random() > 0.5 }"></div>
-          </div>
+      <!-- 分享主要内容区域 -->
+      <div class="share-main">
+        <div class="poster-section">
+          <PosterBackground
+            :img-src="props.thumbnail"
+            img-alt="Project thumbnail"
+            :project-name="props.name"
+            :stats="projectStats"
+            :logo-src="logoSrc"
+            :show-qr="true"
+          />
         </div>
-        <div class="qr-hint">
-          {{ $t({ en: 'Scan the code with the corresponding platform to share', zh: '用对应平台进行扫码分享' }) }}
+        <div class="qr-section">
+          <div class="qr-section-inner">
+            <div class="qr-code">
+              <div v-if="selectedPlatform === 'qq' || selectedPlatform === 'wechat'" class="qr-code-container">
+                <img :src="qrCodeData" :alt="$t({ en: 'Share QR Code', zh: '分享二维码' })" class="qr-image" />
+              </div>
+              <div v-else-if="selectedPlatform === 'douyin' || selectedPlatform === 'xiaohongshu' || selectedPlatform === 'bilibili'" class="qr-grid">
+                <div v-for="i in 25" :key="i" class="qr-cell" :class="{ filled: Math.random() > 0.5 }"></div>
+              </div>
+            </div>
+            <div class="qr-hint">
+              {{ $t({ en: 'Scan the code with the corresponding platform to share', zh: '用对应平台进行扫码分享' }) }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -114,12 +128,19 @@
   import xiaohongshuIcon from '@/assets/images/小红书.svg'
   import bilibiliIcon from '@/assets/images/bilibili.svg'
   import { generateShareQRCode, type ProjectShareInfo } from '@/utils/qrcode'
+  import PosterBackground from './PosterBackground.vue'
+  import logoSrc from '@/components/navbar/logo.svg'
 
   const props = defineProps<{
     visible: boolean
     owner: string
     name: string
     thumbnail: string
+    projectStats?: {
+      viewCount?: number
+      likeCount?: number
+      remixCount?: number
+    }
   }>()
 
   const emit = defineEmits<{
@@ -135,6 +156,27 @@
 
   const projectSharingLink = computed(() => {
     return `${location.origin}${getProjectShareRoute(props.owner, props.name)}`
+  })
+
+  // 简单的数字格式化函数
+  const formatCount = (count: number): string => {
+    if (count >= 1000000) {
+      return (count / 1000000).toFixed(1) + 'M'
+    } else if (count >= 1000) {
+      return (count / 1000).toFixed(1) + 'K'
+    }
+    return count.toString()
+  }
+
+  // 计算项目统计数据，用于 PosterBackground 组件
+  const projectStats = computed(() => {
+    if (!props.projectStats) return undefined
+    
+    return {
+      viewCount: props.projectStats.viewCount ? formatCount(props.projectStats.viewCount) : undefined,
+      likeCount: props.projectStats.likeCount ? formatCount(props.projectStats.likeCount) : undefined,
+      remixCount: props.projectStats.remixCount ? formatCount(props.projectStats.remixCount) : undefined
+    }
   })
 
   const handleCopy = useMessageHandle(
@@ -197,6 +239,37 @@
 <style scoped lang="scss">
 .share-content {
   padding: 20px 0;
+}
+
+.share-main {
+  height: 100%;
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.poster-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  height: 100%;
+}
+
+.qr-section {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 220px;
+}
+
+.qr-section-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .share-title {
