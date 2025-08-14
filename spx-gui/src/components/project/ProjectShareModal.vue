@@ -79,7 +79,7 @@
                 alt="Bilibili"
               />
             </div>
-            <span class="platform-name">{{ platform.label }}</span>
+            <span class="platform-name">{{ $t(platform.label) }}</span>
           </div>
         </div>
       </div>
@@ -188,11 +188,11 @@
 
   // 社交平台配置
   const socialPlatforms = [
-    { name: 'qq', label: 'QQ', color: '#FF6B35' },
-    { name: 'wechat', label: '微信', color: '#07C160' },
-    { name: 'douyin', label: '抖音', color: '#000000' },
-    { name: 'xiaohongshu', label: '小红书', color: '#FF2442' },
-    { name: 'bilibili', label: 'b站', color: '#FB7299' }
+    { name: 'qq', label: { en: 'QQ', zh: 'QQ' }, color: '#FF6B35' },
+    { name: 'wechat', label: { en: 'WeChat', zh: '微信' }, color: '#07C160' },
+    { name: 'douyin', label: { en: 'TikTok', zh: '抖音' }, color: '#000000' },
+    { name: 'xiaohongshu', label: { en: 'RedNote', zh: '小红书' }, color: '#FF2442' },
+    { name: 'bilibili', label: { en: 'Bilibili', zh: 'b站' }, color: '#FB7299' }
   ]
 
     // 处理平台切换

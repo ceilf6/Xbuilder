@@ -65,7 +65,7 @@
               <img v-else-if="platform.id === 'xiaohongshu'" src="@/assets/images/小红书.svg" class="icon" alt="Xiaohongshu" />
               <img v-else-if="platform.id === 'bilibili'" src="@/assets/images/bilibili.svg" class="icon" alt="Bilibili" />
             </div>
-            <span class="platform-name">{{ platform.name }}</span>
+            <span class="platform-name">{{ $t(platform.name) }}</span>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@ import logoSrc from '@/components/navbar/logo.svg'
 
 interface Platform {
   id: string
-  name: string
+  name: { en: string, zh: string }
   icon: string
   color: string
   shareUrl: string
@@ -142,35 +142,35 @@ function getCurrentProjectUrl() {
 const platforms: Platform[] = [
   {
     id: 'qq',
-    name: 'QQ',
+    name: { en: 'QQ', zh: 'QQ' },
     icon: '🐧',
     color: '#12B7F5',
     shareUrl: 'https://qzone.qq.com'
   },
   {
     id: 'wechat',
-    name: '微信',
+    name: { en: 'WeChat', zh: '微信' },
     icon: '💬',
     color: '#09BB07',
     shareUrl: 'https://weixin.qq.com'
   },
   {
     id: 'douyin',
-    name: '抖音',
+    name: { en: 'TikTok', zh: '抖音' },
     icon: '🎵',
     color: '#FE2C55',
     shareUrl: 'https://www.douyin.com'
   },
   {
     id: 'xiaohongshu',
-    name: '小红书',
+    name: { en: 'RedNote', zh: '小红书' },
     icon: '📖',
     color: '#FF2442',
     shareUrl: 'https://www.xiaohongshu.com'
   },
   {
     id: 'bilibili',
-    name: 'B站',
+    name: { en: 'Bilibili', zh: 'B站' },
     icon: '📺',
     color: '#00A1D6',
     shareUrl: 'https://www.bilibili.com'
