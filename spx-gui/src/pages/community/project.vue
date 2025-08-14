@@ -188,8 +188,7 @@ const handleEdit = useMessageHandle(
     const projectEditorRoute = getProjectEditorRoute(props.owner, props.name)
     await router.push(projectEditorRoute)
   },
-  { en: 'Failed to open editor', zh: '打开编辑器失败' },
-  undefined
+  { en: 'Failed to open editor', zh: '打开编辑器失败' }
 )
 
 const likeProject = useLikeProject()
@@ -199,8 +198,7 @@ const handleLike = useMessageHandle(
     await likeProject(props.owner, props.name)
     await project.value?.loadFromCloud(props.owner, props.name, true) // refresh project info (likeCount)
   },
-  { en: 'Failed to like', zh: '标记喜欢失败' },
-  undefined
+  { en: 'Failed to like', zh: '标记喜欢失败' }
 )
 
 const unlikeProject = useUnlikeProject()
@@ -210,8 +208,7 @@ const handleUnlike = useMessageHandle(
     await unlikeProject(props.owner, props.name)
     await project.value?.loadFromCloud(props.owner, props.name, true) // refresh project info (likeCount)
   },
-  { en: 'Failed to unlike', zh: '取消喜欢失败' },
-  undefined
+  { en: 'Failed to unlike', zh: '取消喜欢失败' }
 )
 
 const isTogglingLike = computed(() => (liking.value ? handleUnlike.isLoading.value : handleLike.isLoading.value))
@@ -247,8 +244,7 @@ const handleRemix = useMessageHandle(
     const name = await createProject(stringifyRemixSource(props.owner, props.name))
     router.push(getOwnProjectEditorRoute(name))
   },
-  { en: 'Failed to remix project', zh: '改编项目失败' },
-  undefined
+  { en: 'Failed to remix project', zh: '改编项目失败' }
 )
 
 const releasesRet = useQuery(
@@ -292,9 +288,17 @@ const handleScreenshot = useMessageHandle(
 
       // 等待项目运行器完全初始化
       let retryCount = 0
-      const maxRetries = 50 // 增加重试次数，因为需要等待iframe加载
+      const maxRetries = 100 // 增加重试次数，因为需要等待iframe和游戏引擎完全加载
       while (retryCount < maxRetries) {
         try {
+          // 检查项目运行器是否有必要的方法
+          if (typeof projectRunner.pauseGame !== 'function' || typeof projectRunner.resumeGame !== 'function') {
+            console.log(`等待项目运行器方法初始化... (${retryCount + 1}/${maxRetries})`)
+            await new Promise(resolve => setTimeout(resolve, 200))
+            retryCount++
+            continue
+          }
+
           // 尝试调用pauseGame，如果成功说明已经完全初始化
           await projectRunner.pauseGame()
           // 如果成功，立即恢复游戏
@@ -302,8 +306,9 @@ const handleScreenshot = useMessageHandle(
           console.log('项目运行器已完全初始化')
           break
         } catch (error) {
-          console.log(`等待项目运行器初始化... (${retryCount + 1}/${maxRetries})`)
-          await new Promise(resolve => setTimeout(resolve, 200)) // 增加等待时间
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          console.log(`等待项目运行器初始化... (${retryCount + 1}/${maxRetries}): ${errorMessage}`)
+          await new Promise(resolve => setTimeout(resolve, 200))
           retryCount++
         }
       }
@@ -378,8 +383,7 @@ const handlePublish = useMessageHandle(
   // there may be no thumbnail for some projects (see details in https://github.com/goplus/builder/issues/1025),
   // to ensure thumbnail for project-release, we jump to editor where we are able to generate thumbnails and then finish publishing
   async () => router.push(getOwnProjectEditorRoute(props.name, true)),
-  { en: 'Failed to publish project', zh: '发布项目失败' },
-  undefined
+  { en: 'Failed to publish project', zh: '发布项目失败' }
 )
 
 const removeProject = useRemoveProject()
@@ -393,7 +397,6 @@ const handleRemove = useMessageHandle(
 )
 
 const isDesktopLarge = useResponsive('desktop-large')
-const isMobile = useResponsive('mobile')
 const remixNumInRow = computed(() => (isDesktopLarge.value ? 6 : 5))
 
 const remixesRet = useQuery(
@@ -450,7 +453,7 @@ const remixesRet = useQuery(
         />
         <div class="ops">
           <UIButton
-            v-if="runnerState === 'running'&&!isMobile"
+            v-if="runnerState === 'running'"
             v-radar="{ name: 'Screenshot button', desc: 'Click to take a screenshot' }"
             type="boring"
             :loading="handleScreenshot.isLoading.value"
@@ -472,7 +475,7 @@ const remixesRet = useQuery(
           </UIButton>
 
           <UIButton
-            v-if="runnerState === 'running'&&!isMobile"
+            v-if="runnerState === 'running'"
             v-radar="{ name: 'Record button', desc: 'Click to start recording' }"
             type="boring"
             @click="handleRecord"
@@ -515,7 +518,7 @@ const remixesRet = useQuery(
           >
             {{ $t({ en: 'Stop', zh: '停止' }) }}
           </UIButton>
-          <UITooltip v-if="!isMobile">
+          <UITooltip>
             <template #trigger>
               <UIButton
                 v-radar="{ name: 'Share button', desc: 'Click to share the project' }"
@@ -565,7 +568,7 @@ const remixesRet = useQuery(
                 >{{ $t({ en: 'Edit', zh: '编辑' }) }}</UIButton
               >
               <UIButton
-                v-if="project.visibility === Visibility.Public && !isMobile"
+                v-if="project.visibility === Visibility.Public"
                 v-radar="{ name: 'Share button', desc: 'Click to share the project' }"
                 type="boring"
                 size="large"
@@ -610,7 +613,7 @@ const remixesRet = useQuery(
             </template>
             <template v-else>
               <UIButton
-                v-if="hasRelease && !isMobile"
+                v-if="hasRelease"
                 v-radar="{ name: 'Remix button', desc: 'Click to remix this project' }"
                 type="primary"
                 size="large"
@@ -632,7 +635,6 @@ const remixesRet = useQuery(
                 {{ $t(likeCount!.text) }}
               </UIButton>
               <UIButton
-              
                 v-radar="{ name: 'Share button', desc: 'Click to share the project' }"
                 type="boring"
                 size="large"
@@ -714,7 +716,6 @@ const remixesRet = useQuery(
 </template>
 
 <style scoped lang="scss">
-@import '@/components/ui/responsive.scss';
 .error {
   position: absolute;
   width: 100%;
@@ -731,17 +732,10 @@ const remixesRet = useQuery(
   display: flex;
   gap: 40px;
   background: var(--ui-color-grey-100);
-  @include responsive(mobile) {
-    flex-direction: column;
-    gap: 20px;
-  }
 }
 
 .left {
   flex: 1 1 744px;
-  @include responsive(mobile){
-    flex: 1 1 0;
-  }
   .project-wrapper {
     position: relative;
     width: 100%;
