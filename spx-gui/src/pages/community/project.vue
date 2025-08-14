@@ -208,7 +208,7 @@ function handleToggleLike() {
 const shareProject = useShareProject()
 
 const handleShare = useMessageHandle(async () => {
-  const p = await untilNotNull(project)
+  const p = await untilNotNull(project) as Project
   await shareProject(
     props.owner, 
     props.name, 
