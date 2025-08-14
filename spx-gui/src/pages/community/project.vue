@@ -286,9 +286,27 @@ const handleScreenshot = useMessageHandle(
         throw new Error('项目运行器未准备好')
       }
 
-      // 调试：检查项目运行器的方法
-      console.log('项目运行器方法:', Object.getOwnPropertyNames(Object.getPrototypeOf(projectRunner)))
-      console.log('项目运行器是否有pauseGame方法:', typeof projectRunner.pauseGame)
+      // 等待项目运行器完全初始化
+      let retryCount = 0
+      const maxRetries = 50 // 增加重试次数，因为需要等待iframe加载
+      while (retryCount < maxRetries) {
+        try {
+          // 尝试调用pauseGame，如果成功说明已经完全初始化
+          await projectRunner.pauseGame()
+          // 如果成功，立即恢复游戏
+          await projectRunner.resumeGame()
+          console.log('项目运行器已完全初始化')
+          break
+        } catch (error) {
+          console.log(`等待项目运行器初始化... (${retryCount + 1}/${maxRetries})`)
+          await new Promise(resolve => setTimeout(resolve, 200)) // 增加等待时间
+          retryCount++
+        }
+      }
+
+      if (retryCount >= maxRetries) {
+        throw new Error('项目运行器初始化超时')
+      }
 
       // 暂停游戏
       await projectRunner.pauseGame()
