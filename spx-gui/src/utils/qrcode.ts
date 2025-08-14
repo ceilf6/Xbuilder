@@ -178,7 +178,7 @@ export class ShareQRCodeGenerator extends QRCodeGenerator {
       wechat: { dark: '#07c160', light: '#ffffff' },
       douyin: { dark: '#000000', light: '#ffffff' },
       xiaohongshu: { dark: '#ff2442', light: '#ffffff' },
-      bilibili: { dark: '#00a1d6', light: '#ffffff' }
+      bilibili: { dark: '#d4237a', light: '#ffffff' }
     }
 
     return colors[platformId as keyof typeof colors] || { dark: '#000000', light: '#ffffff' }
