@@ -34,6 +34,9 @@ interface IframeWindow extends Window {
   setAIInteractionAPIEndpoint: (endpoint: string) => void
   setAIInteractionAPITokenProvider: (provider: () => Promise<string>) => void
   startWithZipBuffer: (buf: ArrayBuffer | Uint8Array) => void
+  pauseGame(): Promise<void>
+  resumeGame(): Promise<void>
+  debugGameMethods(): void
   console: typeof console
 }
 
@@ -114,9 +117,30 @@ const takeScreenshot = async () => {
   }
 }
 
-// 暴露截图方法
+// 暴露截图和游戏控制方法
 defineExpose({
-  takeScreenshot
+  takeScreenshot,
+  pauseGame: async () => {
+    const iframeWindow = iframe.value?.contentWindow as IframeWindow | null
+    if (!iframeWindow) {
+      throw new Error('iframe未准备好')
+    }
+    await iframeWindow.pauseGame()
+  },
+  resumeGame: async () => {
+    const iframeWindow = iframe.value?.contentWindow as IframeWindow | null
+    if (!iframeWindow) {
+      throw new Error('iframe未准备好')
+    }
+    await iframeWindow.resumeGame()
+  },
+  debugGameMethods: () => {
+    const iframeWindow = iframe.value?.contentWindow as IframeWindow | null
+    if (!iframeWindow) {
+      throw new Error('iframe未准备好')
+    }
+    iframeWindow.debugGameMethods()
+  }
 })
 </script>
 

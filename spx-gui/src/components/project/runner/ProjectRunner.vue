@@ -31,6 +31,15 @@ defineExpose({
   },
   async takeScreenshot() {
     return projectRunnerRef.value?.takeScreenshot()
+  },
+  async pauseGame() {
+    return projectRunnerRef.value?.pauseGame()
+  },
+  async resumeGame() {
+    return projectRunnerRef.value?.resumeGame()
+  },
+  debugGameMethods() {
+    return projectRunnerRef.value?.debugGameMethods()
   }
 })
 </script>

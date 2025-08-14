@@ -51,6 +51,18 @@ interface IframeWindow extends Window {
    * We reload the iframe to stop the game instead.
    */
   stopGame(): Promise<void>
+  /**
+   * Pause the game engine
+   */
+  pauseGame(): Promise<void>
+  /**
+   * Resume the game engine
+   */
+  resumeGame(): Promise<void>
+  /**
+   * Debug function to check available game methods
+   */
+  debugGameMethods(): void
   onGameError: (callback: (err: string) => void) => void
   console: typeof console
   /**
@@ -257,6 +269,27 @@ defineExpose({
       width: gameCanvas.width,
       height: gameCanvas.height
     }
+  },
+  async pauseGame() {
+    const iframeWindow = iframeWindowRef.value
+    if (!iframeWindow) {
+      throw new Error('iframe未准备好')
+    }
+    await iframeWindow.pauseGame()
+  },
+  async resumeGame() {
+    const iframeWindow = iframeWindowRef.value
+    if (!iframeWindow) {
+      throw new Error('iframe未准备好')
+    }
+    await iframeWindow.resumeGame()
+  },
+  debugGameMethods() {
+    const iframeWindow = iframeWindowRef.value
+    if (!iframeWindow) {
+      throw new Error('iframe未准备好')
+    }
+    iframeWindow.debugGameMethods()
   }
 })
 </script>

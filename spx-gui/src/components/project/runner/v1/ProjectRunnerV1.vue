@@ -138,6 +138,27 @@ defineExpose({
       throw new Error('iframe未准备好')
     }
     return iframeDisplay.takeScreenshot()
+  },
+  async pauseGame() {
+    const iframeDisplay = iframeDisplayRef.value
+    if (!iframeDisplay) {
+      throw new Error('iframe未准备好')
+    }
+    await iframeDisplay.pauseGame()
+  },
+  async resumeGame() {
+    const iframeDisplay = iframeDisplayRef.value
+    if (!iframeDisplay) {
+      throw new Error('iframe未准备好')
+    }
+    await iframeDisplay.resumeGame()
+  },
+  debugGameMethods() {
+    const iframeDisplay = iframeDisplayRef.value
+    if (!iframeDisplay) {
+      throw new Error('iframe未准备好')
+    }
+    iframeDisplay.debugGameMethods()
   }
 })
 </script>

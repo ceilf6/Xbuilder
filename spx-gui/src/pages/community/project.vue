@@ -286,6 +286,10 @@ const handleScreenshot = useMessageHandle(
         throw new Error('项目运行器未准备好')
       }
 
+      // 暂停游戏
+      await projectRunner.pauseGame()
+      console.log('游戏已暂停')
+
       // 使用项目运行器的截图方法
       const screenshot = await projectRunner.takeScreenshot()
       if (!screenshot) {
@@ -301,14 +305,35 @@ const handleScreenshot = useMessageHandle(
       isScreenshotModalVisible.value = true
     } catch (error) {
       console.error('截图失败:', error)
+      // 如果截图失败，也要恢复游戏
+      try {
+        const projectRunner = projectRunnerRef.value
+        if (projectRunner) {
+          await projectRunner.resumeGame()
+          console.log('游戏已恢复（截图失败后）')
+        }
+      } catch (resumeError) {
+        console.error('恢复游戏失败:', resumeError)
+      }
       throw error
     }
   },
   { en: 'Failed to take screenshot', zh: '截屏失败' }
 )
 
-function handleCloseScreenshotModal() {
+async function handleCloseScreenshotModal() {
   isScreenshotModalVisible.value = false
+  
+  // 恢复游戏
+  try {
+    const projectRunner = projectRunnerRef.value
+    if (projectRunner) {
+      await projectRunner.resumeGame()
+      console.log('游戏已恢复')
+    }
+  } catch (error) {
+    console.error('恢复游戏失败:', error)
+  }
 }
 
 const handleRecord = async () => {
