@@ -30,16 +30,28 @@ defineExpose({
     return projectRunnerRef.value?.rerun()
   },
   async takeScreenshot() {
-    return projectRunnerRef.value?.takeScreenshot()
+    if (!projectRunnerRef.value) {
+      throw new Error('项目运行器未准备好')
+    }
+    return projectRunnerRef.value.takeScreenshot()
   },
   async pauseGame() {
-    return projectRunnerRef.value?.pauseGame()
+    if (!projectRunnerRef.value) {
+      throw new Error('项目运行器未准备好')
+    }
+    return projectRunnerRef.value.pauseGame()
   },
   async resumeGame() {
-    return projectRunnerRef.value?.resumeGame()
+    if (!projectRunnerRef.value) {
+      throw new Error('项目运行器未准备好')
+    }
+    return projectRunnerRef.value.resumeGame()
   },
   debugGameMethods() {
-    return projectRunnerRef.value?.debugGameMethods()
+    if (!projectRunnerRef.value) {
+      throw new Error('项目运行器未准备好')
+    }
+    return projectRunnerRef.value.debugGameMethods()
   }
 })
 </script>

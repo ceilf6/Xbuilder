@@ -286,6 +286,10 @@ const handleScreenshot = useMessageHandle(
         throw new Error('项目运行器未准备好')
       }
 
+      // 调试：检查项目运行器的方法
+      console.log('项目运行器方法:', Object.getOwnPropertyNames(Object.getPrototypeOf(projectRunner)))
+      console.log('项目运行器是否有pauseGame方法:', typeof projectRunner.pauseGame)
+
       // 暂停游戏
       await projectRunner.pauseGame()
       console.log('游戏已暂停')
