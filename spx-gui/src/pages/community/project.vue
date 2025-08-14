@@ -188,7 +188,8 @@ const handleEdit = useMessageHandle(
     const projectEditorRoute = getProjectEditorRoute(props.owner, props.name)
     await router.push(projectEditorRoute)
   },
-  { en: 'Failed to open editor', zh: '打开编辑器失败' }
+  { en: 'Failed to open editor', zh: '打开编辑器失败' },
+  undefined
 )
 
 const likeProject = useLikeProject()
@@ -198,7 +199,8 @@ const handleLike = useMessageHandle(
     await likeProject(props.owner, props.name)
     await project.value?.loadFromCloud(props.owner, props.name, true) // refresh project info (likeCount)
   },
-  { en: 'Failed to like', zh: '标记喜欢失败' }
+  { en: 'Failed to like', zh: '标记喜欢失败' },
+  undefined
 )
 
 const unlikeProject = useUnlikeProject()
@@ -208,7 +210,8 @@ const handleUnlike = useMessageHandle(
     await unlikeProject(props.owner, props.name)
     await project.value?.loadFromCloud(props.owner, props.name, true) // refresh project info (likeCount)
   },
-  { en: 'Failed to unlike', zh: '取消喜欢失败' }
+  { en: 'Failed to unlike', zh: '取消喜欢失败' },
+  undefined
 )
 
 const isTogglingLike = computed(() => (liking.value ? handleUnlike.isLoading.value : handleLike.isLoading.value))
@@ -244,7 +247,8 @@ const handleRemix = useMessageHandle(
     const name = await createProject(stringifyRemixSource(props.owner, props.name))
     router.push(getOwnProjectEditorRoute(name))
   },
-  { en: 'Failed to remix project', zh: '改编项目失败' }
+  { en: 'Failed to remix project', zh: '改编项目失败' },
+  undefined
 )
 
 const releasesRet = useQuery(
@@ -374,7 +378,8 @@ const handlePublish = useMessageHandle(
   // there may be no thumbnail for some projects (see details in https://github.com/goplus/builder/issues/1025),
   // to ensure thumbnail for project-release, we jump to editor where we are able to generate thumbnails and then finish publishing
   async () => router.push(getOwnProjectEditorRoute(props.name, true)),
-  { en: 'Failed to publish project', zh: '发布项目失败' }
+  { en: 'Failed to publish project', zh: '发布项目失败' },
+  undefined
 )
 
 const removeProject = useRemoveProject()
@@ -388,6 +393,7 @@ const handleRemove = useMessageHandle(
 )
 
 const isDesktopLarge = useResponsive('desktop-large')
+const isMobile = useResponsive('mobile')
 const remixNumInRow = computed(() => (isDesktopLarge.value ? 6 : 5))
 
 const remixesRet = useQuery(
@@ -444,7 +450,7 @@ const remixesRet = useQuery(
         />
         <div class="ops">
           <UIButton
-            v-if="runnerState === 'running'"
+            v-if="runnerState === 'running'&&!isMobile"
             v-radar="{ name: 'Screenshot button', desc: 'Click to take a screenshot' }"
             type="boring"
             :loading="handleScreenshot.isLoading.value"
@@ -466,7 +472,7 @@ const remixesRet = useQuery(
           </UIButton>
 
           <UIButton
-            v-if="runnerState === 'running'"
+            v-if="runnerState === 'running'&&!isMobile"
             v-radar="{ name: 'Record button', desc: 'Click to start recording' }"
             type="boring"
             @click="handleRecord"
@@ -509,7 +515,7 @@ const remixesRet = useQuery(
           >
             {{ $t({ en: 'Stop', zh: '停止' }) }}
           </UIButton>
-          <UITooltip>
+          <UITooltip v-if="!isMobile">
             <template #trigger>
               <UIButton
                 v-radar="{ name: 'Share button', desc: 'Click to share the project' }"
@@ -559,7 +565,7 @@ const remixesRet = useQuery(
                 >{{ $t({ en: 'Edit', zh: '编辑' }) }}</UIButton
               >
               <UIButton
-                v-if="project.visibility === Visibility.Public"
+                v-if="project.visibility === Visibility.Public && !isMobile"
                 v-radar="{ name: 'Share button', desc: 'Click to share the project' }"
                 type="boring"
                 size="large"
@@ -604,7 +610,7 @@ const remixesRet = useQuery(
             </template>
             <template v-else>
               <UIButton
-                v-if="hasRelease"
+                v-if="hasRelease && !isMobile"
                 v-radar="{ name: 'Remix button', desc: 'Click to remix this project' }"
                 type="primary"
                 size="large"
@@ -626,6 +632,7 @@ const remixesRet = useQuery(
                 {{ $t(likeCount!.text) }}
               </UIButton>
               <UIButton
+              
                 v-radar="{ name: 'Share button', desc: 'Click to share the project' }"
                 type="boring"
                 size="large"
@@ -707,6 +714,7 @@ const remixesRet = useQuery(
 </template>
 
 <style scoped lang="scss">
+@import '@/components/ui/responsive.scss';
 .error {
   position: absolute;
   width: 100%;
@@ -723,10 +731,17 @@ const remixesRet = useQuery(
   display: flex;
   gap: 40px;
   background: var(--ui-color-grey-100);
+  @include responsive(mobile) {
+    flex-direction: column;
+    gap: 20px;
+  }
 }
 
 .left {
   flex: 1 1 744px;
+  @include responsive(mobile){
+    flex: 1 1 0;
+  }
   .project-wrapper {
     position: relative;
     width: 100%;
