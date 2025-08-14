@@ -86,7 +86,8 @@
 
       <!-- 分享主要内容区域 -->
       <div class="share-main">
-        <div class="poster-section">
+        <!-- 海报区域，仅在抖音/小红书/b站显示 -->
+        <div v-if="selectedPlatform === 'douyin' || selectedPlatform === 'xiaohongshu' || selectedPlatform === 'bilibili'" class="poster-section">
           <PosterBackground
             :img-src="props.thumbnail"
             img-alt="Project thumbnail"
@@ -246,6 +247,7 @@
   display: flex;
   gap: 24px;
   margin-bottom: 24px;
+  justify-content: center;
 }
 
 .poster-section {
@@ -254,6 +256,7 @@
   justify-content: center;
   align-items: stretch;
   height: 100%;
+  max-width: 400px;
 }
 
 .qr-section {
