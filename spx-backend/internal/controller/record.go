@@ -174,3 +174,154 @@ func (ctrl *Controller) CreateRecord(ctx context.Context, params *CreateRecordPa
 	recordDTO := toRecordDTO(mRecord)
 	return &recordDTO, nil
 }
+
+// ListRecordsOrderBy defines the available order by options
+type ListRecordsOrderBy string
+
+const (
+	ListRecordsOrderByCreatedAt ListRecordsOrderBy = "createdAt"
+	ListRecordsOrderByUpdatedAt ListRecordsOrderBy = "updatedAt"
+	ListRecordsOrderByDuration  ListRecordsOrderBy = "duration"
+	ListRecordsOrderByViewCount ListRecordsOrderBy = "viewCount"
+	ListRecordsOrderByLikeCount ListRecordsOrderBy = "likeCount"
+)
+
+// IsValid reports whether the order by condition is valid.
+func (ob ListRecordsOrderBy) IsValid() bool {
+	switch ob {
+	case ListRecordsOrderByCreatedAt,
+		ListRecordsOrderByUpdatedAt,
+		ListRecordsOrderByDuration,
+		ListRecordsOrderByViewCount,
+		ListRecordsOrderByLikeCount:
+		return true
+	}
+	return false
+}
+
+// ListRecordsParams holds parameters for listing records.
+type ListRecordsParams struct {
+	// Owner filters records by owner username
+	Owner *string
+
+	// ProjectFullName filters records by associated project
+	ProjectFullName *ProjectFullName
+
+	// Keyword filters records by name or title
+	Keyword *string
+
+	// OrderBy specifies the field to order by
+	OrderBy ListRecordsOrderBy
+
+	// SortOrder specifies the sort direction
+	SortOrder SortOrder
+
+	// Pagination is the pagination information
+	Pagination Pagination
+}
+
+// NewListRecordsParams creates a new ListRecordsParams with default values.
+func NewListRecordsParams() *ListRecordsParams {
+	return &ListRecordsParams{
+		OrderBy:    ListRecordsOrderByCreatedAt,
+		SortOrder:  SortOrderDesc,
+		Pagination: Pagination{Index: 1, Size: 20},
+	}
+}
+
+// Validate validates the ListRecordsParams.
+func (p *ListRecordsParams) Validate() (ok bool, msg string) {
+	if p.ProjectFullName != nil && !p.ProjectFullName.IsValid() {
+		return false, "invalid projectFullName"
+	}
+	if !p.OrderBy.IsValid() {
+		return false, "invalid orderBy"
+	}
+	if !p.SortOrder.IsValid() {
+		return false, "invalid sortOrder"
+	}
+	if !p.Pagination.IsValid() {
+		return false, "invalid pagination"
+	}
+	return true, ""
+}
+
+// ListRecords lists records with filtering and pagination.
+func (ctrl *Controller) ListRecords(ctx context.Context, params *ListRecordsParams) (*ByPage[RecordDTO], error) {
+	mUser, _ := authn.UserFromContext(ctx)
+	
+	query := ctrl.db.WithContext(ctx).Model(&model.Record{})
+	
+	// Apply owner filter
+	if params.Owner != nil {
+		query = query.Joins("JOIN user ON user.id = record.user_id").
+			Where("user.username = ?", *params.Owner)
+	} else if mUser != nil {
+		// Default to current user's records if no owner specified and user is authenticated
+		query = query.Where("record.user_id = ?", mUser.ID)
+	} else {
+		// For unauthenticated users, only show public records
+		query = query.Where("record.visibility = ?", model.VisibilityPublic)
+	}
+	
+	// Apply keyword filter
+	if params.Keyword != nil {
+		keyword := "%" + *params.Keyword + "%"
+		query = query.Where("record.name LIKE ? OR record.title LIKE ?", keyword, keyword)
+	}
+	
+	// Apply project filter
+	if params.ProjectFullName != nil {
+		query = query.Joins("JOIN project ON project.id = record.project_id").
+			Joins("JOIN user AS project_owner ON project_owner.id = project.owner_id").
+			Where("project_owner.username = ? AND project.name = ?", 
+				params.ProjectFullName.Owner, params.ProjectFullName.Project)
+	}
+	
+	// Count total
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, fmt.Errorf("failed to count records: %w", err)
+	}
+	
+	// Apply ordering
+	var queryOrderByColumn string
+	switch params.OrderBy {
+	case ListRecordsOrderByCreatedAt:
+		queryOrderByColumn = "record.created_at"
+	case ListRecordsOrderByUpdatedAt:
+		queryOrderByColumn = "record.updated_at"
+	case ListRecordsOrderByDuration:
+		queryOrderByColumn = "record.duration"
+	case ListRecordsOrderByViewCount:
+		queryOrderByColumn = "record.view_count"
+	case ListRecordsOrderByLikeCount:
+		queryOrderByColumn = "record.like_count"
+	}
+	if queryOrderByColumn == "" {
+		queryOrderByColumn = "record.created_at"
+	}
+	query = query.Order(fmt.Sprintf("%s %s, record.id", queryOrderByColumn, params.SortOrder))
+	
+	// Apply pagination and load records with associations
+	var mRecords []model.Record
+	if err := query.
+		Preload("User").
+		Preload("Project.Owner").
+		Offset(params.Pagination.Offset()).
+		Limit(params.Pagination.Size).
+		Find(&mRecords).Error; err != nil {
+		return nil, fmt.Errorf("failed to list records: %w", err)
+	}
+	
+	// Convert to DTOs
+	recordDTOs := make([]RecordDTO, len(mRecords))
+	for i, mRecord := range mRecords {
+		recordDTOs[i] = toRecordDTO(mRecord)
+	}
+	
+	return &ByPage[RecordDTO]{
+		Total: total,
+		Data:  recordDTOs,
+	}, nil
+}

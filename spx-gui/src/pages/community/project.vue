@@ -53,73 +53,13 @@ const props = defineProps<{
 const shareData = {
   title: 'QQ分享卡片示例',
   desc: '演示QQ卡片分享功能',
-  share_url: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
+  share_url: 'https://xbuilder-sharing-test.gopluscdn.com/project/' + props.owner + '/' + props.name,
   image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
-};
-
-// 3. 核心分享函数（与您之前成功的JS代码一致）
-function setQQShare() {
-  try {
-    // 直接使用您验证成功的调用方式
-    window.mqq?.invoke?.('data', 'setShareInfo', shareData);
-    console.log('QQ分享设置成功');
-    showToast('QQ分享卡片信息已设置');
-    return true;
-  } catch (error) {
-    console.error('QQ分享设置失败', error);
-    showToast('分享设置失败: ' + (error instanceof Error ? error.message : '未知错误'));
-    return false;
-  }
 }
 
-// 4. 简化的执行逻辑
-function init() {
-  // 直接尝试执行，不进行复杂的环境检测
-  const success = setQQShare();
-  
-  // 仅当首次失败时才重试
-  if (!success) {
-    let retryCount = 0;
-    const retry = () => {
-      retryCount++;
-      if (setQQShare() || retryCount >= 2) { // 最多重试2次
-        if (retryCount >= 2 && !success) {
-          console.warn('QQ分享设置失败，已重试2次');
-        }
-        return;
-      }
-      setTimeout(retry, 300); // 300ms后重试
-    };
-    setTimeout(retry, 500);
-  }
-}
-
-// 5. 智能执行时机处理
-const executeWhenReady = () => {
-  // 尝试立即执行
-  init();
-  
-  // 额外添加QQ专用事件监听
-  document.addEventListener('QQJSBridgeReady', init);
-};
-
-// 启动
-if (document.readyState === 'complete') {
-  executeWhenReady();
-} else {
-  document.addEventListener('DOMContentLoaded', executeWhenReady);
-  window.addEventListener('load', executeWhenReady);
-}
-
-// 6. 简化的消息提示
-function showToast(message: string) {
-  // 优先使用QQ浏览器的toast
-  try {
-    (window as any).mqq?.invoke?.('ui', 'toast', { message });
-  } catch {
-    // 失败时使用alert
-    alert(message);
-  }
+// Only call mqq API if it exists (when running in QQ browser)
+if (window.mqq) {
+  window.mqq.invoke('data', 'setShareInfo', shareData)
 }
 
 const router = useRouter()
@@ -285,22 +225,20 @@ function handleToggleLike() {
 
 const shareProject = useShareProject()
 
-const handleShare = useMessageHandle(async () => {
-  const p = await untilNotNull(project) as Project
-  await shareProject(
-    props.owner, 
-    props.name, 
-    thumbnailUrl.value || '',
-    {
+const handleShare = useMessageHandle(
+  async () => {
+    const p = (await untilNotNull(project)) as Project
+    await shareProject(props.owner, props.name, thumbnailUrl.value || '', {
       viewCount: p.viewCount,
       likeCount: p.likeCount,
       remixCount: p.remixCount
-    }
-  )
-}, {
-  en: 'Failed to share project',
-  zh: '分享项目失败'
-})
+    })
+  },
+  {
+    en: 'Failed to share project',
+    zh: '分享项目失败'
+  }
+)
 
 const createProject = useCreateProject()
 
@@ -368,7 +306,7 @@ const handleScreenshot = useMessageHandle(
           // 检查项目运行器是否有必要的方法
           if (typeof projectRunner.pauseGame !== 'function' || typeof projectRunner.resumeGame !== 'function') {
             console.log(`等待项目运行器方法初始化... (${retryCount + 1}/${maxRetries})`)
-            await new Promise(resolve => setTimeout(resolve, 200))
+            await new Promise((resolve) => setTimeout(resolve, 200))
             retryCount++
             continue
           }
@@ -382,7 +320,7 @@ const handleScreenshot = useMessageHandle(
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error)
           console.log(`等待项目运行器初始化... (${retryCount + 1}/${maxRetries}): ${errorMessage}`)
-          await new Promise(resolve => setTimeout(resolve, 200))
+          await new Promise((resolve) => setTimeout(resolve, 200))
           retryCount++
         }
       }
@@ -400,12 +338,12 @@ const handleScreenshot = useMessageHandle(
       if (!screenshot) {
         throw new Error('截图方法返回空结果')
       }
-      
+
       // 设置截图数据
       screenshotDataUrl.value = screenshot.dataURL
       screenshotWidth.value = screenshot.width
       screenshotHeight.value = screenshot.height
-      
+
       console.log('成功从游戏canvas获取截图', screenshot.width, 'x', screenshot.height)
       isScreenshotModalVisible.value = true
     } catch (error) {
@@ -428,7 +366,7 @@ const handleScreenshot = useMessageHandle(
 
 async function handleCloseScreenshotModal() {
   isScreenshotModalVisible.value = false
-  
+
   // 恢复游戏
   try {
     const projectRunner = projectRunnerRef.value
@@ -769,13 +707,15 @@ const remixesRet = useQuery(
       :project-name="project.name"
       :project-thumbnail="thumbnailUrl || undefined"
       :project-runner="projectRunnerRef"
+      :project-id="project.id"
+      :owner="project.owner"
       @cancelled="showRecordingModal = false"
       @resolved="showRecordingModal = false"
       @recording-started="showRecordingModal = false"
       @recording-stopped="showRecordingModal = true"
     />
   </CenteredWrapper>
-  
+
   <!-- 截屏分享弹窗 -->
   <ScreenshotShareModal
     v-model:visible="isScreenshotModalVisible"
