@@ -61,6 +61,7 @@
               :poster="thumbnailUrl ? thumbnailUrl : ''"
               controls
               preload="metadata"
+              crossorigin="anonymous"
               @loadedmetadata="handleVideoLoaded"
             >
               您的浏览器不支持视频播放。

@@ -1,11 +1,6 @@
 <template>
-  <UIFormModal
-    :title="modalTitle"
-    :visible="props.visible"
-    :auto-focus="false"
-    style="width: 500px"
-    @update:visible="handleModalClose"
-  >
+  <UIFormModal :title="modalTitle" :visible="props.visible" :auto-focus="false" style="width: 500px"
+    @update:visible="handleModalClose">
     <!-- 调试信息 - 临时添加
     <div style="background: red; color: white; padding: 10px; margin: 10px">
       DEBUG: currentState = {{ currentState }}
@@ -25,13 +20,8 @@
 
           <!-- 录屏控制按钮 -->
           <div class="record-overlay">
-            <UIButton
-              v-if="!isRecording"
-              type="primary"
-              size="large"
-              :loading="isStarting"
-              @click="handleStartRecording.fn"
-            >
+            <UIButton v-if="!isRecording" type="primary" size="large" :loading="isStarting"
+              @click="handleStartRecording.fn">
               <template #icon>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <!-- 圆形背景 -->
@@ -72,12 +62,9 @@
       <div class="share-section">
         <h4>{{ $t({ en: 'Share to Platform', zh: '分享到平台' }) }}</h4>
         <div class="platforms">
-          <div
-            v-for="platform in platforms"
-            :key="platform.id"
+          <div v-for="platform in platforms" :key="platform.id"
             :class="['platform-item', { disabled: isRecording || !hasRecording }]"
-            @click="isRecording ? null : handlePlatformShare(platform)"
-          >
+            @click="isRecording ? null : handlePlatformShare(platform)">
             <div class="platform-icon">
               <component :is="platform.icon" />
             </div>
@@ -105,13 +92,8 @@
       <!-- 显示录制完成的视频 -->
       <div class="preview-section">
         <div class="project-preview">
-          <video
-            v-if="recordedVideoUrl"
-            :src="recordedVideoUrl"
-            controls
-            :poster="projectThumbnail"
-            class="recorded-video"
-          >
+          <video v-if="recordedVideoUrl" :src="recordedVideoUrl" controls :poster="projectThumbnail"
+            class="recorded-video">
             您的浏览器不支持视频播放
           </video>
         </div>
@@ -138,12 +120,8 @@
       <div class="share-section">
         <h4>{{ $t({ en: 'Share to Platform', zh: '分享到平台' }) }}</h4>
         <div class="platforms">
-          <div
-            v-for="platform in platforms"
-            :key="platform.id"
-            class="platform-item"
-            @click="handlePlatformShare(platform)"
-          >
+          <div v-for="platform in platforms" :key="platform.id" class="platform-item"
+            @click="handlePlatformShare(platform)">
             <div class="platform-icon">
               <component :is="platform.icon" />
             </div>
@@ -199,18 +177,13 @@
       </div>
     </div>
     <!-- 区域选择器 -->
-    <AreaSelector
-      v-if="showAreaSelector && screenshotData"
-      :screenshot-data-url="screenshotData.dataUrl"
-      :screenshot-width="screenshotData.width"
-      :screenshot-height="screenshotData.height"
-      @area-selected="handleAreaSelected"
-      @cancelled="handleAreaSelectionCancelled"
-    />
+    <AreaSelector v-if="showAreaSelector && screenshotData" :screenshot-data-url="screenshotData.dataUrl"
+      :screenshot-width="screenshotData.width" :screenshot-height="screenshotData.height"
+      @area-selected="handleAreaSelected" @cancelled="handleAreaSelectionCancelled" />
   </UIFormModal>
 </template>
 
-  <script setup lang="ts">
+<script setup lang="ts">
 import { UIButton, UIFormModal } from '@/components/ui'
 import { useMessageHandle } from '@/utils/exception'
 import { generateShareQRCode, type ProjectShareInfo } from '@/utils/qrcode'
@@ -924,8 +897,7 @@ const createRecordFromRecording = async () => {
     // 创建File对象（项目系统的File，不是浏览器原生File）
     const videoFile = new File(`record-${props.projectName}-${Date.now()}.webm`, async () => {
       return videoBlob.arrayBuffer()
-    })
-    ;(videoFile as any).type = 'video/webm'
+    }, { type: 'video/webm' })
 
     // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
     const videoUniversalUrl = await saveFile(videoFile)
@@ -953,8 +925,7 @@ const createRecordFromRecording = async () => {
         // 创建缩略图File对象（项目系统的File）
         const thumbnailFile = new File(`thumbnail-${props.projectName}-${Date.now()}.jpg`, async () => {
           return thumbnailBlob.arrayBuffer()
-        })
-        ;(thumbnailFile as any).type = 'image/jpeg'
+        }, { type: 'image/jpeg' })
 
         // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
         thumbnailUniversalUrl = await saveFile(thumbnailFile)
@@ -995,32 +966,24 @@ const handleBilibiliShare = useMessageHandle(
 
     console.log('开始B站投稿流程...')
 
-    // ========== 新增：检查登录状态 ==========
-    console.log('检查B站登录状态...')
+    // 检查登录状态代码...
     const loginCheckResponse = await fetch('http://localhost:3000/check-login')
     const loginStatus = await loginCheckResponse.json()
 
     if (!loginStatus.browserReady) {
-      console.log('浏览器未准备就绪，开始登录流程...')
-
-      // 触发登录
       const loginResponse = await fetch('http://localhost:3000/login')
       const loginResult = await loginResponse.json()
 
       if (!loginResult.success) {
         throw new Error(`登录失败：${loginResult.message}`)
       }
-
-      console.log('登录成功，浏览器已准备就绪')
     }
-    // ========================================
 
-    // 1. 将Blob转换为File对象
+    // 1. 获取视频Blob
     const response = await fetch(recordedVideoUrl.value)
-    const blob = await response.blob()
-    const videoFile = new File([blob], `${props.projectName}.webm`, { type: 'video/webm' })
+    const videoBlob = await response.blob()
 
-    // 2. 自动生成投稿信息
+    // 2. 投稿信息
     const title = `【XBuilder作品】${props.projectName}`
     const description = `这是我在XBuilder上创作的游戏作品《${props.projectName}》！
 
@@ -1030,30 +993,28 @@ const handleBilibiliShare = useMessageHandle(
 #XBuilder #游戏开发 #编程学习 #创意游戏`
 
     const tags = 'XBuilder,游戏,编程,创作,教育'
-    const category = 'game' // 游戏分区
+    const category = 'game'
 
-    // 3. 准备FormData
+    // 3. 准备FormData - 直接使用Blob，避免File构造函数问题
     const formData = new FormData()
-    formData.append('video', videoFile as any)
+    
+    // 使用Blob的三参数形式，第三个参数是文件名
+    formData.append('video', videoBlob, `${props.projectName}.webm`)
     formData.append('title', title)
     formData.append('description', description)
     formData.append('tags', tags)
     formData.append('category', category)
 
-    // ========== 修改封面处理逻辑 ==========
+    // 处理封面图片
     if (props.projectThumbnail) {
       try {
-        console.log('下载并处理项目缩略图作为封面...')
         const thumbnailResponse = await fetch(props.projectThumbnail)
         const thumbnailBlob = await thumbnailResponse.blob()
-
-        // 处理图片尺寸，确保符合B站要求（960x600以上）
         const processedCoverBlob = await processImageForBilibili(thumbnailBlob, props.projectName)
-
-        const coverFile = new File([processedCoverBlob], `${props.projectName}-cover.jpg`, {
-          type: 'image/jpeg'
-        })
-        formData.append('cover', coverFile as any)
+        
+        // 直接使用Blob，指定文件名
+        formData.append('cover', processedCoverBlob, `${props.projectName}-cover.jpg`)
+        
         console.log('封面图片已处理并添加到FormData')
       } catch (error) {
         console.warn('封面图片处理失败，将使用默认封面:', error)
@@ -1061,7 +1022,6 @@ const handleBilibiliShare = useMessageHandle(
     }
 
     // 4. 调用B站投稿服务
-    console.log('调用B站自动化投稿服务...')
     const response2 = await fetch('http://localhost:3000/auto-upload', {
       method: 'POST',
       body: formData
@@ -1193,8 +1153,8 @@ onUnmounted(() => {
   // ====================================
 })
 </script>
-  
-  <style scoped lang="scss">
+
+<style scoped lang="scss">
 .preview-section {
   margin-bottom: 20px;
 }
@@ -1272,11 +1232,13 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.7;
     transform: scale(1.1);
@@ -1414,6 +1376,7 @@ onUnmounted(() => {
     font-size: 14px;
   }
 }
+
 // 新增：页面布局样式
 .recording-page,
 .platform-selection-page,
@@ -1529,6 +1492,7 @@ onUnmounted(() => {
     }
   }
 }
+
 .auto-save-tip {
   display: flex;
   align-items: center;
