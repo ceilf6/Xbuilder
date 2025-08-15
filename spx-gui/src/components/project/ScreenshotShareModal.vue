@@ -504,7 +504,7 @@ onMounted(() => {
   overflow: hidden;
   /* box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); */
   transition: all 0.3s ease;
-  max-height: 400px;
+  max-height: 500px;
 }
 
 @keyframes shimmer {
