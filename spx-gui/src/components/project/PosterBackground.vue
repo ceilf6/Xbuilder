@@ -10,6 +10,10 @@
     <div class="poster-decoration">
       <div class="project-info">
         <div class="game-title">{{ projectName }}</div>
+        <div v-if="creatorName" class="creator-info">
+          <UIIcon type="user" />
+          <span>{{ $t({ en: 'Created by', zh: '创作者' }) }}: {{ creatorName }}</span>
+        </div>
         <div class="project-stats" v-if="stats">
           <div class="stat-item" v-if="stats.viewCount">
             <UIIcon type="eye" />
@@ -46,6 +50,7 @@ const props = defineProps<{
   imgSrc?: string
   imgAlt?: string
   projectName?: string
+  creatorName?: string
   stats?: {
     viewCount?: string | number
     likeCount?: string | number
@@ -222,7 +227,7 @@ onMounted(() => {
 .game-title {
   font-size: 19px;
   font-weight: 800;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   line-height: 1.3;
   text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
   overflow: hidden;
@@ -230,6 +235,27 @@ onMounted(() => {
   white-space: nowrap;
   max-width: 100%;
   letter-spacing: -0.02em;
+}
+
+.creator-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  
+  :deep(.ui-icon) {
+    width: 14px;
+    height: 14px;
+    opacity: 0.8;
+  }
+  
+  span {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
 }
 
 .project-stats {

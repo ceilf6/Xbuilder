@@ -16,6 +16,7 @@
             :img-src="screenshotDataUrl"
             img-alt="Screenshot"
             :project-name="projectName"
+            :creator-name="creatorName"
             :stats="posterStats"
             :logo-src="logoSrc"
             :show-qr="true"
@@ -105,6 +106,7 @@ const props = defineProps<{
   screenshotWidth?: number
   screenshotHeight?: number
   projectName?: string
+  creatorName?: string
   projectStats?: ProjectStats
 }>()
 
