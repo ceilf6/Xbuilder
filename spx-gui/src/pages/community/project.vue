@@ -42,6 +42,15 @@ import ReleaseHistory from '@/components/community/project/ReleaseHistory.vue'
 import TextView from '@/components/community/TextView.vue'
 import ScreenshotShareModal from '@/components/project/ScreenshotShareModal.vue'
 
+// Type declaration for QQ mqq API
+declare global {
+  interface Window {
+    mqq: {
+      invoke: (module: string, method: string, data: any) => void
+    }
+  }
+}
+
 const props = defineProps<{
   owner: string
   name: string
@@ -56,7 +65,17 @@ const shareData = {
 
 // Only call mqq API if it exists (when running in QQ browser)
 if (window.mqq) {
-  window.mqq.invoke('data', 'setShareInfo', shareData);
+  console.log('mqq.invoke exists:', !!window.mqq.invoke);
+  try {
+    window.mqq.invoke('data', 'setShareInfo', shareData);
+    console.log('mqq.invoke called successfully');
+    alert('QQ分享卡片信息已设置')
+      } catch (error: any) {
+      console.error('mqq.invoke failed:', error);
+      alert('QQ分享卡片信息设置失败: ' + (error?.message || '未知错误'))
+    }
+} else {
+  console.log('mqq API not available');
 }
 
 const router = useRouter()
