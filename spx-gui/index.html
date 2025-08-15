@@ -27,7 +27,7 @@
 
   <body>
     <div id="app"></div>
-    <script src="https://open.mobile.qq.com/sdk/qqapi.js?_bid=152" id="qq-api-script"></script>
+    <script src="https://open.mobile.qq.com/sdk/qqapi.js?_bid=152"></script>
     <script type="module" src="/src/main.ts"></script>
     <script>
       (function() {
@@ -109,7 +109,7 @@
         
         // 获取脚本加载状态
         function getScriptStatus() {
-          const scripts = document.getElementById('qq-api-script');
+          const scripts = document.getElementsByTagName('script');
           let status = '未找到QQ API脚本';
           
           for (let i = 0; i < scripts.length; i++) {
