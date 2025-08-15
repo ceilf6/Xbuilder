@@ -80,8 +80,15 @@ const truncatedDescription = computed(() => {
   }
   
   // 尝试在句号、感叹号、问号处截断
-  const sentenceEndings = /[。！？.!?]/
-  const lastSentenceEnd = description.lastIndexOf(sentenceEndings, maxLength)
+  const sentenceEndings = ['。', '！', '？', '.', '!', '?']
+  let lastSentenceEnd = -1
+  
+  for (const ending of sentenceEndings) {
+    const index = description.lastIndexOf(ending, maxLength)
+    if (index > lastSentenceEnd) {
+      lastSentenceEnd = index
+    }
+  }
   
   if (lastSentenceEnd > maxLength * 0.6) { // 如果句号位置在合理范围内
     return description.substring(0, lastSentenceEnd + 1)
