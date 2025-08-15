@@ -11,16 +11,8 @@
           <!-- Left Side - Video Player -->
           <div class="video-side">
             <div class="video-container">
-              <video 
-                ref="videoRef"
-                :src="videoUrl" 
-                :poster="thumbnailUrl || ''"
-                controls
-                preload="metadata"
-                crossorigin="anonymous"
-                @loadedmetadata="handleVideoLoaded"
-                @play="handleVideoPlay"
-              >
+              <video ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="metadata"
+                crossorigin="anonymous" @loadedmetadata="handleVideoLoaded" @play="handleVideoPlay">
                 {{ $t({ en: 'Your browser does not support video playback.', zh: '您的浏览器不支持视频播放。' }) }}
               </video>
             </div>
@@ -30,7 +22,7 @@
           <div class="info-side">
             <!-- Record Title -->
             <h1 class="record-title">{{ record.title }}</h1>
-            
+
             <!-- Stats -->
             <div class="record-stats">
               <div class="stat-item">
@@ -45,31 +37,20 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-              <UIButton 
-                v-if="record.project"
-                type="primary" 
-                size="large"
-                @click="handlePlayProject"
-              >
+              <UIButton v-if="record.project" type="primary" size="large" @click="handlePlayProject">
                 <UIIcon type="play" />
                 {{ $t({ en: 'Play Game', zh: '一键开玩' }) }}
               </UIButton>
-              <UIButton 
-                type="secondary" 
-                size="medium"
-                @click="handleLike"
-              >
-                <UIIcon type="heart" />
-                0
-              </UIButton>
-              <UIButton 
-                type="secondary" 
-                size="medium"
-                @click="handleShare"
-              >
-                <UIIcon type="share" />
-                {{ $t({ en: 'Share', zh: '分享' }) }}
-              </UIButton>
+              <div class="button-row">
+                <UIButton type="secondary" size="medium" @click="handleLike">
+                  <UIIcon type="heart" />
+                  0
+                </UIButton>
+                <UIButton type="secondary" size="medium" @click="handleShare">
+                  <UIIcon type="share" />
+                  {{ $t({ en: 'Share', zh: '分享' }) }}
+                </UIButton>
+              </div>
             </div>
 
             <!-- Owner Info -->
@@ -88,7 +69,10 @@
             <!-- Project Description -->
             <div v-if="record.project" class="description-section">
               <h3>{{ $t({ en: 'Game Description', zh: '游戏描述' }) }}</h3>
-              <p class="description-text">{{ record.project.description || $t({ en: 'No description available', zh: '暂无描述' }) }}</p>
+              <p class="description-text">{{ record.project.description || $t({
+                en: 'No description available', zh:
+                  '暂无描述'
+              }) }}</p>
               <div class="project-link">
                 <RouterUILink :to="getProjectPageRoute(record.project.owner, record.project.name)">
                   {{ $t({ en: 'View Project', zh: '查看项目' }) }} →
@@ -109,23 +93,16 @@
 
       <!-- Related Records Frame - 下方框：相关录屏 -->
       <div v-if="record.project" class="related-content-frame">
-        <ProjectsSection
-          context="project"
-          :num-in-row="numInRow"
-          :query-ret="relatedRecordsQuery"
-          :link-to="allRecordsLink"
-        >
+        <ProjectsSection context="project" :num-in-row="numInRow" :query-ret="relatedRecordsQuery"
+          :link-to="allRecordsLink">
           <template #title>
             {{ $t({ en: 'More recordings of this project', zh: '该项目的其他录屏' }) }}
           </template>
           <template #link>
             {{ $t({ en: 'View all', zh: '查看所有' }) }}
           </template>
-          <RecordItem 
-            v-for="relatedRecord in relatedRecordsQuery.data.value" 
-            :key="relatedRecord.id" 
-            :record="relatedRecord" 
-          />
+          <RecordItem v-for="relatedRecord in relatedRecordsQuery.data.value" :key="relatedRecord.id"
+            :record="relatedRecord" />
         </ProjectsSection>
       </div>
     </CenteredWrapper>
@@ -226,7 +203,7 @@ const videoUrl = computed(() => {
 const relatedRecordsQuery = useQuery(
   async () => {
     if (!record.value?.project) return []
-    
+
     const projectFullName = `${record.value.project.owner}/${record.value.project.name}`
     const { data: records } = await listRecord({
       projectFullName: projectFullName,
@@ -235,7 +212,7 @@ const relatedRecordsQuery = useQuery(
       orderBy: 'createdAt',
       sortOrder: 'desc'
     })
-    
+
     // 排除当前录屏
     return records.filter(r => r.id !== record.value?.id)
   },
@@ -264,12 +241,12 @@ const formatFileSize = (bytes: number): string => {
   const units = ['B', 'KB', 'MB', 'GB']
   let size = bytes
   let unitIndex = 0
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024
     unitIndex++
   }
-  
+
   return `${size.toFixed(1)} ${units[unitIndex]}`
 }
 
@@ -344,7 +321,8 @@ onMounted(async () => {
 
 .content-layout {
   display: flex;
-  
+  align-items: stretch; /* 确保子元素高度一致 */
+
   @include responsive(tablet) {
     flex-direction: column;
   }
@@ -354,21 +332,24 @@ onMounted(async () => {
 .video-side {
   flex: 1;
   min-width: 0;
+  padding: 24px;
 }
 
 .video-container {
   position: relative;
   background: var(--ui-color-grey-900);
   aspect-ratio: 16 / 9;
+  border-radius: var(--ui-border-radius-2); /* 添加圆角 */
+  overflow: hidden; /* 确保video遵循圆角 */
   
   video {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: contain;
+    border-radius: var(--ui-border-radius-2); /* 视频本身也添加圆角 */
   }
 }
-
 /* 右侧信息面板 */
 .info-side {
   flex: 0 0 400px;
@@ -378,25 +359,25 @@ onMounted(async () => {
   gap: 20px;
   overflow-y: auto;
   max-height: 100%;
-  
+
   /* 自定义滚动条样式 */
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: var(--ui-color-grey-400);
     border-radius: 3px;
   }
-  
+
   &::-webkit-scrollbar-thumb:hover {
     background: var(--ui-color-grey-500);
   }
-  
+
   @include responsive(tablet) {
     flex: none;
     padding: 20px;
@@ -412,7 +393,7 @@ onMounted(async () => {
   margin: 0;
   line-height: 1.3;
   flex-shrink: 0;
-  
+
   @include responsive(mobile) {
     font-size: 18px;
   }
@@ -438,7 +419,19 @@ onMounted(async () => {
   flex-direction: column;
   gap: 12px;
   flex-shrink: 0;
-  
+
+  /* 将后两个按钮包装在一行 */
+  .button-row {
+    display: flex;
+    gap: 12px;
+
+    .ui-button {
+      flex: 1;
+      justify-content: center;
+      gap: 8px;
+    }
+  }
+
   .ui-button {
     width: 100%;
     justify-content: center;
@@ -468,7 +461,7 @@ onMounted(async () => {
   font-weight: 600;
   color: var(--ui-color-title);
   text-decoration: none;
-  
+
   &:hover {
     color: var(--ui-color-primary-main);
   }
@@ -481,7 +474,7 @@ onMounted(async () => {
 
 .description-section {
   flex-shrink: 0;
-  
+
   h3 {
     font-size: 16px;
     font-weight: 600;
@@ -503,7 +496,7 @@ onMounted(async () => {
     color: var(--ui-color-primary-main);
     text-decoration: none;
     font-weight: 500;
-    
+
     &:hover {
       text-decoration: underline;
     }
@@ -518,7 +511,7 @@ onMounted(async () => {
   border-radius: var(--ui-border-radius-2);
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  
+
   @include responsive(mobile) {
     padding: 20px;
   }
@@ -537,15 +530,15 @@ onMounted(async () => {
   .record-wrapper {
     padding: 16px 0 24px;
   }
-  
+
   .content-layout {
     gap: 0;
   }
-  
+
   .info-side {
     gap: 16px;
   }
-  
+
   .action-buttons {
     .ui-button {
       padding: 12px 16px;
