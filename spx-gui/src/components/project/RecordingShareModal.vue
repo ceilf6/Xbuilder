@@ -211,7 +211,7 @@ import WeChatIconSvg from '@/assets/images/微信.svg?raw'
 import DouyinIconSvg from '@/assets/images/抖音.svg?raw'
 import XiaohongshuIconSvg from '@/assets/images/小红书.svg?raw'
 import BilibiliIconSvg from '@/assets/images/bilibili.svg?raw'
-import { ref, computed, onUnmounted, h } from 'vue'
+import { ref, computed, onUnmounted, h, watch } from 'vue'
 
 const { t } = useI18n()
 // 新增：创建SVG图标组件
@@ -251,6 +251,15 @@ const handleModalClose = (visible: boolean, reason?: string | Event) => {
     if (reason === 'mask' || (reason as any)?.type === 'click') {
       // 阻止因点击遮罩而关闭
       return
+    }
+
+    // 恢复游戏
+    if (props.projectRunner) {
+      props.projectRunner.resumeGame().then(() => {
+        console.log('游戏已恢复（录屏弹窗关闭）')
+      }).catch((error: any) => {
+        console.error('恢复游戏失败:', error)
+      })
     }
 
     // 如果是录屏完成状态被关闭，重置状态
@@ -326,6 +335,8 @@ const resetRecordingState = () => {
     mediaRecorder.value = null
   }
 
+  // 注意：游戏恢复由 handleModalClose 处理，这里不需要重复处理
+
   console.log('录屏状态已重置到初始状态')
 }
 
@@ -336,6 +347,19 @@ const props = defineProps<{
   owner?: string
   projectRunner?: any // 项目运行器引用
 }>()
+
+// 监听弹窗显示状态，在弹窗打开时暂停游戏
+watch(() => props.visible, async (newVisible) => {
+  if (newVisible && props.projectRunner) {
+    // 弹窗打开时暂停游戏
+    try {
+      await props.projectRunner.pauseGame()
+      console.log('游戏已暂停（录屏弹窗打开）')
+    } catch (error) {
+      console.error('暂停游戏失败:', error)
+    }
+  }
+}, { immediate: true })
 
 // 复制分享链接
 const copyShareUrl = async () => {
@@ -461,6 +485,15 @@ const handleStartRecording = useMessageHandle(
       await startGameCanvasRecording()
     } catch (error) {
       console.error('录制启动失败:', error)
+      // 如果录屏失败，暂停游戏（因为弹窗打开时游戏应该是暂停的）
+      if (props.projectRunner) {
+        try {
+          await props.projectRunner.pauseGame()
+          console.log('游戏已暂停（录屏失败后）')
+        } catch (pauseError) {
+          console.error('暂停游戏失败:', pauseError)
+        }
+      }
       throw error
     } finally {
       isStarting.value = false
@@ -477,6 +510,10 @@ const startGameCanvasRecording = async () => {
     if (!props.projectRunner) {
       throw new Error('项目运行器未准备好')
     }
+
+    // 恢复游戏（让录屏能录制到游戏画面）
+    await props.projectRunner.resumeGame()
+    console.log('游戏已恢复（开始录屏）')
 
     // 获取iframe元素
     const iframeElement = props.projectRunner.$el?.querySelector('iframe')
@@ -613,6 +650,12 @@ const handleStopRecording = useMessageHandle(
       if (recordingTimer) {
         clearInterval(recordingTimer)
         recordingTimer = null
+      }
+
+      // 4. 暂停游戏（录屏结束后暂停）
+      if (props.projectRunner) {
+        await props.projectRunner.pauseGame()
+        console.log('游戏已暂停（录屏停止）')
       }
 
       emit('recordingStopped')
