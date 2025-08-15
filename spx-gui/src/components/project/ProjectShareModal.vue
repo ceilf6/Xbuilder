@@ -164,17 +164,12 @@
 
   // Only call mqq API if it exists (when running in QQ browser)
   if (window.mqq) {
-    console.log('ProjectShareModal: mqq.invoke exists:', !!window.mqq.invoke);
     try {
       window.mqq.invoke('data', 'setShareInfo', shareData);
-      console.log('ProjectShareModal: mqq.invoke called successfully');
       alert('QQ分享卡片信息已设置')
     } catch (error: any) {
-      console.error('ProjectShareModal: mqq.invoke failed:', error);
       alert('QQ分享卡片信息设置失败: ' + (error?.message || '未知错误'))
     }
-  } else {
-    console.log('ProjectShareModal: mqq API not available');
   }
 
   const selectedPlatform = ref('qq')

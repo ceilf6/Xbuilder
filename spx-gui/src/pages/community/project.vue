@@ -42,40 +42,105 @@ import ReleaseHistory from '@/components/community/project/ReleaseHistory.vue'
 import TextView from '@/components/community/TextView.vue'
 import ScreenshotShareModal from '@/components/project/ScreenshotShareModal.vue'
 
-// Type declaration for QQ mqq API
-declare global {
-  interface Window {
-    mqq: {
-      invoke: (module: string, method: string, data: any) => void
-    }
-  }
-}
-
 const props = defineProps<{
   owner: string
   name: string
 }>()
 
-const shareData = {
-  title:    'QQ分享卡片示例',
-  desc:     '演示QQ卡片分享功能',
-  share_url:'https://xbuilder-sharing-test.gopluscdn.com/project/'+props.owner+'/'+props.name,
-  image_url:'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
+// Type assertion for QQ mqq API (overriding existing declaration)
+const mqq = (window as any).mqq as {
+  invoke: (module: string, method: string, data: any) => void;
+  data?: {
+    setShareInfo: (data: any) => void;
+  };
 };
 
-// Only call mqq API if it exists (when running in QQ browser)
-if (window.mqq) {
-  console.log('mqq.invoke exists:', !!window.mqq.invoke);
+// 统一分享数据格式
+const shareData = {
+  title: 'QQ分享卡片示例',
+  desc: '演示QQ卡片分享功能',
+  share_url: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
+  image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
+};
+
+// 检测QQ浏览器环境
+function isQQBrowser() {
+  const ua = navigator.userAgent.toLowerCase();
+  return ua.includes('qq/') || ua.includes('mqqbrowser');
+}
+
+// 显示提示信息（QQ浏览器可见）
+function showMessage(message: string) {
+  // 尝试使用QQ浏览器的toast
   try {
-    window.mqq.invoke('data', 'setShareInfo', shareData);
-    console.log('mqq.invoke called successfully');
-    alert('QQ分享卡片信息已设置')
-      } catch (error: any) {
-      console.error('mqq.invoke failed:', error);
-      alert('QQ分享卡片信息设置失败: ' + (error?.message || '未知错误'))
+    if (mqq?.invoke) {
+      mqq.invoke('ui', 'toast', { message });
+      return;
     }
+  } catch (e) {
+    // 如果toast失败，使用alert作为后备
+  }
+  
+  // 后备方案：使用alert
+  alert(message);
+}
+
+// 设置分享信息（兼容iOS/Android）
+function setQQShareInfo() {
+  // 方法1：直接检测mqq.invoke（iOS方式）
+  if (mqq?.invoke) {
+    try {
+      mqq.invoke('data', 'setShareInfo', shareData);
+      showMessage('iOS分享设置成功');
+      return true;
+    } catch (e) {
+      showMessage('iOS分享设置失败: ' + (e instanceof Error ? e.message : String(e)));
+    }
+  }
+  
+  // 方法2：检测mqq.data.setShareInfo（Android方式）
+  if (mqq?.data?.setShareInfo) {
+    try {
+      mqq.data.setShareInfo(shareData);
+      showMessage('Android分享设置成功');
+      return true;
+    } catch (e) {
+      showMessage('Android分享设置失败: ' + (e instanceof Error ? e.message : String(e)));
+    }
+  }
+  
+  return false;
+}
+
+// 主执行函数
+function initQQShare() {
+  if (!isQQBrowser()) {
+    showMessage('非QQ浏览器环境');
+    return;
+  }
+
+  // 首次尝试
+  if (setQQShareInfo()) return;
+  
+  // 延迟重试（解决Android注入延迟问题）
+  let retryCount = 0;
+  const retryInterval = setInterval(() => {
+    if (setQQShareInfo() || retryCount > 3) {
+      clearInterval(retryInterval);
+      if (retryCount > 3) {
+        showMessage('QQ分享API调用失败，已重试3次');
+      }
+    }
+    retryCount++;
+  }, 300);
+}
+
+// 确保在DOM加载完成后执行
+if (document.readyState === 'complete') {
+  initQQShare();
 } else {
-  console.log('mqq API not available');
+  window.addEventListener('DOMContentLoaded', initQQShare);
+  window.addEventListener('load', initQQShare);
 }
 
 const router = useRouter()
