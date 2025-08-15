@@ -326,6 +326,7 @@ const handleShare = useMessageHandle(async () => {
     props.name, 
     thumbnailUrl.value || '',
     props.owner, // 创作者名字
+    p.description, // 项目描述
     {
       viewCount: p.viewCount,
       likeCount: p.likeCount,
@@ -820,6 +821,7 @@ const remixesRet = useQuery(
     :screenshot-height="screenshotHeight"
     :project-name="props.name"
     :creator-name="props.owner"
+    :project-description="project?.description"
     :project-stats="{
       viewCount: project?.viewCount,
       likeCount: project?.likeCount,

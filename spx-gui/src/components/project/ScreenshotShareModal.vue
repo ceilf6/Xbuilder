@@ -17,6 +17,7 @@
             img-alt="Screenshot"
             :project-name="projectName"
             :creator-name="creatorName"
+            :project-description="projectDescription"
             :stats="posterStats"
             :logo-src="logoSrc"
             :show-qr="true"
@@ -107,6 +108,7 @@ const props = defineProps<{
   screenshotHeight?: number
   projectName?: string
   creatorName?: string
+  projectDescription?: string
   projectStats?: ProjectStats
 }>()
 

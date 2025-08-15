@@ -14,6 +14,10 @@
           <UIIcon type="user" />
           <span>{{ $t({ en: 'Created by', zh: '创作者' }) }}: {{ creatorName }}</span>
         </div>
+        <div v-if="projectDescription" class="project-description">
+          <UIIcon type="info" />
+          <span>{{ truncatedDescription }}</span>
+        </div>
         <div class="project-stats" v-if="stats">
           <div class="stat-item" v-if="stats.viewCount">
             <UIIcon type="eye" />
@@ -42,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { UIIcon } from '@/components/ui'
 import { generateProjectQRCode } from '@/utils/qrcode'
 
@@ -51,6 +55,7 @@ const props = defineProps<{
   imgAlt?: string
   projectName?: string
   creatorName?: string
+  projectDescription?: string
   stats?: {
     viewCount?: string | number
     likeCount?: string | number
@@ -62,6 +67,35 @@ const props = defineProps<{
 }>()
 
 const projectQrCanvas = ref<HTMLCanvasElement>()
+
+// 处理项目描述文本截断
+const truncatedDescription = computed(() => {
+  if (!props.projectDescription) return ''
+  
+  const maxLength = 80 // 最大字符数
+  const description = props.projectDescription.trim()
+  
+  if (description.length <= maxLength) {
+    return description
+  }
+  
+  // 尝试在句号、感叹号、问号处截断
+  const sentenceEndings = /[。！？.!?]/
+  const lastSentenceEnd = description.lastIndexOf(sentenceEndings, maxLength)
+  
+  if (lastSentenceEnd > maxLength * 0.6) { // 如果句号位置在合理范围内
+    return description.substring(0, lastSentenceEnd + 1)
+  }
+  
+  // 否则在空格处截断
+  const lastSpace = description.lastIndexOf(' ', maxLength)
+  if (lastSpace > maxLength * 0.7) { // 如果空格位置在合理范围内
+    return description.substring(0, lastSpace) + '...'
+  }
+  
+  // 最后直接截断并添加省略号
+  return description.substring(0, maxLength) + '...'
+})
 
 // 获取当前项目URL
 const getCurrentProjectUrl = () => {
@@ -242,7 +276,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   opacity: 0.9;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   
@@ -255,6 +289,32 @@ onMounted(() => {
   span {
     font-weight: 500;
     letter-spacing: -0.01em;
+  }
+}
+
+.project-description {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  opacity: 0.85;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.4;
+  
+  :deep(.ui-icon) {
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  
+  span {
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 }
 
