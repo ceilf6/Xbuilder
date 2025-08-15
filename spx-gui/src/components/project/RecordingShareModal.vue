@@ -1070,7 +1070,7 @@ const handleSocialMediaShare = async (platform: any) => {
     const projectInfo: ProjectShareInfo = {
       projectName: props.projectName,
       // projectUrl: `${window.location.origin}/project/${props.owner}/${props.projectName}`, // 根据实际路由调整
-      projectUrl: `https://builder.goplus.org/project/${props.owner}/${props.projectName}`,
+      projectUrl: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.projectName}`,
       description: `这是我在XBuilder上创作的游戏作品《${props.projectName}》！🎮 在XBuilder学编程，创造属于你的游戏世界！`,
       thumbnail: props.projectThumbnail
     }
