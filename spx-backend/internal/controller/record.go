@@ -186,6 +186,30 @@ func (ctrl *Controller) GetRecord(ctx context.Context, owner, name string) (*Rec
 	return &recordDTO, nil
 }
 
+// DeleteRecord deletes a record by owner and name.
+func (ctrl *Controller) DeleteRecord(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	record, err := ctrl.ensureRecord(ctx, owner, name, true) // ownedOnly=true
+	if err != nil {
+		return err
+	}
+
+	// Additional check: ensure the current user is the owner of the record
+	if record.UserID != mUser.ID {
+		return authn.ErrUnauthorized
+	}
+
+	if err := ctrl.db.WithContext(ctx).Delete(record).Error; err != nil {
+		return fmt.Errorf("failed to delete record: %w", err)
+	}
+
+	return nil
+}
+
 // ListRecordsOrderBy defines the available order by options
 type ListRecordsOrderBy string
 
