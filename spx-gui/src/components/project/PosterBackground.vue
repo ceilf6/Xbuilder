@@ -189,7 +189,6 @@ onMounted(() => {
   background-image: url('@/assets/images/postBackground.jpg');
   background-size: cover;
   background-position: center;
-  border-radius: 16px;
   padding: 32px;
   display: flex;
   flex-direction: column;
