@@ -193,7 +193,7 @@ import WeChatIconSvg from '@/assets/images/微信.svg?raw'
 import DouyinIconSvg from '@/assets/images/抖音.svg?raw'
 import XiaohongshuIconSvg from '@/assets/images/小红书.svg?raw'
 import BilibiliIconSvg from '@/assets/images/bilibili.svg?raw'
-import { ref, computed, onUnmounted, h } from 'vue'
+import { ref, computed, onUnmounted, h, watch } from 'vue'
 import AreaSelector from './AreaSelector.vue'
 // import { uploadFile } from '@/apis/usercontent'
 import { createRecord } from '@/apis/record'
@@ -243,6 +243,13 @@ const handleModalClose = (visible: boolean, reason?: string | Event) => {
     // 如果是录屏完成状态被关闭，重置状态
     if (hasRecording.value) {
       resetRecordingState()
+    }
+
+    // 恢复游戏
+    if (props.projectRunner) {
+      props.projectRunner.resumeGame().catch((error: any) => {
+        console.error('恢复游戏失败:', error)
+      })
     }
 
     // 只有明确的关闭动作（如点击X）才触发关闭
@@ -338,6 +345,7 @@ const props = defineProps<{
   projectThumbnail?: string
   owner?: string
   projectId: string
+  projectRunner?: any // 添加项目运行器引用
 }>()
 
 // 复制分享链接
@@ -515,6 +523,13 @@ const handleAreaSelected = async (selectedArea: { x: number; y: number; width: n
     // 更新状态
     isRecording.value = true
     currentState.value = 'recording'
+
+    // 开始录制时恢复游戏
+    if (props.projectRunner) {
+      console.log('开始录制，恢复游戏...')
+      await props.projectRunner.resumeGame()
+      console.log('游戏已恢复')
+    }
 
     // 开始区域录制
     const recorder = await startAreaRecording(selectedArea)
@@ -763,6 +778,13 @@ const handleStopRecording = useMessageHandle(
         console.log('MediaRecorder已停止')
       }
 
+      // 2. 停止录制时暂停游戏
+      if (props.projectRunner) {
+        console.log('停止录制，暂停游戏...')
+        await props.projectRunner.pauseGame()
+        console.log('游戏已暂停')
+      }
+
       // ========== 新增：完全停止屏幕分享流 ========
       if (mediaStream.value) {
         // 停止所有轨道（视频和音频）
@@ -775,10 +797,10 @@ const handleStopRecording = useMessageHandle(
       }
       // =============================================
 
-      // 2. 重置状态
+      // 3. 重置状态
       isRecording.value = false
 
-      // 3. 停止计时器
+      // 4. 停止计时器
       if (recordingTimer) {
         clearInterval(recordingTimer)
         recordingTimer = null
@@ -1129,6 +1151,34 @@ const handleBackToPlatforms = () => {
   qrCodeUrl.value = ''
   qrCodeData.value = ''
 }
+
+// 游戏暂停和恢复逻辑
+watch(() => props.visible, async (newVisible) => {
+  if (!props.projectRunner) {
+    console.log('项目运行器不可用，跳过游戏暂停/恢复')
+    return
+  }
+
+  try {
+    if (newVisible) {
+      // 弹窗打开时暂停游戏
+      console.log('录屏弹窗打开，暂停游戏...')
+      await props.projectRunner.pauseGame()
+      console.log('游戏已暂停')
+    } else {
+      // 弹窗关闭时恢复游戏
+      console.log('录屏弹窗关闭，恢复游戏...')
+      await props.projectRunner.resumeGame()
+      console.log('游戏已恢复')
+    }
+  } catch (error) {
+    console.error('游戏暂停/恢复失败:', error)
+  }
+})
+
+
+
+
 
 // 清理定时器和资源
 // 修改 onUnmounted 函数
