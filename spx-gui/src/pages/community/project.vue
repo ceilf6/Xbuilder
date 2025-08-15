@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessageHandle } from '@/utils/exception/index'
 import { useQuery } from '@/utils/query'
@@ -62,11 +62,53 @@ const shareData = {
   desc: '演示QQ卡片分享功能',
   share_url: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
   image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
-};
-alert('window.mqq:' + window.mqq)
-if (window.mqq) {
-  window.mqq.invoke('data', 'setShareInfo', shareData);
 }
+
+// 创建页面内调试信息显示
+const debugInfo = ref('')
+const showDebugInfo = ref(false)
+
+function showDebugMessage(message: string) {
+  debugInfo.value = message
+  showDebugInfo.value = true
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    showDebugInfo.value = false
+  }, 3000)
+}
+
+// 检查QQ浏览器环境并显示调试信息
+function checkQQEnvironment() {
+  const mqqExists = !!window.mqq
+  const mqqType = typeof window.mqq
+  const mqqKeys = window.mqq ? Object.keys(window.mqq) : []
+  
+  const debugMsg = `QQ环境检测:
+mqq存在: ${mqqExists}
+mqq类型: ${mqqType}
+mqq属性: ${mqqKeys.join(', ')}
+UserAgent: ${navigator.userAgent}`
+  
+  showDebugMessage(debugMsg)
+  
+  // 尝试调用QQ分享API
+  if (window.mqq) {
+    try {
+      window.mqq.invoke('data', 'setShareInfo', shareData)
+      showDebugMessage('QQ分享设置成功！')
+    } catch (error) {
+      showDebugMessage('QQ分享设置失败: ' + (error instanceof Error ? error.message : String(error)))
+    }
+  } else {
+    showDebugMessage('未检测到QQ浏览器环境')
+  }
+}
+
+// 页面加载完成后执行检测
+onMounted(() => {
+  // 延迟执行，确保QQ环境完全加载
+  setTimeout(checkQQEnvironment, 1000)
+})
 
 const router = useRouter()
 
@@ -769,6 +811,23 @@ const remixesRet = useQuery(
       </div>
     </div>
   </div>
+  
+  <!-- QQ环境调试信息显示 -->
+  <div
+    v-if="showDebugInfo"
+    class="debug-info-overlay"
+    @click="showDebugInfo = false"
+  >
+    <div class="debug-info-content">
+      <div class="debug-header">
+        <span>QQ环境调试信息</span>
+        <button class="close-btn" @click="showDebugInfo = false">×</button>
+      </div>
+      <div class="debug-body">
+        <pre>{{ debugInfo }}</pre>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -953,6 +1012,74 @@ const remixesRet = useQuery(
         line-height: 1.4;
       }
     }
+  }
+}
+
+/* QQ环境调试信息样式 */
+.debug-info-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.debug-info-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 80%;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.debug-header {
+  background: #f0f0f0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    color: #000;
+  }
+}
+
+.debug-body {
+  padding: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+  
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #333;
   }
 }
 </style>
