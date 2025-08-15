@@ -222,8 +222,10 @@ import XiaohongshuIconSvg from '@/assets/images/小红书.svg?raw'
 import BilibiliIconSvg from '@/assets/images/bilibili.svg?raw'
 import { ref, computed, onUnmounted, h } from 'vue'
 import AreaSelector from './AreaSelector.vue'
-import { uploadFile } from '@/apis/usercontent'
+// import { uploadFile } from '@/apis/usercontent'
 import { createRecord } from '@/apis/record'
+import { saveFile } from '@/models/common/cloud'
+import { File } from '@/models/common/file'
 
 const { t } = useI18n()
 // 新增：创建SVG图标组件
@@ -808,8 +810,7 @@ const handleStopRecording = useMessageHandle(
         clearInterval(recordingTimer)
         recordingTimer = null
       }
-      // 5. 新增：自动创建Record记录
-      await createRecordFromRecording()
+
       emit('recordingStopped')
       console.log('录制完全停止，状态已重置')
     } finally {
@@ -907,7 +908,6 @@ const processImageForBilibili = async (imageBlob: Blob, projectName: string): Pr
   })
 }
 
-// 新增：从录屏创建Record记录的函数
 const createRecordFromRecording = async () => {
   if (!recordedVideoUrl.value) {
     console.warn('没有录制的视频，跳过创建Record')
@@ -917,27 +917,68 @@ const createRecordFromRecording = async () => {
   try {
     console.log('开始创建Record记录...')
 
-    // 1. 获取视频Blob并上传
+    // 1. 获取视频Blob并上传到七牛云（使用正确的saveFile函数）
     const response = await fetch(recordedVideoUrl.value)
     const videoBlob = await response.blob()
-    const videoFile = new File([videoBlob], `record-${props.projectName}-${Date.now()}.webm`, { type: 'video/webm' })
-    const uploadResult = await uploadFile(videoFile)
-    console.log('视频上传成功:', uploadResult.url)
 
-    // 2. 准备Record数据
+    // 创建File对象（项目系统的File，不是浏览器原生File）
+    const videoFile = new File(`record-${props.projectName}-${Date.now()}.webm`, async () => {
+      return videoBlob.arrayBuffer()
+    })
+    videoFile.type = 'video/webm'
+
+    // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
+    const videoUniversalUrl = await saveFile(videoFile)
+    console.log('视频上传成功，Universal URL:', videoUniversalUrl)
+
+    // 2. 处理并上传缩略图（同样使用正确的saveFile函数）
+    let thumbnailUniversalUrl = ''
+
+    if (props.projectThumbnail) {
+      try {
+        console.log('开始处理并上传缩略图...')
+
+        // 获取缩略图数据
+        let thumbnailBlob
+        if (props.projectThumbnail.startsWith('blob:')) {
+          // 如果是blob URL，直接fetch获取
+          const thumbnailResponse = await fetch(props.projectThumbnail)
+          thumbnailBlob = await thumbnailResponse.blob()
+        } else {
+          // 如果是普通URL，也尝试fetch获取
+          const thumbnailResponse = await fetch(props.projectThumbnail)
+          thumbnailBlob = await thumbnailResponse.blob()
+        }
+
+        // 创建缩略图File对象（项目系统的File）
+        const thumbnailFile = new File(`thumbnail-${props.projectName}-${Date.now()}.jpg`, async () => {
+          return thumbnailBlob.arrayBuffer()
+        })
+        thumbnailFile.type = 'image/jpeg'
+
+        // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
+        thumbnailUniversalUrl = await saveFile(thumbnailFile)
+        console.log('缩略图上传成功，Universal URL:', thumbnailUniversalUrl)
+      } catch (thumbnailError) {
+        console.warn('缩略图上传失败，将使用空字符串:', thumbnailError)
+        thumbnailUniversalUrl = ''
+      }
+    }
+
+    // 3. 准备Record数据（使用Universal URL而不是Web URL）
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const recordData = {
-      projectId: parseInt(props.projectId), // 转换为数字发送给后端
+      projectId: parseInt(props.projectId),
       name: `record-${timestamp.slice(0, 19)}`,
       title: `${props.projectName} 录屏 - ${new Date().toLocaleString('zh-CN')}`,
       description: `这是项目 ${props.projectName} 的录屏记录`,
-      videoUrl: uploadResult.url,
-      thumbnailUrl: props.projectThumbnail || '',
+      videoUrl: videoUniversalUrl, // ✅ 使用kodo://格式的Universal URL
+      thumbnailUrl: thumbnailUniversalUrl, // ✅ 使用kodo://格式的Universal URL
       duration: Math.floor(recordingTime.value),
       fileSize: videoBlob.size
     }
 
-    // 3. 创建Record记录
+    // 4. 创建Record记录
     const record = await createRecord(recordData)
     console.log('Record创建成功:', record)
   } catch (error) {

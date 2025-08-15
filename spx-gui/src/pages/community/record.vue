@@ -57,8 +57,8 @@
             <video
               ref="videoRef"
               class="video-player"
-              :src="record.videoUrl"
-              :poster="thumbnailUrl"
+              :src="videoUrl || ''"
+              :poster="thumbnailUrl ? thumbnailUrl : ''"
               controls
               preload="metadata"
               @loadedmetadata="handleVideoLoaded"
@@ -150,6 +150,32 @@ const thumbnailUrl = useAsyncComputed(async (onCleanup) => {
   if (!record.value?.thumbnailUrl) return null
   const thumbnail = createFileWithUniversalUrl(record.value.thumbnailUrl)
   return thumbnail.url(onCleanup)
+})
+
+const convertRecordUrl = (universalUrl: string): string => {
+  if (!universalUrl) return ''
+
+  // 处理 kodo://test-xbuilder/files/... 格式
+  if (universalUrl.startsWith('kodo://test-xbuilder/')) {
+    // 提取文件路径部分
+    const filePath = universalUrl.replace('kodo://test-xbuilder/', '')
+    // 转换为实际访问URL
+    return `http://t0zmxasek.hn-bkt.clouddn.com/${filePath}`
+  }
+
+  // 如果已经是HTTP URL，直接返回
+  if (universalUrl.startsWith('http://') || universalUrl.startsWith('https://')) {
+    return universalUrl
+  }
+
+  // 其他情况返回原URL
+  return universalUrl
+}
+
+// 视频URL处理（使用自定义转换）
+const videoUrl = computed(() => {
+  if (!record.value?.videoUrl) return null
+  return convertRecordUrl(record.value.videoUrl)
 })
 
 // 格式化时长
