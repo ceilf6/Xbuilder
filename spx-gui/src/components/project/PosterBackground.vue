@@ -11,7 +11,7 @@
       <div class="project-info">
         <div class="game-title">{{ projectName }}</div>
         <div v-if="creatorName" class="creator-info">
-          <UIIcon type="user" />
+          <UIIcon type="statePublic" />
           <span>{{ $t({ en: 'Created by', zh: '创作者' }) }}: {{ creatorName }}</span>
         </div>
         <div v-if="projectDescription" class="project-description">
