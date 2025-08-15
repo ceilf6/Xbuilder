@@ -175,6 +175,17 @@ func (ctrl *Controller) CreateRecord(ctx context.Context, params *CreateRecordPa
 	return &recordDTO, nil
 }
 
+// GetRecord gets a record by owner and name.
+func (ctrl *Controller) GetRecord(ctx context.Context, owner, name string) (*RecordDTO, error) {
+	record, err := ctrl.ensureRecord(ctx, owner, name, false)
+	if err != nil {
+		return nil, err
+	}
+
+	recordDTO := toRecordDTO(*record)
+	return &recordDTO, nil
+}
+
 // ListRecordsOrderBy defines the available order by options
 type ListRecordsOrderBy string
 

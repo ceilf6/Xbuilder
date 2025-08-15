@@ -577,7 +577,6 @@ const handleAreaSelectionCancelled = () => {
   currentState.value = 'initial'
 }
 
-// 区域录制核心函数
 // 区域录制核心函数 - 修改版（复用屏幕流，避免重复权限请求）
 const startAreaRecording = async (selectedArea: { x: number; y: number; width: number; height: number }) => {
   try {

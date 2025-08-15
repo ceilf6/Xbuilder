@@ -99,6 +99,9 @@ export async function getRecord(owner: string, name: string, signal?: AbortSigna
         signal
     }) as Promise<RecordData>
 }
+// export async function getRecord(owner: string, name: string): Promise<RecordData> {
+//     return client.get(`/records/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`) as Promise<RecordData>
+// }
 
 /** Record a view for the given record */
 export async function recordRecordView(owner: string, name: string) {
