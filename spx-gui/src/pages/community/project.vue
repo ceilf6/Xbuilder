@@ -84,43 +84,42 @@ declare global {
   }
 // 2. 分享数据
 const shareData = {
-  title: 'QQ分享卡片示例',
-  desc: '演示QQ卡片分享功能',
+  title: `${props.owner}/${props.name}`,
+  desc: '分享来自XBuilder的创意项目',
   share_url: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
   image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
 }
 
-// 创建页面内调试信息显示
-const debugInfo = ref('')
-const showDebugInfo = ref(false)
+// // 创建页面内调试信息显示
+// const debugInfo = ref('')
+// const showDebugInfo = ref(false)
 
-function showDebugMessage(message: string) {
-  console.log('显示调试信息:', message) // 添加console用于调试
-  debugInfo.value = message
-  showDebugInfo.value = true
-}
+// function showDebugMessage(message: string) {
+//   console.log('显示调试信息:', message) // 添加console用于调试
+//   debugInfo.value = message
+//   showDebugInfo.value = true
+// }
 
 // 检查QQ浏览器环境并显示调试信息
 function checkQQEnvironment() {
-  console.log('checkQQEnvironment 被调用') // 调试日志
   
-  const mqqExists = !!window.mqq
-  const mqqType = typeof window.mqq
-  const mqqKeys = window.mqq ? Object.keys(window.mqq) : []
-  const browserInfo = getQQBrowserInfo()
+  // const mqqExists = !!window.mqq
+  // const mqqType = typeof window.mqq
+  // const mqqKeys = window.mqq ? Object.keys(window.mqq) : []
+  // const browserInfo = getQQBrowserInfo()
   
-  const debugMsg = `QQ环境检测:
-    mqq存在: ${mqqExists}
-    mqq类型: ${mqqType}
-    mqq属性: ${mqqKeys.join(', ')}
-    平台: ${browserInfo.platform}
-    QQ版本: ${browserInfo.qqVer || '—'}
-    QB版本: ${browserInfo.qbVer || '—'}
-    是否微信: ${browserInfo.isWechat}
-    UserAgent: ${navigator.userAgent}`
+  // const debugMsg = `QQ环境检测:
+  //   mqq存在: ${mqqExists}
+  //   mqq类型: ${mqqType}
+  //   mqq属性: ${mqqKeys.join(', ')}
+  //   平台: ${browserInfo.platform}
+  //   QQ版本: ${browserInfo.qqVer || '—'}
+  //   QB版本: ${browserInfo.qbVer || '—'}
+  //   是否微信: ${browserInfo.isWechat}
+  //   UserAgent: ${navigator.userAgent}`
   
-  console.log('准备显示调试信息:', debugMsg) // 调试日志
-  showDebugMessage(debugMsg)
+  // console.log('准备显示调试信息:', debugMsg) // 调试日志
+  // showDebugMessage(debugMsg)
   
   // 尝试调用QQ分享API
   if (window.mqq) {
@@ -137,10 +136,10 @@ function checkQQEnvironment() {
 
 // 页面加载完成后执行检测
 onMounted(() => {
-  console.log('onMounted 被调用') // 调试日志
+  // console.log('onMounted 被调用') // 调试日志
   // 延迟执行，确保QQ环境完全加载
   setTimeout(() => {
-    console.log('延迟执行 checkQQEnvironment') // 调试日志
+    // console.log('延迟执行 checkQQEnvironment') // 调试日志
     checkQQEnvironment()
   }, 1000)
 })
@@ -844,7 +843,7 @@ const remixesRet = useQuery(
   </div>
   
   <!-- QQ环境调试信息显示 -->
-  <div
+  <!-- <div
     v-if="showDebugInfo"
     class="debug-info-overlay"
     @click="showDebugInfo = false"
@@ -858,7 +857,7 @@ const remixesRet = useQuery(
         <pre>{{ debugInfo }}</pre>
       </div>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <style scoped lang="scss">

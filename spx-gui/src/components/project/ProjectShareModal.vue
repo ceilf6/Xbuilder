@@ -156,8 +156,8 @@
   }>()
 
   const shareData = {
-        title:    'QQ分享卡片示例',
-        desc:     '演示QQ卡片分享功能',
+        title:    `${props.owner}/${props.name}`,
+        desc:     '分享来自XBuilder的创意项目',
         share_url:'https://xbuilder-sharing-test.gopluscdn.com/project/'+props.owner+'/'+props.name,
         image_url:'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
     };
@@ -166,9 +166,9 @@
   if (window.mqq) {
     try {
       window.mqq.invoke('data', 'setShareInfo', shareData);
-      alert('QQ分享卡片信息已设置')
+      // alert('QQ分享卡片信息已设置')
     } catch (error: any) {
-      alert('QQ分享卡片信息设置失败: ' + (error?.message || '未知错误'))
+      // alert('QQ分享卡片信息设置失败: ' + (error?.message || '未知错误'))
     }
   }
 
