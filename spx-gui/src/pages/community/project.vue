@@ -63,7 +63,7 @@ const shareData = {
   share_url: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
   image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
 };
-
+alert('window.mqq:' + window.mqq)
 if (window.mqq) {
   window.mqq.invoke('data', 'setShareInfo', shareData);
 }
