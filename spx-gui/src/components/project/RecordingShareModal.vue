@@ -925,7 +925,7 @@ const createRecordFromRecording = async () => {
     const videoFile = new File(`record-${props.projectName}-${Date.now()}.webm`, async () => {
       return videoBlob.arrayBuffer()
     })
-    videoFile.type = 'video/webm'
+    ;(videoFile as any).type = 'video/webm'
 
     // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
     const videoUniversalUrl = await saveFile(videoFile)
@@ -939,7 +939,7 @@ const createRecordFromRecording = async () => {
         console.log('开始处理并上传缩略图...')
 
         // 获取缩略图数据
-        let thumbnailBlob
+        let thumbnailBlob: Blob
         if (props.projectThumbnail.startsWith('blob:')) {
           // 如果是blob URL，直接fetch获取
           const thumbnailResponse = await fetch(props.projectThumbnail)
@@ -954,7 +954,7 @@ const createRecordFromRecording = async () => {
         const thumbnailFile = new File(`thumbnail-${props.projectName}-${Date.now()}.jpg`, async () => {
           return thumbnailBlob.arrayBuffer()
         })
-        thumbnailFile.type = 'image/jpeg'
+        ;(thumbnailFile as any).type = 'image/jpeg'
 
         // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
         thumbnailUniversalUrl = await saveFile(thumbnailFile)
@@ -1034,7 +1034,7 @@ const handleBilibiliShare = useMessageHandle(
 
     // 3. 准备FormData
     const formData = new FormData()
-    formData.append('video', videoFile)
+    formData.append('video', videoFile as any)
     formData.append('title', title)
     formData.append('description', description)
     formData.append('tags', tags)
@@ -1053,7 +1053,7 @@ const handleBilibiliShare = useMessageHandle(
         const coverFile = new File([processedCoverBlob], `${props.projectName}-cover.jpg`, {
           type: 'image/jpeg'
         })
-        formData.append('cover', coverFile)
+        formData.append('cover', coverFile as any)
         console.log('封面图片已处理并添加到FormData')
       } catch (error) {
         console.warn('封面图片处理失败，将使用默认封面:', error)
