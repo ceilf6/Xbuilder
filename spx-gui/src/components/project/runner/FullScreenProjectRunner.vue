@@ -118,12 +118,19 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   transition:
     transform 0.4s ease-in-out,
     opacity 0.2s ease-in-out 0.1s;
-
+ 
   &.visible {
     display: block;
     transform: scale(1);
     opacity: 1;
   }
+  // @include responsive(mobile) {
+  //   &.visible {
+  //     transform:  rotate(90deg);
+  //   }
+  // }
+  
+ 
 }
 
 .container {
@@ -131,6 +138,14 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+   @include responsive(mobile) {
+    width: 100vh;
+    height: 100vw;
+    // transform:  rotate(90deg);
+     transform-origin: top left; // 设置旋转基点
+    transform: rotate(90deg) translateY(-100%); // 旋转并调整位置
+   
+  }
 
 }
 
@@ -181,6 +196,7 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   display: flex;
   justify-content: center;
   background-color: var(--ui-color-grey-300);
+
 }
 
 .runner {
