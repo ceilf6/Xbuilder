@@ -6,14 +6,14 @@ import { useMessageHandle } from '@/utils/exception/index'
 import { useQuery } from '@/utils/query'
 import { usePageTitle } from '@/utils/utils'
 import { useEnsureSignedIn } from '@/utils/user'
-import { Visibility, listProject, type ListProjectParams } from '@/apis/project'
+import { listRecord, type ListRecordParams } from '@/apis/record'
 import { getOwnProjectEditorRoute } from '@/router'
 import { getSignedInUsername, useUser } from '@/stores/user'
 import { UISelect, UISelectOption, UIPagination, UIButton, useResponsive } from '@/components/ui'
 import { useCreateProject } from '@/components/project'
 import ListResultWrapper from '@/components/common/ListResultWrapper.vue'
 import UserContent from '@/components/community/user/content/UserContent.vue'
-import ProjectItem from '@/components/project/ProjectItem.vue'
+import RecordItem from '@/components/record/RecordItem.vue'
 
 const props = defineProps<{
   name: string
@@ -25,8 +25,8 @@ const { data: user } = useUser(() => props.name)
 usePageTitle(() => {
   if (user.value == null) return null
   return {
-    en: `Projects of ${user.value.displayName}`,
-    zh: `${user.value.displayName} 的项目`
+    en: `Records of ${user.value.displayName}`,
+    zh: `${user.value.displayName} 的录屏`
   }
 })
 
@@ -38,20 +38,24 @@ const page = useRouteQueryParamInt('p', 1)
 
 enum Order {
   RecentlyUpdated = 'update',
-  MostLikes = 'likes'
+  MostLikes = 'likes',
+  ByDuration = 'duration'
 }
 const order = useRouteQueryParamStrEnum('o', Order, Order.RecentlyUpdated, (kvs) => ({
   ...kvs,
   p: null
 }))
 
-const listParams = computed<ListProjectParams>(() => {
-  const p: ListProjectParams = {
+const listParams = computed<ListRecordParams>(() => {
+  const p: ListRecordParams = {
     owner: props.name,
     pageSize: pageSize.value,
     pageIndex: page.value
   }
-  if (!isSignedInUser.value) p.visibility = Visibility.Public
+
+  // 注意：Records 不像 Projects 那样有 visibility 参数
+  // 因为我们的后端 API 已经在 ListRecords 中处理了权限逻辑
+
   switch (order.value) {
     case Order.RecentlyUpdated:
       p.orderBy = 'updatedAt'
@@ -61,13 +65,17 @@ const listParams = computed<ListProjectParams>(() => {
       p.orderBy = 'likeCount'
       p.sortOrder = 'desc'
       break
+    case Order.ByDuration:
+      p.orderBy = 'duration'
+      p.sortOrder = 'desc'
+      break
   }
   return p
 })
 
-const queryRet = useQuery(() => listProject(listParams.value), {
-  en: 'Failed to load projects',
-  zh: '加载失败'
+const queryRet = useQuery(() => listRecord(listParams.value), {
+  en: 'Failed to load records',
+  zh: '加载录屏失败'
 })
 
 const router = useRouter()
@@ -84,7 +92,7 @@ const handleNewProject = useMessageHandle(
 </script>
 
 <template>
-  <UserContent class="user-projects" :style="{ '--project-num-in-row': numInRow }">
+  <UserContent class="user-records" :style="{ '--project-num-in-row': numInRow }">
     <template #title>
       {{ $t({ en: 'My records', zh: '我的录屏' }) }}
     </template>
@@ -109,6 +117,12 @@ const handleNewProject = useMessageHandle(
               zh: '最受喜欢'
             })
           }}</UISelectOption>
+          <UISelectOption :value="Order.ByDuration">{{
+            $t({
+              en: 'By duration',
+              zh: '按时长'
+            })
+          }}</UISelectOption>
         </UISelect>
       </label>
       <UIButton
@@ -121,15 +135,14 @@ const handleNewProject = useMessageHandle(
         {{ $t({ en: 'New record', zh: '新建录屏' }) }}
       </UIButton>
     </template>
-    <div class="projects-wrapper">
+    <div class="records-wrapper">
       <ListResultWrapper v-slot="slotProps" content-type="record" :query-ret="queryRet" :height="524">
-        <ul class="projects">
-          <ProjectItem
-            v-for="project in slotProps.data.data"
-            :key="project.id"
-            size="small"
+        <ul class="records">
+          <RecordItem
+            v-for="record in slotProps.data.data"
+            :key="record.id"
             context="mine"
-            :project="project"
+            :record="record"
             @removed="queryRet.refetch()"
           />
         </ul>
@@ -146,11 +159,11 @@ const handleNewProject = useMessageHandle(
   gap: 8px;
 }
 
-.projects-wrapper {
+.records-wrapper {
   margin-top: 8px;
 }
 
-.projects {
+.records {
   display: grid;
   grid-template-columns: repeat(var(--project-num-in-row), 1fr);
   gap: var(--ui-gap-middle);

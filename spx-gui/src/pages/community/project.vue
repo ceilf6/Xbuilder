@@ -75,6 +75,7 @@ function setQQShare() {
 // 4. 简化的执行逻辑
 function init() {
   // 直接尝试执行，不进行复杂的环境检测
+  showToast('init')
   const success = setQQShare();
   
   // 仅当首次失败时才重试
@@ -97,6 +98,7 @@ function init() {
 // 5. 智能执行时机处理
 const executeWhenReady = () => {
   // 尝试立即执行
+  showToast('executeWhenReady')
   init();
   
   // 额外添加QQ专用事件监听
@@ -105,6 +107,7 @@ const executeWhenReady = () => {
 
 // 启动
 if (document.readyState === 'complete') {
+  showToast('document.readyState:' + document.readyState)
   executeWhenReady();
 } else {
   document.addEventListener('DOMContentLoaded', executeWhenReady);
@@ -383,7 +386,7 @@ const handleScreenshot = useMessageHandle(
           // 检查项目运行器是否有必要的方法
           if (typeof projectRunner.pauseGame !== 'function' || typeof projectRunner.resumeGame !== 'function') {
             console.log(`等待项目运行器方法初始化... (${retryCount + 1}/${maxRetries})`)
-            await new Promise(resolve => setTimeout(resolve, 200))
+            await new Promise((resolve) => setTimeout(resolve, 200))
             retryCount++
             continue
           }
@@ -397,7 +400,7 @@ const handleScreenshot = useMessageHandle(
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error)
           console.log(`等待项目运行器初始化... (${retryCount + 1}/${maxRetries}): ${errorMessage}`)
-          await new Promise(resolve => setTimeout(resolve, 200))
+          await new Promise((resolve) => setTimeout(resolve, 200))
           retryCount++
         }
       }
@@ -415,12 +418,12 @@ const handleScreenshot = useMessageHandle(
       if (!screenshot) {
         throw new Error('截图方法返回空结果')
       }
-      
+
       // 设置截图数据
       screenshotDataUrl.value = screenshot.dataURL
       screenshotWidth.value = screenshot.width
       screenshotHeight.value = screenshot.height
-      
+
       console.log('成功从游戏canvas获取截图', screenshot.width, 'x', screenshot.height)
       isScreenshotModalVisible.value = true
     } catch (error) {
@@ -443,7 +446,7 @@ const handleScreenshot = useMessageHandle(
 
 async function handleCloseScreenshotModal() {
   isScreenshotModalVisible.value = false
-  
+
   // 恢复游戏
   try {
     const projectRunner = projectRunnerRef.value
@@ -784,13 +787,15 @@ const remixesRet = useQuery(
       :project-name="project.name"
       :project-thumbnail="thumbnailUrl || undefined"
       :project-runner="projectRunnerRef"
+      :project-id="project.id"
+      :owner="project.owner"
       @cancelled="showRecordingModal = false"
       @resolved="showRecordingModal = false"
       @recording-started="showRecordingModal = false"
       @recording-stopped="showRecordingModal = true"
     />
   </CenteredWrapper>
-  
+
   <!-- 截屏分享弹窗 -->
   <ScreenshotShareModal
     v-model:visible="isScreenshotModalVisible"
