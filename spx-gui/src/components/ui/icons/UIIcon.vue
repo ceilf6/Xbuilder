@@ -54,6 +54,7 @@ import copy from './copy.svg?raw'
 import fullScreen from './full-screen.svg?raw'
 import end from './end.svg?raw'
 import eyedrop from './eyedrop.svg?raw'
+import arrowShare from './arrow-share.svg?raw'
 
 const typeIconMap = {
   file,
@@ -104,7 +105,8 @@ const typeIconMap = {
   copy,
   fullScreen,
   end,
-  eyedrop
+  eyedrop,
+  arrowShare
 }
 
 export type Type = keyof typeof typeIconMap

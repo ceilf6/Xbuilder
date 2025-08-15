@@ -286,6 +286,13 @@ function handleToggleLike() {
 const shareProject = useShareProject()
 
 const handleShare = useMessageHandle(async () => {
+  // 在移动端显示分享提示蒙版
+  if (isMobile.value) {
+    showMobileShareHint.value = true
+    return
+  }
+  
+  // 桌面端正常显示分享弹窗
   const p = await untilNotNull(project) as Project
   await shareProject(
     props.owner, 
@@ -301,6 +308,14 @@ const handleShare = useMessageHandle(async () => {
   en: 'Failed to share project',
   zh: '分享项目失败'
 })
+
+// 移动端分享提示状态
+const showMobileShareHint = ref(false)
+
+// 关闭移动端分享提示
+function closeMobileShareHint() {
+  showMobileShareHint.value = false
+}
 
 const createProject = useCreateProject()
 
@@ -790,6 +805,22 @@ const remixesRet = useQuery(
     }"
     @close="handleCloseScreenshotModal"
   />
+  
+  <!-- 移动端分享提示蒙版 -->
+  <div
+    v-if="showMobileShareHint"
+    class="mobile-share-hint-overlay"
+    @click="closeMobileShareHint"
+  >
+    <div class="mobile-share-hint-content">
+      <div class="hint-arrow">
+        <UIIcon class="icon"  type="arrowShare" />
+      </div>
+      <div class="hint-text">
+        {{ $t({ en: 'please click the upper right button to send it to the designated friend', zh: '请点击右上角将它发送给指定朋友' }) }}
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -939,5 +970,41 @@ const remixesRet = useQuery(
 
 .remixes {
   margin-top: 20px;
+}
+
+/* 移动端分享提示蒙版样式 */
+.mobile-share-hint-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: right;
+  color: #fff;
+  
+  @include responsive(mobile) {
+    .mobile-share-hint-content {  
+      padding: 0 24px;
+      text-align: center;
+      max-width: 280px;
+          .hint-arrow {
+          margin: 25px 0;
+          display: flex;
+          justify-content: right;
+        
+          .icon {
+            transform: scale(4); 
+          }
+        }
+      .hint-text {
+        font-size: 16px;
+        margin-bottom: 20px;
+        line-height: 1.4;
+      }
+    }
+  }
 }
 </style>
