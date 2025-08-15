@@ -47,15 +47,9 @@ const props = defineProps<{
   name: string
 }>()
 
-// Type assertion for QQ mqq API (overriding existing declaration)
-const mqq = (window as any).mqq as {
-  invoke: (module: string, method: string, data: any) => void;
-  data?: {
-    setShareInfo: (data: any) => void;
-  };
-};
+// 使用类型断言避免全局声明冲突
 
-// 统一分享数据格式
+// 2. 分享数据
 const shareData = {
   title: 'QQ分享卡片示例',
   desc: '演示QQ卡片分享功能',
@@ -63,84 +57,69 @@ const shareData = {
   image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
 };
 
-// 检测QQ浏览器环境
-function isQQBrowser() {
-  const ua = navigator.userAgent.toLowerCase();
-  return ua.includes('qq/') || ua.includes('mqqbrowser');
-}
-
-// 显示提示信息（QQ浏览器可见）
-function showMessage(message: string) {
-  // 尝试使用QQ浏览器的toast
+// 3. 核心分享函数（与您之前成功的JS代码一致）
+function setQQShare() {
   try {
-    if (mqq?.invoke) {
-      mqq.invoke('ui', 'toast', { message });
-      return;
-    }
-  } catch (e) {
-    // 如果toast失败，使用alert作为后备
+    // 直接使用您验证成功的调用方式
+    window.mqq?.invoke?.('data', 'setShareInfo', shareData);
+    console.log('QQ分享设置成功');
+    showToast('QQ分享卡片信息已设置');
+    return true;
+  } catch (error) {
+    console.error('QQ分享设置失败', error);
+    showToast('分享设置失败: ' + (error instanceof Error ? error.message : '未知错误'));
+    return false;
   }
-  
-  // 后备方案：使用alert
-  alert(message);
 }
 
-// 设置分享信息（兼容iOS/Android）
-function setQQShareInfo() {
-  // 方法1：直接检测mqq.invoke（iOS方式）
-  if (mqq?.invoke) {
-    try {
-      mqq.invoke('data', 'setShareInfo', shareData);
-      showMessage('iOS分享设置成功');
-      return true;
-    } catch (e) {
-      showMessage('iOS分享设置失败: ' + (e instanceof Error ? e.message : String(e)));
-    }
-  }
+// 4. 简化的执行逻辑
+function init() {
+  // 直接尝试执行，不进行复杂的环境检测
+  const success = setQQShare();
   
-  // 方法2：检测mqq.data.setShareInfo（Android方式）
-  if (mqq?.data?.setShareInfo) {
-    try {
-      mqq.data.setShareInfo(shareData);
-      showMessage('Android分享设置成功');
-      return true;
-    } catch (e) {
-      showMessage('Android分享设置失败: ' + (e instanceof Error ? e.message : String(e)));
-    }
-  }
-  
-  return false;
-}
-
-// 主执行函数
-function initQQShare() {
-  if (!isQQBrowser()) {
-    showMessage('非QQ浏览器环境');
-    return;
-  }
-
-  // 首次尝试
-  if (setQQShareInfo()) return;
-  
-  // 延迟重试（解决Android注入延迟问题）
-  let retryCount = 0;
-  const retryInterval = setInterval(() => {
-    if (setQQShareInfo() || retryCount > 3) {
-      clearInterval(retryInterval);
-      if (retryCount > 3) {
-        showMessage('QQ分享API调用失败，已重试3次');
+  // 仅当首次失败时才重试
+  if (!success) {
+    let retryCount = 0;
+    const retry = () => {
+      retryCount++;
+      if (setQQShare() || retryCount >= 2) { // 最多重试2次
+        if (retryCount >= 2 && !success) {
+          console.warn('QQ分享设置失败，已重试2次');
+        }
+        return;
       }
-    }
-    retryCount++;
-  }, 300);
+      setTimeout(retry, 300); // 300ms后重试
+    };
+    setTimeout(retry, 500);
+  }
 }
 
-// 确保在DOM加载完成后执行
+// 5. 智能执行时机处理
+const executeWhenReady = () => {
+  // 尝试立即执行
+  init();
+  
+  // 额外添加QQ专用事件监听
+  document.addEventListener('QQJSBridgeReady', init);
+};
+
+// 启动
 if (document.readyState === 'complete') {
-  initQQShare();
+  executeWhenReady();
 } else {
-  window.addEventListener('DOMContentLoaded', initQQShare);
-  window.addEventListener('load', initQQShare);
+  document.addEventListener('DOMContentLoaded', executeWhenReady);
+  window.addEventListener('load', executeWhenReady);
+}
+
+// 6. 简化的消息提示
+function showToast(message: string) {
+  // 优先使用QQ浏览器的toast
+  try {
+    (window as any).mqq?.invoke?.('ui', 'toast', { message });
+  } catch {
+    // 失败时使用alert
+    alert(message);
+  }
 }
 
 const router = useRouter()
