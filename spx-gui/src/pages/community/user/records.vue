@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 import { useRouteQueryParamInt, useRouteQueryParamStrEnum } from '@/utils/route'
-import { useMessageHandle } from '@/utils/exception/index'
+// import { useMessageHandle } from '@/utils/exception/index'
 import { useQuery } from '@/utils/query'
 import { usePageTitle } from '@/utils/utils'
-import { useEnsureSignedIn } from '@/utils/user'
+// import { useEnsureSignedIn } from '@/utils/user'
 import { listRecord, type ListRecordParams } from '@/apis/record'
-import { getOwnProjectEditorRoute } from '@/router'
+// import { getOwnProjectEditorRoute } from '@/router'
 import { getSignedInUsername, useUser } from '@/stores/user'
 import { UISelect, UISelectOption, UIPagination, UIButton, useResponsive } from '@/components/ui'
-import { useCreateProject } from '@/components/project'
+// import { useCreateProject } from '@/components/project'
 import ListResultWrapper from '@/components/common/ListResultWrapper.vue'
 import UserContent from '@/components/community/user/content/UserContent.vue'
 import RecordItem from '@/components/record/RecordItem.vue'
@@ -19,7 +19,7 @@ const props = defineProps<{
   name: string
 }>()
 
-const isSignedInUser = computed(() => props.name === getSignedInUsername())
+// const isSignedInUser = computed(() => props.name === getSignedInUsername())
 
 const { data: user } = useUser(() => props.name)
 usePageTitle(() => {
@@ -82,17 +82,17 @@ const queryRet = useQuery(() => listRecord(listParams.value), {
   zh: '加载录屏失败'
 })
 
-const router = useRouter()
-const ensureSignedIn = useEnsureSignedIn()
-const createProject = useCreateProject()
-const handleNewProject = useMessageHandle(
-  async () => {
-    await ensureSignedIn()
-    const name = await createProject()
-    router.push(getOwnProjectEditorRoute(name))
-  },
-  { en: 'Failed to create new record', zh: '新建录屏失败' }
-).fn
+// const router = useRouter()
+// const ensureSignedIn = useEnsureSignedIn()
+// const createProject = useCreateProject()
+// const handleNewProject = useMessageHandle(
+//   async () => {
+//     await ensureSignedIn()
+//     const name = await createProject()
+//     router.push(getOwnProjectEditorRoute(name))
+//   },
+//   { en: 'Failed to create new record', zh: '新建录屏失败' }
+// ).fn
 </script>
 
 <template>
