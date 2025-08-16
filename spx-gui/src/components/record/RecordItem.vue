@@ -1,5 +1,22 @@
 <template>
   <li class="record-item" :class="{ [context]: true }">
+    <!-- 右上角操作按钮 -->
+  <div v-if="context !== 'public' && isOwner && operatable" class="corner-actions">
+    <button
+      v-radar="{ name: 'Edit record button', desc: 'Click to edit record' }"
+      class="corner-btn edit-btn"
+      @click.stop="handleEdit.fn"
+    >
+      <UIIcon type="edit" />
+    </button>
+    <button
+      v-radar="{ name: 'Delete record button', desc: 'Click to delete record' }"
+      class="corner-btn delete-btn"
+      @click.stop="handleRemove"
+    >
+      <UIIcon type="trash" />
+    </button>
+  </div>
     <RouterLink :to="to" class="link" @click="$emit('selected')">
       <div class="media">
         <div class="thumbnail">
@@ -13,7 +30,7 @@
         </div>
       </div>
       <div class="info">
-        <div class="header">
+        <!-- <div class="header">
           <h5 class="name" :title="record.title">{{ record.title }}</h5>
           <template v-if="context !== 'public' && isOwner">
             <UIDropdown v-if="operatable" placement="bottom-end" :offset="{ x: -8, y: 4 }">
@@ -23,7 +40,7 @@ v-radar="{ name: 'Record options', desc: 'Open record options menu' }" class="mo
                   type="more" />
               </template>
               <UIMenu>
-                <UIMenuItem @click="handleEdit">
+                <UIMenuItem @click="handleEdit.fn"> 
                   {{ $t({ en: 'Edit', zh: '编辑' }) }}
                 </UIMenuItem>
                 <UIMenuItem @click="handleRemove">
@@ -61,7 +78,7 @@ fill-rule="evenodd" clip-rule="evenodd"
               </svg>
             </i>
           </template>
-        </div>
+        </div> -->
         <p class="description" :title="record.description">{{ record.description }}</p>
         <p class="others">
           <span class="part" :class="{ liking }" :title="$t(likesTitle)">
@@ -87,13 +104,12 @@ import { computed } from 'vue'
 import { useMessageHandle } from '@/utils/exception'
 import { humanizeCount, humanizeExactCount, humanizeTime, humanizeExactTime, useAsyncComputed } from '@/utils/utils'
 import { getRecordPageRoute } from '@/router'
-import { Visibility, type RecordData, deleteRecord } from '@/apis/record'
+import { Visibility, type RecordData, deleteRecord, updateRecord } from '@/apis/record'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
 import { getSignedInUsername } from '@/stores/user'
 import { UIImg, UIDropdown, UIIcon, UIMenu, UIMenuItem } from '@/components/ui'
 import UserAvatar from '@/components/community/user/UserAvatar.vue'
-// import { useRemoveRecord } from '.' // TODO: 需要创建删除录屏的 hook
-
+import { useEditRecord } from '.'
 /**
  * Context (list) where the record item is used
  * - `public`: List of public records from all users
@@ -116,6 +132,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   selected: []
   removed: []
+  updated: [updatedRecord: RecordData]  // 新增
 }>()
 
 const isOwner = computed(() => props.record.owner === getSignedInUsername())
@@ -162,10 +179,18 @@ const timeTitle = computed(() => {
   }
 })
 
-function handleEdit() {
-  // TODO: 实现录屏编辑逻辑
-  // console.log('Edit record:', props.record.name)
-}
+// 在script setup中添加
+const editRecord = useEditRecord()
+
+// 修改handleEdit函数
+const handleEdit = useMessageHandle(
+  async () => {
+    const updatedRecord = await editRecord(props.record)  // 这会打开模态框
+    emit('updated', updatedRecord)  // 通知父组件
+    return updatedRecord
+  },
+  { en: 'Failed to edit record', zh: '编辑录屏失败' }
+)
 
 const handleRemove = useMessageHandle(
   async () => {
@@ -246,7 +271,7 @@ const handleRemove = useMessageHandle(
     color: white;
     font-size: 12px;
     font-weight: 500;
-    
+
     @include responsive(mobile) {
       font-size: 0.86em;
       padding: 0.14em 0.43em;
@@ -271,7 +296,7 @@ const handleRemove = useMessageHandle(
   flex: 1;
   padding: 12px;
   gap: 6px;
-  
+
   @include responsive(mobile) {
     padding: 0.86em;
   }
@@ -290,7 +315,7 @@ const handleRemove = useMessageHandle(
       line-height: 1.3;
       color: var(--ui-color-title);
       @include text-ellipsis;
-      
+
       @include responsive(mobile) {
         font-size: 1em;
         line-height: 1.3em;
@@ -319,19 +344,20 @@ const handleRemove = useMessageHandle(
   }
 
   .description {
-    font-size: 12px;
-    color: var(--ui-color-grey-600);
-    line-height: 1.4;
-    display: -webkit-box;
-    // -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    
-    @include responsive(mobile) {
-      font-size: 0.86em;
-      line-height: 1.4em;
-    }
+  font-size: 12px;
+  color: var(--ui-color-grey-600);
+  line-height: 1.4;
+  
+  // 单行省略号样式
+  white-space: nowrap;      // 强制单行显示
+  overflow: hidden;         // 隐藏超出部分
+  text-overflow: ellipsis;  // 显示省略号
+  
+  @include responsive(mobile) {
+    font-size: 0.86em;
+    line-height: 1.4em;
   }
+}
 
   .others {
     display: flex;
@@ -340,7 +366,7 @@ const handleRemove = useMessageHandle(
     margin-top: auto;
     font-size: 12px;
     color: var(--ui-color-grey-600);
-    
+
     @include responsive(mobile) {
       gap: 0.57em;
       font-size: 0.86em;
@@ -350,7 +376,7 @@ const handleRemove = useMessageHandle(
       display: flex;
       align-items: center;
       gap: 3px;
-      
+
       @include responsive(mobile) {
         gap: 0.21em;
       }
@@ -358,7 +384,7 @@ const handleRemove = useMessageHandle(
       .icon {
         width: 12px;
         height: 12px;
-        
+
         @include responsive(mobile) {
           width: 0.86em;
           height: 0.86em;
@@ -372,6 +398,30 @@ const handleRemove = useMessageHandle(
       &.time {
         margin-left: auto;
       }
+    }
+  }
+}
+.record-item {
+  position: relative; // 确保定位上下文
+  
+  // 默认隐藏操作按钮
+  .corner-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: all 0.2s;
+    z-index: 10;
+  }
+  
+  // 悬停时显示
+  &:hover {
+    .corner-actions {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }

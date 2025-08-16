@@ -9,18 +9,25 @@
       <div class="main-content-frame">
         <div class="content-layout">
           <!-- Left Side - Video Player -->
-          <div class="video-side">
+          <div ref="videoSideRef" class="video-side">
             <div class="video-container">
               <video
-ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="metadata"
-                crossorigin="anonymous" @loadedmetadata="handleVideoLoaded" @play="handleVideoPlay">
+                ref="videoRef" 
+                :src="videoUrl" 
+                :poster="thumbnailUrl || ''" 
+                controls 
+                preload="metadata"
+                crossorigin="anonymous" 
+                @loadedmetadata="handleVideoLoaded" 
+                @play="handleVideoPlay"
+              >
                 {{ $t({ en: 'Your browser does not support video playback.', zh: '您的浏览器不支持视频播放。' }) }}
               </video>
             </div>
           </div>
 
           <!-- Right Side - Info Panel -->
-          <div class="info-side">
+          <div ref="infoSideRef" class="info-side">
             <!-- Record Title -->
             <h1 class="record-title">{{ record.title }}</h1>
 
@@ -39,15 +46,23 @@ ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="me
             <!-- Action Buttons -->
             <div class="action-buttons">
               <UIButton
-v-if="record.project" type="primary" size="large" :loading="handlePlayProject.isLoading.value"
-                @click="handlePlayProject.fn">
+                v-if="record.project" 
+                type="primary" 
+                size="large" 
+                :loading="handlePlayProject.isLoading.value"
+                @click="handlePlayProject.fn"
+              >
                 <UIIcon type="play" />
                 {{ $t({ en: 'Play Game', zh: '一键开玩' }) }}
               </UIButton>
               <div class="button-row">
                 <UIButton
-type="secondary" size="medium" :class="{ liking }" :loading="isTogglingLike"
-                  @click="handleToggleLike">
+                  type="secondary" 
+                  size="medium" 
+                  :class="{ liking }" 
+                  :loading="isTogglingLike"
+                  @click="handleToggleLike"
+                >
                   <UIIcon type="heart" />
                   {{ record.likeCount }}
                 </UIButton>
@@ -74,10 +89,9 @@ type="secondary" size="medium" :class="{ liking }" :loading="isTogglingLike"
             <!-- Project Description -->
             <div v-if="record.project" class="description-section">
               <h3>{{ $t({ en: 'Game Description', zh: '游戏描述' }) }}</h3>
-              <p class="description-text">{{ record.project.description || $t({
-                en: 'No description available', zh:
-                  '暂无描述'
-              }) }}</p>
+              <p class="description-text">
+                {{ record.project.description || $t({ en: 'No description available', zh: '暂无描述' }) }}
+              </p>
               <div class="project-link">
                 <RouterUILink :to="getProjectPageRoute(record.project.owner, record.project.name)">
                   {{ $t({ en: 'View Project', zh: '查看项目' }) }} →
@@ -90,8 +104,6 @@ type="secondary" size="medium" :class="{ liking }" :loading="isTogglingLike"
               <h3>{{ $t({ en: 'Recording Description', zh: '录屏描述' }) }}</h3>
               <p class="description-text">{{ record.description }}</p>
             </div>
-
-
           </div>
         </div>
       </div>
@@ -99,8 +111,11 @@ type="secondary" size="medium" :class="{ liking }" :loading="isTogglingLike"
       <!-- Related Records Frame - 下方框：相关录屏 -->
       <div v-if="record.project" class="related-content-frame">
         <ProjectsSection
-context="project" :num-in-row="numInRow" :query-ret="relatedRecordsQuery"
-          :link-to="allRecordsLink">
+          context="project" 
+          :num-in-row="numInRow" 
+          :query-ret="relatedRecordsQuery"
+          :link-to="allRecordsLink"
+        >
           <template #title>
             {{ $t({ en: 'More recordings of this project', zh: '该项目的其他录屏' }) }}
           </template>
@@ -108,8 +123,10 @@ context="project" :num-in-row="numInRow" :query-ret="relatedRecordsQuery"
             {{ $t({ en: 'View all', zh: '查看所有' }) }}
           </template>
           <RecordItem
-v-for="relatedRecord in relatedRecordsQuery.data.value" :key="relatedRecord.id"
-            :record="relatedRecord" />
+            v-for="relatedRecord in relatedRecordsQuery.data.value" 
+            :key="relatedRecord.id"
+            :record="relatedRecord" 
+          />
         </ProjectsSection>
       </div>
     </CenteredWrapper>
@@ -117,13 +134,12 @@ v-for="relatedRecord in relatedRecordsQuery.data.value" :key="relatedRecord.id"
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePageTitle } from '@/utils/utils'
 import { useQuery } from '@/utils/query'
 import { humanizeTime, useAsyncComputed } from '@/utils/utils'
 import { getProjectPageRoute, getUserPageRoute } from '@/router'
-// import { getSignedInUsername } from '@/stores/user'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
 import { getRecord, recordRecordView, listRecord, likeRecord, unlikeRecord, isLikingRecord } from '@/apis/record'
 import { UILoading, UIError, UIButton, UIIcon, useResponsive } from '@/components/ui'
@@ -146,6 +162,8 @@ const props = defineProps<{
 
 const router = useRouter()
 const videoRef = ref<HTMLVideoElement>()
+const videoSideRef = ref<HTMLElement>()
+const infoSideRef = ref<HTMLElement>()
 
 // 响应式布局
 const isDesktopLarge = useResponsive('desktop-large')
@@ -154,9 +172,23 @@ const numInRow = computed(() => {
   if (isMobile.value) return 2
   return isDesktopLarge.value ? 5 : 4
 })
+
 // 点赞状态
 const liking = ref(false)
 const isTogglingLike = ref(false)
+
+// 动态调整右侧面板高度匹配左侧视频
+const adjustInfoSideHeight = () => {
+  if (videoSideRef.value && infoSideRef.value && !isMobile.value) {
+    const videoSideHeight = videoSideRef.value.offsetHeight
+    infoSideRef.value.style.height = `${videoSideHeight}px`
+    infoSideRef.value.style.maxHeight = `${videoSideHeight}px`
+  } else if (infoSideRef.value && isMobile.value) {
+    // 移动端重置高度限制
+    infoSideRef.value.style.height = 'auto'
+    infoSideRef.value.style.maxHeight = 'none'
+  }
+}
 
 // 查询点赞状态
 const checkLikingStatus = async () => {
@@ -231,11 +263,6 @@ usePageTitle(() => {
   }
 })
 
-// 是否为录屏所有者
-// const isOwner = computed(() => {
-//   return record.value?.owner === getSignedInUsername()
-// })
-
 // 缩略图URL
 const thumbnailUrl = useAsyncComputed(async (onCleanup) => {
   if (!record.value?.thumbnailUrl) return null
@@ -292,35 +319,15 @@ const relatedRecordsQuery = useQuery(
 // 查看所有相关录屏的链接
 const allRecordsLink = computed(() => {
   if (!record.value?.project) return null
-  // TODO: 这里需要改，改为只限制当前project，其他用户的录屏也能看到
   return getUserPageRoute(record.value.project.owner, 'records')
 })
 
-// // 格式化持续时间
-// const formatDuration = (seconds: number): string => {
-//   const mins = Math.floor(seconds / 60)
-//   const secs = seconds % 60
-//   return `${mins}:${secs.toString().padStart(2, '0')}`
-// }
-
-// // 格式化文件大小
-// const formatFileSize = (bytes: number): string => {
-//   const units = ['B', 'KB', 'MB', 'GB']
-//   let size = bytes
-//   let unitIndex = 0
-
-//   while (size >= 1024 && unitIndex < units.length - 1) {
-//     size /= 1024
-//     unitIndex++
-//   }
-
-//   return `${size.toFixed(1)} ${units[unitIndex]}`
-// }
-
 // 事件处理
 const handleVideoLoaded = () => {
-  // TODO: // 这里可以处理视频加载完成后的逻辑
-  // console.log('Video loaded')
+  // 视频加载完成后调整高度
+  nextTick(() => {
+    adjustInfoSideHeight()
+  })
 }
 
 const handleVideoPlay = async () => {
@@ -362,6 +369,7 @@ const handlePlayProject = useMessageHandle(
     zh: '访问项目失败'
   }
 )
+
 const handleShare = () => {
   // 分享功能
   const url = window.location.href
@@ -370,22 +378,38 @@ const handleShare = () => {
   })
 }
 
+// 在组件挂载后和窗口大小改变时调整高度
+onMounted(() => {
+  nextTick(() => {
+    adjustInfoSideHeight()
+  })
+  
+  window.addEventListener('resize', adjustInfoSideHeight)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', adjustInfoSideHeight)
+})
+
 // 记录页面访问
 watchEffect(async () => {
   if (record.value && !isLoading.value) {
     try {
       // 记录观看
       await recordRecordView(props.owner, props.name)
-      // console.log('Record view logged successfully')
-
+      
       // 检查点赞状态
       await checkLikingStatus()
+      
+      // 数据加载完成后调整高度
+      nextTick(() => {
+        adjustInfoSideHeight()
+      })
     } catch (error) {
       console.warn('Failed to record view or check liking status:', error)
     }
   }
 })
-
 </script>
 
 <style lang="scss" scoped>
@@ -413,8 +437,7 @@ watchEffect(async () => {
 
 .content-layout {
   display: flex;
-  align-items: stretch;
-  /* 确保子元素高度一致 */
+  align-items: flex-start; /* 顶部对齐，不拉伸高度 */
 
   @include responsive(tablet) {
     flex-direction: column;
@@ -426,7 +449,7 @@ watchEffect(async () => {
   }
 }
 
-/* 左侧视频区域 */
+/* 左侧视频区域 - 固定尺寸 */
 .video-side {
   flex: 1;
   min-width: 0;
@@ -440,11 +463,10 @@ watchEffect(async () => {
 .video-container {
   position: relative;
   background: var(--ui-color-grey-900);
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 9; /* 固定16:9比例 */
   border-radius: var(--ui-border-radius-2);
-  /* 添加圆角 */
   overflow: hidden;
-  /* 确保video遵循圆角 */
+  width: 100%; /* 固定宽度 */
 
   video {
     width: 100%;
@@ -452,19 +474,17 @@ watchEffect(async () => {
     display: block;
     object-fit: contain;
     border-radius: var(--ui-border-radius-2);
-    /* 视频本身也添加圆角 */
   }
 }
 
-/* 右侧信息面板 */
+/* 右侧信息面板 - 高度由JavaScript动态控制 */
 .info-side {
-  flex: 0 0 400px;
+  flex: 0 0 400px; /* 固定宽度400px */
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow-y: auto;
-  max-height: 100%;
+  overflow-y: auto; /* 允许滚动 */
 
   /* 自定义滚动条样式 */
   &::-webkit-scrollbar {
@@ -472,16 +492,17 @@ watchEffect(async () => {
   }
 
   &::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--ui-color-grey-100);
+    border-radius: 3px;
   }
 
   &::-webkit-scrollbar-thumb {
     background: var(--ui-color-grey-400);
     border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--ui-color-grey-500);
+    
+    &:hover {
+      background: var(--ui-color-grey-500);
+    }
   }
 
   @include responsive(tablet) {
@@ -603,13 +624,20 @@ watchEffect(async () => {
 }
 
 .description-section {
-  flex-shrink: 0;
+  flex-shrink: 0; /* 改为 0，不允许收缩 */
+  min-height: 0;
+  margin-bottom: 20px; /* 添加底部间距 */
+
+  &:last-child {
+    margin-bottom: 0; /* 最后一个元素不需要底部间距 */
+  }
 
   h3 {
     font-size: 16px;
     font-weight: 600;
     color: var(--ui-color-title);
     margin: 0 0 12px 0;
+    flex-shrink: 0;
     
     @include responsive(mobile) {
       font-size: 15px;
@@ -623,6 +651,7 @@ watchEffect(async () => {
   line-height: 1.6;
   color: var(--ui-color-text);
   margin: 0 0 12px 0;
+  word-wrap: break-word; /* 长单词换行 */
   
   @include responsive(mobile) {
     font-size: 13px;
@@ -643,8 +672,6 @@ watchEffect(async () => {
     }
   }
 }
-
-
 
 /* 相关内容框 - 下方的白色框 */
 .related-content-frame {

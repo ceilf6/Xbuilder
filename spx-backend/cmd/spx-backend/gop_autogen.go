@@ -224,6 +224,10 @@ type put_project_owner_name struct {
 	yap.Handler
 	*AppV2
 }
+type put_record_owner_name struct {
+	yap.Handler
+	*AppV2
+}
 type put_user struct {
 	yap.Handler
 	*AppV2
@@ -363,8 +367,9 @@ func (this *AppV2) Main() {
 	_gop_obj45 := &put_course_series_id{AppV2: this}
 	_gop_obj46 := &put_course_id{AppV2: this}
 	_gop_obj47 := &put_project_owner_name{AppV2: this}
-	_gop_obj48 := &put_user{AppV2: this}
-	yap.Gopt_AppV2_Main(this, _gop_obj0, _gop_obj1, _gop_obj2, _gop_obj3, _gop_obj4, _gop_obj5, _gop_obj6, _gop_obj7, _gop_obj8, _gop_obj9, _gop_obj10, _gop_obj11, _gop_obj12, _gop_obj13, _gop_obj14, _gop_obj15, _gop_obj16, _gop_obj17, _gop_obj18, _gop_obj19, _gop_obj20, _gop_obj21, _gop_obj22, _gop_obj23, _gop_obj24, _gop_obj25, _gop_obj26, _gop_obj27, _gop_obj28, _gop_obj29, _gop_obj30, _gop_obj31, _gop_obj32, _gop_obj33, _gop_obj34, _gop_obj35, _gop_obj36, _gop_obj37, _gop_obj38, _gop_obj39, _gop_obj40, _gop_obj41, _gop_obj42, _gop_obj43, _gop_obj44, _gop_obj45, _gop_obj46, _gop_obj47, _gop_obj48)
+	_gop_obj48 := &put_record_owner_name{AppV2: this}
+	_gop_obj49 := &put_user{AppV2: this}
+	yap.Gopt_AppV2_Main(this, _gop_obj0, _gop_obj1, _gop_obj2, _gop_obj3, _gop_obj4, _gop_obj5, _gop_obj6, _gop_obj7, _gop_obj8, _gop_obj9, _gop_obj10, _gop_obj11, _gop_obj12, _gop_obj13, _gop_obj14, _gop_obj15, _gop_obj16, _gop_obj17, _gop_obj18, _gop_obj19, _gop_obj20, _gop_obj21, _gop_obj22, _gop_obj23, _gop_obj24, _gop_obj25, _gop_obj26, _gop_obj27, _gop_obj28, _gop_obj29, _gop_obj30, _gop_obj31, _gop_obj32, _gop_obj33, _gop_obj34, _gop_obj35, _gop_obj36, _gop_obj37, _gop_obj38, _gop_obj39, _gop_obj40, _gop_obj41, _gop_obj42, _gop_obj43, _gop_obj44, _gop_obj45, _gop_obj46, _gop_obj47, _gop_obj48, _gop_obj49)
 }
 //line cmd/spx-backend/delete_asset_#id.yap:6
 func (this *delete_asset_id) Main(_gop_arg0 *yap.Context) {
@@ -2741,6 +2746,57 @@ func (this *put_project_owner_name) Classfname() string {
 	return "put_project_#owner_#name"
 }
 func (this *put_project_owner_name) Classclone() yap.HandlerProto {
+	_gop_ret := *this
+	return &_gop_ret
+}
+//line cmd/spx-backend/put_record_#owner_#name.yap:10
+func (this *put_record_owner_name) Main(_gop_arg0 *yap.Context) {
+	this.Handler.Main(_gop_arg0)
+//line cmd/spx-backend/put_record_#owner_#name.yap:10:1
+	ctx := &this.Context
+//line cmd/spx-backend/put_record_#owner_#name.yap:11:1
+	if
+//line cmd/spx-backend/put_record_#owner_#name.yap:11:1
+	_, ok := ensureAuthenticatedUser(ctx); !ok {
+//line cmd/spx-backend/put_record_#owner_#name.yap:12:1
+		return
+	}
+//line cmd/spx-backend/put_record_#owner_#name.yap:15:1
+	params := &controller.UpdateRecordParams{}
+//line cmd/spx-backend/put_record_#owner_#name.yap:16:1
+	if !parseJSON(ctx, params) {
+//line cmd/spx-backend/put_record_#owner_#name.yap:17:1
+		return
+	}
+//line cmd/spx-backend/put_record_#owner_#name.yap:19:1
+	if
+//line cmd/spx-backend/put_record_#owner_#name.yap:19:1
+	ok, msg := params.Validate(); !ok {
+//line cmd/spx-backend/put_record_#owner_#name.yap:20:1
+		replyWithCodeMsg(ctx, errorInvalidArgs, msg)
+//line cmd/spx-backend/put_record_#owner_#name.yap:21:1
+		return
+	}
+//line cmd/spx-backend/put_record_#owner_#name.yap:24:1
+	owner := this.Gop_Env("owner")
+//line cmd/spx-backend/put_record_#owner_#name.yap:25:1
+	name := this.Gop_Env("name")
+//line cmd/spx-backend/put_record_#owner_#name.yap:26:1
+	record, err := this.ctrl.UpdateRecord(ctx.Context(), owner, name, params)
+//line cmd/spx-backend/put_record_#owner_#name.yap:27:1
+	if err != nil {
+//line cmd/spx-backend/put_record_#owner_#name.yap:28:1
+		replyWithInnerError(ctx, err)
+//line cmd/spx-backend/put_record_#owner_#name.yap:29:1
+		return
+	}
+//line cmd/spx-backend/put_record_#owner_#name.yap:31:1
+	this.Json__1(record)
+}
+func (this *put_record_owner_name) Classfname() string {
+	return "put_record_#owner_#name"
+}
+func (this *put_record_owner_name) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }

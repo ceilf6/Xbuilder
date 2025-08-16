@@ -11,6 +11,7 @@ import (
 	"github.com/goplus/builder/spx-backend/internal/authn"
 	"github.com/goplus/builder/spx-backend/internal/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // RecordDTO is the DTO for records.
@@ -563,4 +564,78 @@ func (ctrl *Controller) ListRecords(ctx context.Context, params *ListRecordsPara
 		Total: total,
 		Data:  recordDTOs,
 	}, nil
+}
+
+// UpdateRecordParams holds parameters for updating record.
+type UpdateRecordParams struct {
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Visibility  model.Visibility `json:"visibility"`
+}
+
+// Validate validates the parameters.
+func (p *UpdateRecordParams) Validate() (ok bool, msg string) {
+	if p.Title != "" && !recordTitleRE.Match([]byte(p.Title)) {
+		return false, "invalid title"
+	}
+	return true, ""
+}
+
+// Diff returns the updates between the parameters and the model record.
+func (p *UpdateRecordParams) Diff(mRecord *model.Record) map[string]any {
+	updates := map[string]any{}
+	if p.Title != "" && p.Title != mRecord.Title {
+		updates["title"] = p.Title
+	}
+	if p.Description != mRecord.Description {
+		updates["description"] = p.Description
+	}
+	if p.Visibility != 0 && p.Visibility != mRecord.Visibility {
+		updates["visibility"] = p.Visibility
+	}
+	return updates
+}
+
+// UpdateRecord updates a record.
+func (ctrl *Controller) UpdateRecord(ctx context.Context, owner, name string, params *UpdateRecordParams) (*RecordDTO, error) {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return nil, authn.ErrUnauthorized
+	}
+
+	mRecord, err := ctrl.ensureRecord(ctx, owner, name, true) // ownedOnly=true
+	if err != nil {
+		return nil, err
+	}
+
+	// Additional check: ensure the current user is the owner of the record
+	if mRecord.UserID != mUser.ID {
+		return nil, authn.ErrUnauthorized
+	}
+
+	updates := params.Diff(mRecord)
+	if len(updates) > 0 {
+		if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(mRecord).Error; err != nil {
+				return err
+			}
+			updates = params.Diff(mRecord)
+			if len(updates) == 0 {
+				return nil
+			}
+
+			if queryResult := tx.Model(mRecord).Updates(updates); queryResult.Error != nil {
+				return queryResult.Error
+			} else if queryResult.RowsAffected == 0 {
+				return nil
+			}
+
+			return nil
+		}); err != nil {
+			return nil, fmt.Errorf("failed to update record %q/%q: %w", owner, name, err)
+		}
+	}
+
+	recordDTO := toRecordDTO(*mRecord)
+	return &recordDTO, nil
 }

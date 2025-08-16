@@ -6,7 +6,7 @@ import { useRouteQueryParamInt, useRouteQueryParamStrEnum } from '@/utils/route'
 import { useQuery } from '@/utils/query'
 import { usePageTitle } from '@/utils/utils'
 // import { useEnsureSignedIn } from '@/utils/user'
-import { listRecord, type ListRecordParams } from '@/apis/record'
+import { listRecord, type ListRecordParams, type RecordData } from '@/apis/record'
 // import { getOwnProjectEditorRoute } from '@/router'
 import { getSignedInUsername, useUser } from '@/stores/user'
 import { UISelect, UISelectOption, UIPagination, UIButton, useResponsive } from '@/components/ui'
@@ -82,6 +82,19 @@ const queryRet = useQuery(() => listRecord(listParams.value), {
   zh: '加载录屏失败'
 })
 
+const handleRecordUpdated = (updatedRecord: RecordData) => {
+  // 方法1：重新获取数据（简单但可能影响性能）
+  queryRet.refetch()
+  
+  // 方法2：精确更新本地数据（推荐）
+  // if (queryRet.data.value?.data) {
+  //   const index = queryRet.data.value.data.findIndex(r => r.id === updatedRecord.id)
+  //   if (index !== -1) {
+  //     queryRet.data.value.data[index] = updatedRecord
+  //   }
+  // }
+}
+
 // const router = useRouter()
 // const ensureSignedIn = useEnsureSignedIn()
 // const createProject = useCreateProject()
@@ -148,6 +161,7 @@ const queryRet = useQuery(() => listRecord(listParams.value), {
             context="mine"
             :record="record"
             @removed="queryRet.refetch()"
+            @updated="handleRecordUpdated"
           />
         </ul>
       </ListResultWrapper>
