@@ -443,16 +443,30 @@ function removeRecordingBorder(iframeWindow: IframeWindow) {
 </template>
 
 <style lang="scss" scoped>
+@import '@/components/ui/responsive.scss';
+
 .iframe-container {
   position: relative;
   aspect-ratio: 4 / 3;
   display: flex;
   justify-content: center;
   align-items: center;
+  
+  @include responsive(mobile) {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    height: 100%;
+  }
 }
 .iframe {
   width: 100%;
   height: 100%;
+  
+  @include responsive(mobile) {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+  }
 }
 .thumbnail {
   position: absolute;
