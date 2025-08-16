@@ -33,7 +33,7 @@
               {{ $t({ en: 'Record', zh: '录屏' }) }}
             </UIButton>
 
-            <UIButton v-else type="secondary" size="large" :loading="isStopping" @click="handleStopRecording.fn">
+            <UIButton v-else type="danger" size="large" :loading="isStopping" @click="handleStopRecording.fn">
               <template #icon>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <!-- 圆形背景 -->
@@ -44,7 +44,7 @@
                   <rect x="11" y="5" width="2.5" height="10" fill="currentColor" />
                 </svg>
               </template>
-              {{ $t({ en: 'Stop Recording', zh: '停止录屏' }) }}
+              {{ $t({ en: 'Stop-Record', zh: '停止录屏' }) }}
             </UIButton>
           </div>
         </div>
