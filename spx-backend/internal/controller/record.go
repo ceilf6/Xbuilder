@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"database/sql"
+	"time"
 
 	"github.com/goplus/builder/spx-backend/internal/authn"
 	"github.com/goplus/builder/spx-backend/internal/model"
+	"gorm.io/gorm"
 )
 
 // RecordDTO is the DTO for records.
@@ -207,6 +210,57 @@ func (ctrl *Controller) DeleteRecord(ctx context.Context, owner, name string) er
 		return fmt.Errorf("failed to delete record: %w", err)
 	}
 
+	return nil
+}
+
+// RecordRecordView records a view for the specified record as the authenticated user.
+func (ctrl *Controller) RecordRecordView(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	mUserRecordRelationship, err := model.FirstOrCreateUserRecordRelationship(ctx, ctrl.db, mUser.ID, mRecord.ID)
+	if err != nil {
+		return err
+	}
+	if mUserRecordRelationship.LastViewedAt.Valid && time.Since(mUserRecordRelationship.LastViewedAt.Time) < time.Minute {
+		// Ignore views within a minute.
+		return nil
+	}
+
+	if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		query := tx.Model(mUserRecordRelationship)
+		if mUserRecordRelationship.LastViewedAt.Valid {
+			query = query.Where("last_viewed_at = ?", mUserRecordRelationship.LastViewedAt)
+		} else {
+			query = query.Where("last_viewed_at IS NULL")
+		}
+		if queryResult := query.UpdateColumns(map[string]any{
+			"view_count":     gorm.Expr("view_count + 1"),
+			"last_viewed_at": sql.NullTime{Time: time.Now().UTC(), Valid: true},
+		}); queryResult.Error != nil {
+			return queryResult.Error
+		} else if queryResult.RowsAffected == 0 {
+			return nil
+		}
+		if err := tx.Model(&mRecord).UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to record view for record %q/%q: %w", owner, name, err)
+	}
 	return nil
 }
 

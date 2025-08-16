@@ -11,7 +11,8 @@
           <!-- Left Side - Video Player -->
           <div class="video-side">
             <div class="video-container">
-              <video ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="metadata"
+              <video
+ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="metadata"
                 crossorigin="anonymous" @loadedmetadata="handleVideoLoaded" @play="handleVideoPlay">
                 {{ $t({ en: 'Your browser does not support video playback.', zh: '您的浏览器不支持视频播放。' }) }}
               </video>
@@ -27,11 +28,11 @@
             <div class="record-stats">
               <div class="stat-item">
                 <UIIcon type="eye" />
-                <span>0</span>
+                <span>{{ record.viewCount }}</span>
               </div>
               <div class="stat-item">
                 <UIIcon type="heart" />
-                <span>0</span>
+                <span>{{ record.likeCount }}</span>
               </div>
             </div>
 
@@ -44,7 +45,7 @@
               <div class="button-row">
                 <UIButton type="secondary" size="medium" @click="handleLike">
                   <UIIcon type="heart" />
-                  0
+                  {{ record.likeCount }}
                 </UIButton>
                 <UIButton type="secondary" size="medium" @click="handleShare">
                   <UIIcon type="share" />
@@ -93,7 +94,8 @@
 
       <!-- Related Records Frame - 下方框：相关录屏 -->
       <div v-if="record.project" class="related-content-frame">
-        <ProjectsSection context="project" :num-in-row="numInRow" :query-ret="relatedRecordsQuery"
+        <ProjectsSection
+context="project" :num-in-row="numInRow" :query-ret="relatedRecordsQuery"
           :link-to="allRecordsLink">
           <template #title>
             {{ $t({ en: 'More recordings of this project', zh: '该项目的其他录屏' }) }}
@@ -101,7 +103,8 @@
           <template #link>
             {{ $t({ en: 'View all', zh: '查看所有' }) }}
           </template>
-          <RecordItem v-for="relatedRecord in relatedRecordsQuery.data.value" :key="relatedRecord.id"
+          <RecordItem
+v-for="relatedRecord in relatedRecordsQuery.data.value" :key="relatedRecord.id"
             :record="relatedRecord" />
         </ProjectsSection>
       </div>
@@ -110,22 +113,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePageTitle } from '@/utils/utils'
 import { useQuery } from '@/utils/query'
-import { humanizeCount, humanizeTime, useAsyncComputed } from '@/utils/utils'
+import { humanizeTime, useAsyncComputed } from '@/utils/utils'
 import { getProjectPageRoute, getUserPageRoute } from '@/router'
 import { getSignedInUsername } from '@/stores/user'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
-import { getRecord, recordRecordView, listRecord, stringifyRecordFullName } from '@/apis/record'
+import { getRecord, recordRecordView, listRecord } from '@/apis/record'
 import { UILoading, UIError, UIButton, UIIcon, useResponsive } from '@/components/ui'
 import UserAvatar from '@/components/community/user/UserAvatar.vue'
 import CenteredWrapper from '@/components/community/CenteredWrapper.vue'
-import ProjectItem from '@/components/project/ProjectItem.vue'
 import ProjectsSection from '@/components/community/ProjectsSection.vue'
 import RecordItem from '@/components/record/RecordItem.vue'
 import RouterUILink from '@/components/common/RouterUILink.vue'
+import { watchEffect } from 'vue'
 
 const props = defineProps<{
   owner: string
@@ -177,7 +180,7 @@ const thumbnailUrl = useAsyncComputed(async (onCleanup) => {
   return thumbnail.url(onCleanup)
 })
 
-// 视频URL转换
+// 视频URL转换，目前暂定前面的地址为本地的七牛 KODO 测试地址
 const convertRecordUrl = (universalUrl: string): string => {
   if (!universalUrl) return ''
 
@@ -222,37 +225,38 @@ const relatedRecordsQuery = useQuery(
   }
 )
 
-// 查看所有录屏的链接
+// 查看所有相关录屏的链接
 const allRecordsLink = computed(() => {
   if (!record.value?.project) return null
-  // 这里需要根据实际路由结构调整
-  return `/community/project/${record.value.project.owner}/${record.value.project.name}/records`
+  // TODO: 这里需要改，改为只限制当前project，其他用户的录屏也能看到
+  return getUserPageRoute(record.value.project.owner, 'records')
 })
 
-// 格式化持续时间
-const formatDuration = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
+// // 格式化持续时间
+// const formatDuration = (seconds: number): string => {
+//   const mins = Math.floor(seconds / 60)
+//   const secs = seconds % 60
+//   return `${mins}:${secs.toString().padStart(2, '0')}`
+// }
 
-// 格式化文件大小
-const formatFileSize = (bytes: number): string => {
-  const units = ['B', 'KB', 'MB', 'GB']
-  let size = bytes
-  let unitIndex = 0
+// // 格式化文件大小
+// const formatFileSize = (bytes: number): string => {
+//   const units = ['B', 'KB', 'MB', 'GB']
+//   let size = bytes
+//   let unitIndex = 0
 
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024
-    unitIndex++
-  }
+//   while (size >= 1024 && unitIndex < units.length - 1) {
+//     size /= 1024
+//     unitIndex++
+//   }
 
-  return `${size.toFixed(1)} ${units[unitIndex]}`
-}
+//   return `${size.toFixed(1)} ${units[unitIndex]}`
+// }
 
 // 事件处理
 const handleVideoLoaded = () => {
-  console.log('Video loaded')
+  // TODO: // 这里可以处理视频加载完成后的逻辑
+  // console.log('Video loaded')
 }
 
 const handleVideoPlay = async () => {
@@ -273,27 +277,29 @@ const handlePlayProject = () => {
 
 const handleLike = () => {
   // TODO: 实现点赞功能
-  console.log('Like clicked')
+  // console.log('Like clicked')
 }
 
 const handleShare = () => {
   // 分享功能
   const url = window.location.href
   navigator.clipboard.writeText(url).then(() => {
-    console.log('URL copied to clipboard')
+    // console.log('URL copied to clipboard')
   })
 }
 
 // 记录页面访问
-onMounted(async () => {
-  if (record.value) {
+watchEffect(async () => {
+  if (record.value && !isLoading.value) {
     try {
       await recordRecordView(props.owner, props.name)
+      // console.log('Record view logged successfully') // 添加调试日志
     } catch (error) {
-      console.warn('Failed to record view on mount:', error)
+      console.warn('Failed to record view:', error)
     }
   }
 })
+
 </script>
 
 <style lang="scss" scoped>
@@ -321,7 +327,8 @@ onMounted(async () => {
 
 .content-layout {
   display: flex;
-  align-items: stretch; /* 确保子元素高度一致 */
+  align-items: stretch;
+  /* 确保子元素高度一致 */
 
   @include responsive(tablet) {
     flex-direction: column;
@@ -339,17 +346,21 @@ onMounted(async () => {
   position: relative;
   background: var(--ui-color-grey-900);
   aspect-ratio: 16 / 9;
-  border-radius: var(--ui-border-radius-2); /* 添加圆角 */
-  overflow: hidden; /* 确保video遵循圆角 */
-  
+  border-radius: var(--ui-border-radius-2);
+  /* 添加圆角 */
+  overflow: hidden;
+  /* 确保video遵循圆角 */
+
   video {
     width: 100%;
     height: 100%;
     display: block;
     object-fit: contain;
-    border-radius: var(--ui-border-radius-2); /* 视频本身也添加圆角 */
+    border-radius: var(--ui-border-radius-2);
+    /* 视频本身也添加圆角 */
   }
 }
+
 /* 右侧信息面板 */
 .info-side {
   flex: 0 0 400px;
