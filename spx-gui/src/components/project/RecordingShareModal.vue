@@ -344,6 +344,8 @@ const props = defineProps<{
   owner?: string
   projectId: string
   projectRunner?: any // 添加项目运行器引用
+  recordedVideoUrl?: string | null
+  hasRecording?: boolean
 }>()
 
 // 复制分享链接
@@ -372,6 +374,23 @@ const mediaRecorder = ref<MediaRecorder | null>(null)
 const recordedVideoUrl = ref<string | null>(null)
 // let recordingTimer: number | null = null
 let recordingTimer: ReturnType<typeof setInterval> | null = null // 修改这里
+
+// 同步外部传入的录屏状态
+watch(() => props.hasRecording, (newHasRecording) => {
+  if (newHasRecording) {
+    hasRecording.value = true
+    currentState.value = 'completed'
+    console.log('弹窗状态已同步：录屏完成')
+  }
+}, { immediate: true })
+
+// 同步外部传入的视频URL
+watch(() => props.recordedVideoUrl, (newVideoUrl) => {
+  if (newVideoUrl) {
+    recordedVideoUrl.value = newVideoUrl
+    console.log('弹窗视频URL已同步:', newVideoUrl)
+  }
+}, { immediate: true })
 
 // 在现有状态后添加
 const selectedPlatform = ref<string | null>(null) // 当前选中的平台
