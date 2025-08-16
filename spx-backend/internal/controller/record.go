@@ -17,19 +17,19 @@ import (
 type RecordDTO struct {
 	ModelDTO
 
-	Owner        string     `json:"owner"`
-	ProjectID    int64      `json:"projectId"`
-	Project      *ProjectDTO `json:"project,omitempty"`
-	Name         string     `json:"name"`
-	Title        string     `json:"title"`
-	Description  string     `json:"description"`
-	VideoURL     string     `json:"videoUrl"`
-	ThumbnailURL string     `json:"thumbnailUrl"`
-	Duration     int64      `json:"duration"`
-	FileSize     int64      `json:"fileSize"`
+	Owner        string           `json:"owner"`
+	ProjectID    int64            `json:"projectId"`
+	Project      *ProjectDTO      `json:"project,omitempty"`
+	Name         string           `json:"name"`
+	Title        string           `json:"title"`
+	Description  string           `json:"description"`
+	VideoURL     string           `json:"videoUrl"`
+	ThumbnailURL string           `json:"thumbnailUrl"`
+	Duration     int64            `json:"duration"`
+	FileSize     int64            `json:"fileSize"`
 	Visibility   model.Visibility `json:"visibility"`
-	ViewCount    int64      `json:"viewCount"`
-	LikeCount    int64      `json:"likeCount"`
+	ViewCount    int64            `json:"viewCount"`
+	LikeCount    int64            `json:"likeCount"`
 }
 
 // toRecordDTO converts the model record to its DTO.
@@ -395,6 +395,7 @@ const (
 	ListRecordsOrderByDuration  ListRecordsOrderBy = "duration"
 	ListRecordsOrderByViewCount ListRecordsOrderBy = "viewCount"
 	ListRecordsOrderByLikeCount ListRecordsOrderBy = "likeCount"
+	ListRecordsOrderByLikedAt   ListRecordsOrderBy = "likedAt"
 )
 
 // IsValid reports whether the order by condition is valid.
@@ -404,7 +405,8 @@ func (ob ListRecordsOrderBy) IsValid() bool {
 		ListRecordsOrderByUpdatedAt,
 		ListRecordsOrderByDuration,
 		ListRecordsOrderByViewCount,
-		ListRecordsOrderByLikeCount:
+		ListRecordsOrderByLikeCount,
+		ListRecordsOrderByLikedAt:
 		return true
 	}
 	return false
@@ -429,6 +431,9 @@ type ListRecordsParams struct {
 
 	// Pagination is the pagination information
 	Pagination Pagination
+
+	// Liker filters records liked by the specified user
+	Liker *string
 }
 
 // NewListRecordsParams creates a new ListRecordsParams with default values.
@@ -467,12 +472,29 @@ func (ctrl *Controller) ListRecords(ctx context.Context, params *ListRecordsPara
 	if params.Owner != nil {
 		query = query.Joins("JOIN user ON user.id = record.user_id").
 			Where("user.username = ?", *params.Owner)
-	} else if mUser != nil {
+	} else if mUser != nil && params.Liker == nil {
 		// Default to current user's records if no owner specified and user is authenticated
+		// BUT only if we're not filtering by liker
 		query = query.Where("record.user_id = ?", mUser.ID)
-	} else {
-		// For unauthenticated users, only show public records
+	} else if params.Liker == nil {
+		// For unauthenticated users, only show public records (only if not filtering by liker)
 		query = query.Where("record.visibility = ?", model.VisibilityPublic)
+	}
+	
+	// Apply liker filter
+	if params.Liker != nil {
+		query = query.
+			Joins("JOIN user_record_relationship AS liker_relationship ON liker_relationship.record_id = record.id").
+			Joins("JOIN user AS liker ON liker.id = liker_relationship.user_id").
+			Where("liker.username = ?", *params.Liker).
+			Where("liker_relationship.liked_at IS NOT NULL")
+		
+		// When filtering by liker, also apply visibility rules
+		if mUser != nil {
+			query = query.Where(ctrl.db.Where("record.user_id = ?", mUser.ID).Or("record.visibility = ?", model.VisibilityPublic))
+		} else {
+			query = query.Where("record.visibility = ?", model.VisibilityPublic)
+		}
 	}
 	
 	// Apply keyword filter
@@ -508,6 +530,12 @@ func (ctrl *Controller) ListRecords(ctx context.Context, params *ListRecordsPara
 		queryOrderByColumn = "record.view_count"
 	case ListRecordsOrderByLikeCount:
 		queryOrderByColumn = "record.like_count"
+	case ListRecordsOrderByLikedAt:
+		if params.Liker != nil {
+			queryOrderByColumn = "liker_relationship.liked_at"
+		} else {
+			queryOrderByColumn = "record.created_at" // fallback
+		}
 	}
 	if queryOrderByColumn == "" {
 		queryOrderByColumn = "record.created_at"

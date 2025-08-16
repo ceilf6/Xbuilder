@@ -17,7 +17,7 @@
       </RouterUILink>
     </header>
     <div class="projects-wrapper">
-      <ListResultWrapper content-type="project" :query-ret="queryRet" :height="254">
+      <ListResultWrapper :content-type="contentType" :query-ret="queryRet" :height="254">
         <template v-if="!!slots.empty" #empty="emptyProps">
           <slot name="empty" v-bind="emptyProps"></slot>
         </template>
@@ -49,6 +49,7 @@ defineProps<{
   queryRet: QueryRet<unknown[]>
   context: Context
   numInRow: number
+  contentType?: 'project' | 'record' // 新增参数
 }>()
 
 const slots = useSlots()

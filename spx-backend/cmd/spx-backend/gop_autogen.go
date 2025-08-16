@@ -1472,40 +1472,47 @@ func (this *get_records_list) Main(_gop_arg0 *yap.Context) {
 //line cmd/spx-backend/get_records_list.yap:44:1
 	if
 //line cmd/spx-backend/get_records_list.yap:44:1
-	orderBy := this.Gop_Env("orderBy"); orderBy != "" {
+	liker := this.Gop_Env("liker"); liker != "" {
 //line cmd/spx-backend/get_records_list.yap:45:1
+		params.Liker = &liker
+	}
+//line cmd/spx-backend/get_records_list.yap:49:1
+	if
+//line cmd/spx-backend/get_records_list.yap:49:1
+	orderBy := this.Gop_Env("orderBy"); orderBy != "" {
+//line cmd/spx-backend/get_records_list.yap:50:1
 		params.OrderBy = controller.ListRecordsOrderBy(orderBy)
 	}
-//line cmd/spx-backend/get_records_list.yap:49:1
+//line cmd/spx-backend/get_records_list.yap:54:1
 	if
-//line cmd/spx-backend/get_records_list.yap:49:1
+//line cmd/spx-backend/get_records_list.yap:54:1
 	sortOrder := this.Gop_Env("sortOrder"); sortOrder != "" {
-//line cmd/spx-backend/get_records_list.yap:50:1
+//line cmd/spx-backend/get_records_list.yap:55:1
 		params.SortOrder = controller.SortOrder(sortOrder)
 	}
-//line cmd/spx-backend/get_records_list.yap:54:1
-	params.Pagination.Index = this.ParamInt("pageIndex", firstPageIndex)
-//line cmd/spx-backend/get_records_list.yap:55:1
-	params.Pagination.Size = this.ParamInt("pageSize", defaultPageSize)
-//line cmd/spx-backend/get_records_list.yap:58:1
-	if
-//line cmd/spx-backend/get_records_list.yap:58:1
-	ok, msg := params.Validate(); !ok {
 //line cmd/spx-backend/get_records_list.yap:59:1
-		replyWithCodeMsg(ctx, errorInvalidArgs, msg)
+	params.Pagination.Index = this.ParamInt("pageIndex", firstPageIndex)
 //line cmd/spx-backend/get_records_list.yap:60:1
-		return
-	}
+	params.Pagination.Size = this.ParamInt("pageSize", defaultPageSize)
+//line cmd/spx-backend/get_records_list.yap:63:1
+	if
+//line cmd/spx-backend/get_records_list.yap:63:1
+	ok, msg := params.Validate(); !ok {
 //line cmd/spx-backend/get_records_list.yap:64:1
-	records, err := this.ctrl.ListRecords(ctx.Context(), params)
+		replyWithCodeMsg(ctx, errorInvalidArgs, msg)
 //line cmd/spx-backend/get_records_list.yap:65:1
-	if err != nil {
-//line cmd/spx-backend/get_records_list.yap:66:1
-		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/get_records_list.yap:67:1
 		return
 	}
+//line cmd/spx-backend/get_records_list.yap:69:1
+	records, err := this.ctrl.ListRecords(ctx.Context(), params)
+//line cmd/spx-backend/get_records_list.yap:70:1
+	if err != nil {
 //line cmd/spx-backend/get_records_list.yap:71:1
+		replyWithInnerError(ctx, err)
+//line cmd/spx-backend/get_records_list.yap:72:1
+		return
+	}
+//line cmd/spx-backend/get_records_list.yap:76:1
 	this.Json__1(records)
 }
 func (this *get_records_list) Classfname() string {
