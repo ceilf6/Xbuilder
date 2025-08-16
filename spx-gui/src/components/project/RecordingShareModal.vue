@@ -1,10 +1,10 @@
 <template>
   <UIFormModal :title="modalTitle" :visible="props.visible" :auto-focus="false" style="width: 500px"
     @update:visible="handleModalClose">
-    <!-- 调试信息 - 临时添加
+    <!-- 调试信息 - 临时添加 -->
     <div style="background: red; color: white; padding: 10px; margin: 10px">
-      DEBUG: currentState = {{ currentState }}
-    </div> -->
+      DEBUG: currentState = {{ currentState }}, isRecording = {{ isRecording }}, hasRecording = {{ hasRecording }}
+    </div>
     <!-- 录屏界面 (initial/recording状态) -->
     <div v-if="currentState === 'initial' || currentState === 'recording'" class="recording-page">
       <!-- 项目预览区域 -->
@@ -545,32 +545,37 @@ const handleStartRecording = useMessageHandle(
 // 开始完整游戏录制
 const startFullGameRecording = async (screenshot: any) => {
   try {
-    // console.log('开始完整游戏录制')
+    console.log('开始完整游戏录制')
 
     // 更新状态
     isRecording.value = true
     currentState.value = 'recording'
+    
+    console.log('录屏状态已更新:', { isRecording: isRecording.value, currentState: currentState.value })
     
     // 通知录屏状态管理器
     recordingStore.startRecording()
 
     // 开始录制时恢复游戏
     if (props.projectRunner) {
-      // console.log('开始录制，恢复游戏...')
+      console.log('开始录制，恢复游戏...')
       await props.projectRunner.resumeGame()
-      // console.log('游戏已恢复')
+      console.log('游戏已恢复')
     }
 
     // 开始录制整个游戏画面
     const recorder = await startGameRecording(screenshot)
     mediaRecorder.value = recorder
 
-    // 通知父组件录屏已开始，隐藏弹窗
-    emit('recordingStarted')
+    // 注意：不要立即隐藏弹窗，让用户可以看到停止录屏按钮
+    // emit('recordingStarted')
 
-    // console.log('游戏录制已开始')
+    console.log('游戏录制已开始，弹窗保持打开状态')
   } catch (error) {
     console.error('开始游戏录制失败:', error)
+    // 如果录制失败，重置状态
+    isRecording.value = false
+    currentState.value = 'initial'
     throw error
   }
 }
@@ -729,25 +734,27 @@ const startGameRecording = async (screenshot: any) => {
 // 停止录屏
 const handleStopRecording = useMessageHandle(
   async () => {
+    console.log('用户点击停止录屏按钮')
     isStopping.value = true
     try {
-      // console.log('开始停止录制...')
+      console.log('开始停止录制...')
 
       // 1. 停止MediaRecorder
       if (mediaRecorder.value && mediaRecorder.value.state === 'recording') {
         mediaRecorder.value.stop()
-        // console.log('MediaRecorder已停止')
+        console.log('MediaRecorder已停止')
       }
 
       // 2. 停止录制时暂停游戏
       if (props.projectRunner) {
-        // console.log('停止录制，暂停游戏...')
+        console.log('停止录制，暂停游戏...')
         await props.projectRunner.pauseGame()
-        // console.log('游戏已暂停')
+        console.log('游戏已暂停')
       }
 
       // 3. 重置状态
       isRecording.value = false
+      console.log('录屏状态已重置:', { isRecording: isRecording.value })
       
       // 4. 通知录屏状态管理器
       recordingStore.stopRecording()
@@ -760,9 +767,10 @@ const handleStopRecording = useMessageHandle(
 
       // 6. 直接跳转到完成页面，等待视频生成
       currentState.value = 'completed'
+      console.log('页面状态已切换到完成页面:', { currentState: currentState.value })
 
       emit('recordingStopped')
-      // console.log('录制完全停止，状态已重置')
+      console.log('录制完全停止，状态已重置')
     } finally {
       isStopping.value = false
     }
