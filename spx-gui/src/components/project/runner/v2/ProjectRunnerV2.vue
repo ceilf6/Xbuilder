@@ -302,7 +302,7 @@ function setupRecordingBorder(iframeWindow: IframeWindow) {
   let recordingBorder: HTMLElement | null = null
   
   // 监听录屏状态变化
-  const unwatch = recordingStore.isRecording.watch((isRecording) => {
+  const unwatch = watch(recordingStore.isRecording, (isRecording: boolean) => {
     if (isRecording) {
       addRecordingBorder(iframeWindow)
     } else {
