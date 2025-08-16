@@ -92,7 +92,13 @@
       <!-- 显示录制完成的视频 -->
       <div class="preview-section">
         <div class="project-preview">
-          <video v-if="recordedVideoUrl" :src="recordedVideoUrl" controls :poster="projectThumbnail"
+          <div v-if="!recordedVideoUrl" class="video-generating">
+            <div class="loading-spinner"></div>
+            <div class="generating-text">
+              {{ $t({ en: 'Generating video...', zh: '正在生成视频...' }) }}
+            </div>
+          </div>
+          <video v-else :src="recordedVideoUrl" controls :poster="projectThumbnail"
             class="recorded-video">
             您的浏览器不支持视频播放
           </video>
@@ -120,13 +126,22 @@
       <div class="share-section">
         <h4>{{ $t({ en: 'Share to Platform', zh: '分享到平台' }) }}</h4>
         <div class="platforms">
-          <div v-for="platform in platforms" :key="platform.id" class="platform-item"
-            @click="handlePlatformShare(platform)">
+          <div v-for="platform in platforms" :key="platform.id" 
+            :class="['platform-item', { disabled: !recordedVideoUrl }]"
+            @click="recordedVideoUrl ? handlePlatformShare(platform) : null">
             <div class="platform-icon">
               <component :is="platform.icon" />
             </div>
             <span class="platform-name">{{ platform.name }}</span>
           </div>
+        </div>
+        
+        <!-- 提示文字 -->
+        <div v-if="!recordedVideoUrl" class="tip">
+          {{ $t({ en: 'Video is being generated, please wait...', zh: '视频正在生成中，请稍候...' }) }}
+        </div>
+        <div v-else class="tip">
+          {{ $t({ en: 'Video ready, you can now share to platforms', zh: '视频已生成，可以分享到各平台' }) }}
         </div>
       </div>
     </div>
@@ -674,7 +689,7 @@ const startGameRecording = async (screenshot: any) => {
       const url = URL.createObjectURL(blob)
       recordedVideoUrl.value = url
       hasRecording.value = true
-      currentState.value = 'completed'
+      // 注意：currentState已经在handleStopRecording中设置为'completed'，这里不需要再次设置
 
       // console.log('视频文件已生成，URL:', url)
 
@@ -742,6 +757,9 @@ const handleStopRecording = useMessageHandle(
         clearInterval(recordingTimer)
         recordingTimer = null
       }
+
+      // 6. 直接跳转到完成页面，等待视频生成
+      currentState.value = 'completed'
 
       emit('recordingStopped')
       // console.log('录制完全停止，状态已重置')
@@ -1323,6 +1341,38 @@ onUnmounted(() => {
   height: 100%;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.video-generating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  .generating-text {
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .recording-complete {
