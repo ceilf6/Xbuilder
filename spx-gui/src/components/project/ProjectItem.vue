@@ -214,11 +214,10 @@ const handleRemove = useMessageHandle(
   background-color: var(--ui-color-grey-100);
   transition: 0.1s;
   
-  // 移动端适配
   @include responsive(mobile) {
     width: 100%; 
-   
     aspect-ratio: 230/252;
+    font-size: 14px;
   }
 }
 
@@ -319,10 +318,9 @@ const handleRemove = useMessageHandle(
 .info {
   padding: var(--ui-gap-middle);
   
-  // // 移动端调整内边距
-  // @include responsive(mobile) {
-  //   padding: 12px; // 移动端稍微减少内边距
-  // }
+  @include responsive(mobile) {
+    padding: 0.5em;
+  }
 
   .header {
     display: flex;
@@ -336,6 +334,10 @@ const handleRemove = useMessageHandle(
       color: var(--ui-color-title);
       @include text-ellipsis;
       
+      @include responsive(mobile) {
+        font-size: 1.07em;
+        line-height: 1.71em;
+      }
     }
 
     .icon {
@@ -354,12 +356,11 @@ const handleRemove = useMessageHandle(
     line-height: 20px;
     color: var(--ui-color-grey-700);
     
-    // 移动端调整信息区域
     @include responsive(mobile) {
-      height: 18px;
-      gap: 8px;
-      font-size: 12px;
-      line-height: 18px;
+      height: 1.29em;
+      gap: 0.57em;
+      font-size: 0.86em;
+      line-height: 1.29em;
     }
 
     .part {
@@ -368,9 +369,8 @@ const handleRemove = useMessageHandle(
       align-items: center;
       gap: 4px;
       
-      // 移动端调整间距
       @include responsive(mobile) {
-        gap: 3px;
+        gap: 0.21em;
       }
 
       .icon {

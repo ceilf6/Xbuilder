@@ -31,7 +31,11 @@ usePageTitle(() => {
 })
 
 const isDesktopLarge = useResponsive('desktop-large')
-const numInRow = computed(() => (isDesktopLarge.value ? 5 : 4))
+const isMobile = useResponsive('mobile')
+const numInRow = computed(() => {
+  if (isMobile.value) return 2
+  return isDesktopLarge.value ? 5 : 4
+})
 const pageSize = computed(() => numInRow.value * 2)
 const pageTotal = computed(() => Math.ceil((queryRet.data.value?.total ?? 0) / pageSize.value))
 const page = useRouteQueryParamInt('p', 1)
@@ -125,15 +129,15 @@ const handleNewProject = useMessageHandle(
           }}</UISelectOption>
         </UISelect>
       </label>
-      <!-- <UIButton
-        v-if="isSignedInUser"
+      <UIButton
+        v-if="isSignedInUser && !isMobile"
         v-radar="{ name: 'New record button', desc: 'Click to create a new record' }"
         type="secondary"
         icon="plus"
         @click="handleNewProject"
       >
         {{ $t({ en: 'New record', zh: '新建录屏' }) }}
-      </UIButton> -->
+      </UIButton>
     </template>
     <div class="records-wrapper">
       <ListResultWrapper v-slot="slotProps" content-type="record" :query-ret="queryRet" :height="524">
@@ -153,24 +157,44 @@ const handleNewProject = useMessageHandle(
 </template>
 
 <style lang="scss" scoped>
+@import '@/components/ui/responsive.scss';
+
 .sort {
   display: flex;
   align-items: center;
   gap: 8px;
+  
+  @include responsive(mobile) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
 }
 
 .records-wrapper {
   margin-top: 8px;
+  
+  @include responsive(mobile) {
+    margin-top: 12px;
+  }
 }
 
 .records {
   display: grid;
   grid-template-columns: repeat(var(--project-num-in-row), 1fr);
   gap: var(--ui-gap-middle);
+  
+  @include responsive(mobile) {
+    gap: 16px;
+  }
 }
 
 .pagination {
   margin: 36px 0 20px;
   justify-content: center;
+  
+  @include responsive(mobile) {
+    margin: 24px 0 16px;
+  }
 }
 </style>

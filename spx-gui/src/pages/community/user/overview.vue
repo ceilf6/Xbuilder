@@ -17,7 +17,11 @@ const props = defineProps<{
 }>()
 
 const isDesktopLarge = useResponsive('desktop-large')
-const numInRow = computed(() => (isDesktopLarge.value ? 5 : 4))
+const isMobile = useResponsive('mobile')
+const numInRow = computed(() => {
+  if (isMobile.value) return 2
+  return isDesktopLarge.value ? 5 : 4
+})
 const isSignedInUser = computed(() => props.name === getSignedInUsername())
 
 const { data: user } = useUser(() => props.name)

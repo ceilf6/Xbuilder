@@ -149,7 +149,11 @@ const videoRef = ref<HTMLVideoElement>()
 
 // 响应式布局
 const isDesktopLarge = useResponsive('desktop-large')
-const numInRow = computed(() => (isDesktopLarge.value ? 5 : 4))
+const isMobile = useResponsive('mobile')
+const numInRow = computed(() => {
+  if (isMobile.value) return 2
+  return isDesktopLarge.value ? 5 : 4
+})
 // 点赞状态
 const liking = ref(false)
 const isTogglingLike = ref(false)
@@ -414,6 +418,11 @@ watchEffect(async () => {
   @include responsive(tablet) {
     flex-direction: column;
   }
+  
+  @include responsive(mobile) {
+    flex-direction: column;
+    gap: 0;
+  }
 }
 
 /* 左侧视频区域 */
@@ -421,6 +430,10 @@ watchEffect(async () => {
   flex: 1;
   min-width: 0;
   padding: 24px;
+  
+  @include responsive(mobile) {
+    padding: 16px;
+  }
 }
 
 .video-container {
@@ -476,6 +489,14 @@ watchEffect(async () => {
     max-height: none;
     overflow-y: visible;
   }
+  
+  @include responsive(mobile) {
+    flex: none;
+    padding: 16px;
+    max-height: none;
+    overflow-y: visible;
+    gap: 16px;
+  }
 }
 
 .record-title {
@@ -488,6 +509,7 @@ watchEffect(async () => {
 
   @include responsive(mobile) {
     font-size: 18px;
+    line-height: 1.4;
   }
 }
 
@@ -537,6 +559,13 @@ watchEffect(async () => {
       color: var(--ui-color-red-main);
     }
   }
+  
+  @include responsive(mobile) {
+    .ui-button {
+      height: 48px;
+      font-size: 16px;
+    }
+  }
 }
 
 .owner-section {
@@ -580,6 +609,11 @@ watchEffect(async () => {
     font-weight: 600;
     color: var(--ui-color-title);
     margin: 0 0 12px 0;
+    
+    @include responsive(mobile) {
+      font-size: 15px;
+      margin: 0 0 10px 0;
+    }
   }
 }
 
@@ -588,6 +622,12 @@ watchEffect(async () => {
   line-height: 1.6;
   color: var(--ui-color-text);
   margin: 0 0 12px 0;
+  
+  @include responsive(mobile) {
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 10px 0;
+  }
 }
 
 .project-link {
@@ -643,6 +683,10 @@ watchEffect(async () => {
     .ui-button {
       padding: 12px 16px;
     }
+  }
+  
+  .related-content-frame {
+    padding: 16px;
   }
 }
 </style>

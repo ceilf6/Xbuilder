@@ -192,10 +192,10 @@ const handleRemove = useMessageHandle(
   background-color: var(--ui-color-grey-100);
   transition: 0.1s;
 
-  // 移动端适配
   @include responsive(mobile) {
     width: 100%;
-    aspect-ratio: 230/280; // 录屏卡片稍高一些，因为有更多信息
+    aspect-ratio: 230/280;
+    font-size: 14px;
   }
 
   &:hover {
@@ -246,6 +246,11 @@ const handleRemove = useMessageHandle(
     color: white;
     font-size: 12px;
     font-weight: 500;
+    
+    @include responsive(mobile) {
+      font-size: 0.86em;
+      padding: 0.14em 0.43em;
+    }
   }
 
   .owner-info {
@@ -266,6 +271,10 @@ const handleRemove = useMessageHandle(
   flex: 1;
   padding: 12px;
   gap: 6px;
+  
+  @include responsive(mobile) {
+    padding: 0.86em;
+  }
 
   .header {
     display: flex;
@@ -281,6 +290,11 @@ const handleRemove = useMessageHandle(
       line-height: 1.3;
       color: var(--ui-color-title);
       @include text-ellipsis;
+      
+      @include responsive(mobile) {
+        font-size: 1em;
+        line-height: 1.3em;
+      }
     }
 
     .more-btn {
@@ -312,6 +326,11 @@ const handleRemove = useMessageHandle(
     // -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    
+    @include responsive(mobile) {
+      font-size: 0.86em;
+      line-height: 1.4em;
+    }
   }
 
   .others {
@@ -321,15 +340,29 @@ const handleRemove = useMessageHandle(
     margin-top: auto;
     font-size: 12px;
     color: var(--ui-color-grey-600);
+    
+    @include responsive(mobile) {
+      gap: 0.57em;
+      font-size: 0.86em;
+    }
 
     .part {
       display: flex;
       align-items: center;
       gap: 3px;
+      
+      @include responsive(mobile) {
+        gap: 0.21em;
+      }
 
       .icon {
         width: 12px;
         height: 12px;
+        
+        @include responsive(mobile) {
+          width: 0.86em;
+          height: 0.86em;
+        }
       }
 
       &.liking {

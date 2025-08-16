@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { getUserPageRoute } from '@/router'
+import { useResponsive } from '@/components/ui/responsive'
 import CommunityCard from '../../CommunityCard.vue'
 import UserSidebarItem from './UserSidebarItem.vue'
 
-defineProps<{
+const props = defineProps<{
   username: string
 }>()
+
+const emit = defineEmits<{
+  close: []
+}>()
+
+const isMobile = useResponsive('mobile')
 </script>
 
 <template>
   <CommunityCard v-radar="{ name: 'User sidebar', desc: 'Sidebar navigation for user pages' }" class="user-sidebar">
+
+    
     <!-- TODO: check text here -->
     <UserSidebarItem
       v-radar="{ name: 'Overview link', desc: 'Click to navigate to user overview' }"
@@ -110,6 +119,14 @@ defineProps<{
       </svg>
       {{ $t({ en: 'Followers', zh: '关注者' }) }}
     </UserSidebarItem>
+    
+    <!-- 移动端收缩按钮 -->
+    <div v-if="isMobile" class="mobile-collapse-btn" @click="emit('close')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>{{ $t({ en: 'Collapse', zh: '收起' }) }}</span>
+    </div>
   </CommunityCard>
 </template>
 
@@ -121,10 +138,34 @@ defineProps<{
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
 
   width: 212px;
   @include responsive(desktop-large) {
     width: 216px;
+  }
+  
+  @include responsive(mobile) {
+  position: fixed;
+  z-index: 999;
+  }
+}
+
+.mobile-collapse-btn {
+  margin-top: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 6px;
+  background-color: var(--ui-color-grey-100);
+  cursor: pointer;
+  color: var(--ui-color-text);
+  font-size: 12px;
+  
+  &:hover {
+    background-color: var(--ui-color-grey-200);
   }
 }
 </style>
