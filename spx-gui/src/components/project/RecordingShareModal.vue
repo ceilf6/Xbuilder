@@ -195,6 +195,7 @@ import { ref, computed, onUnmounted, h, watch } from 'vue'
 import { createRecord } from '@/apis/record'
 import { saveFile } from '@/models/common/cloud'
 import { File } from '@/models/common/file'
+import { recordingStore } from '@/stores/recording'
 
 const { t } = useI18n()
 // 新增：创建SVG图标组件
@@ -514,6 +515,9 @@ const startFullGameRecording = async (screenshot: any) => {
     // 更新状态
     isRecording.value = true
     currentState.value = 'recording'
+    
+    // 通知录屏状态管理器
+    recordingStore.startRecording()
 
     // 开始录制时恢复游戏
     if (props.projectRunner) {
@@ -709,8 +713,11 @@ const handleStopRecording = useMessageHandle(
 
       // 3. 重置状态
       isRecording.value = false
+      
+      // 4. 通知录屏状态管理器
+      recordingStore.stopRecording()
 
-      // 4. 停止计时器
+      // 5. 停止计时器
       if (recordingTimer) {
         clearInterval(recordingTimer)
         recordingTimer = null

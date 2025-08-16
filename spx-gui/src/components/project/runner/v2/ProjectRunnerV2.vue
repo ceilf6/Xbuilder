@@ -14,6 +14,7 @@ import type { Project } from '@/models/project'
 import { UIImg, UIDetailedLoading } from '@/components/ui'
 import { apiBaseUrl } from '@/utils/env'
 import { ensureAccessToken } from '@/stores/user'
+import { recordingStore } from '@/stores/recording'
 
 const runnerBaseUrl = `/spx_${spxVersion}`
 const runnerUrl = `${runnerBaseUrl}/runner.html`
@@ -101,6 +102,9 @@ function handleIframeWindow(iframeWindow: IframeWindow) {
       console.warn('ProjectRunner game error:', err)
       failed.value = true
     })
+    
+    // 添加录屏边框管理
+    setupRecordingBorder(iframeWindow)
   }
 
   // Handle the case where the `runnerReady` event may have already been dispatched
@@ -292,6 +296,103 @@ defineExpose({
     iframeWindow.debugGameMethods()
   }
 })
+
+// 录屏边框管理函数
+function setupRecordingBorder(iframeWindow: IframeWindow) {
+  let recordingBorder: HTMLElement | null = null
+  
+  // 监听录屏状态变化
+  const unwatch = recordingStore.isRecording.watch((isRecording) => {
+    if (isRecording) {
+      addRecordingBorder(iframeWindow)
+    } else {
+      removeRecordingBorder(iframeWindow)
+    }
+  })
+  
+  // 在组件卸载时清理
+  onUnmounted(() => {
+    unwatch()
+    if (recordingBorder) {
+      recordingBorder.remove()
+    }
+  })
+}
+
+// 添加录屏边框
+function addRecordingBorder(iframeWindow: IframeWindow) {
+  try {
+    const gameCanvas = iframeWindow.document.querySelector('#game-canvas') as HTMLCanvasElement
+    if (!gameCanvas) {
+      console.warn('未找到game-canvas元素，无法添加录屏边框')
+      return
+    }
+    
+    // 检查是否已经有边框
+    if (iframeWindow.document.querySelector('.recording-border')) {
+      return
+    }
+    
+    // 创建边框元素
+    const border = iframeWindow.document.createElement('div')
+    border.className = 'recording-border'
+    border.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 4px solid #00ff00;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 1000;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+      animation: recording-pulse 2s ease-in-out infinite;
+    `
+    
+    // 添加脉冲动画样式
+    if (!iframeWindow.document.querySelector('#recording-styles')) {
+      const style = iframeWindow.document.createElement('style')
+      style.id = 'recording-styles'
+      style.textContent = `
+        @keyframes recording-pulse {
+          0%, 100% { 
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            border-color: #00ff00;
+          }
+          50% { 
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+            border-color: #00cc00;
+          }
+        }
+      `
+      iframeWindow.document.head.appendChild(style)
+    }
+    
+    // 将边框添加到游戏画布容器
+    const canvasContainer = gameCanvas.parentElement
+    if (canvasContainer) {
+      canvasContainer.style.position = 'relative'
+      canvasContainer.appendChild(border)
+      console.log('录屏边框已添加')
+    }
+  } catch (error) {
+    console.error('添加录屏边框失败:', error)
+  }
+}
+
+// 移除录屏边框
+function removeRecordingBorder(iframeWindow: IframeWindow) {
+  try {
+    const border = iframeWindow.document.querySelector('.recording-border')
+    if (border) {
+      border.remove()
+      console.log('录屏边框已移除')
+    }
+  } catch (error) {
+    console.error('移除录屏边框失败:', error)
+  }
+}
 </script>
 
 <template>
