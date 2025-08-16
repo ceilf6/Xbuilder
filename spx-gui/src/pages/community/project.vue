@@ -495,6 +495,18 @@ const handleStopRecording = async () => {
   }
 }
 
+// 录屏开始事件处理
+const handleRecordingStarted = () => {
+  console.log('录屏已开始，隐藏弹窗')
+  showRecordingModal.value = false
+}
+
+// 录屏停止事件处理
+const handleRecordingStopped = () => {
+  console.log('录屏已停止，显示弹窗')
+  showRecordingModal.value = true
+}
+
 const handlePublish = useMessageHandle(
   // there may be no thumbnail for some projects (see details in https://github.com/goplus/builder/issues/1025),
   // to ensure thumbnail for project-release, we jump to editor where we are able to generate thumbnails and then finish publishing
@@ -829,8 +841,8 @@ const remixesRet = useQuery(
       :owner="project.owner"
       @cancelled="showRecordingModal = false"
       @resolved="showRecordingModal = false"
-      @recording-started="showRecordingModal = false"
-      @recording-stopped="showRecordingModal = true"
+      @recording-started="handleRecordingStarted"
+      @recording-stopped="handleRecordingStopped"
     />
   </CenteredWrapper>
 

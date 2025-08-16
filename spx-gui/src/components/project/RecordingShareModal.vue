@@ -523,8 +523,7 @@ const handleStartRecording = useMessageHandle(
   async () => {
     isStarting.value = true
     try {
-      // console.log('开始录屏流程...')
-      emit('cancelled') // 隐藏弹窗
+      console.log('开始录屏流程...')
 
       // 获取游戏画面截图
       const screenshot = await captureScreenshot()
