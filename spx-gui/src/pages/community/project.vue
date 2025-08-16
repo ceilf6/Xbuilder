@@ -41,6 +41,7 @@ import CommunityCard from '@/components/community/CommunityCard.vue'
 import ReleaseHistory from '@/components/community/project/ReleaseHistory.vue'
 import TextView from '@/components/community/TextView.vue'
 import ScreenshotShareModal from '@/components/project/ScreenshotShareModal.vue'
+import { recordingStore } from '@/stores/recording'
 
 const props = defineProps<{
   owner: string
@@ -479,6 +480,21 @@ const handleRecord = async () => {
   }
 }
 
+// 停止录屏处理函数
+const handleStopRecording = async () => {
+  try {
+    // 停止录屏状态
+    recordingStore.stopRecording()
+    
+    // 关闭录屏弹窗（如果还在显示）
+    showRecordingModal.value = false
+    
+    console.log('录屏已停止')
+  } catch (error) {
+    console.error('停止录屏失败:', error)
+  }
+}
+
 const handlePublish = useMessageHandle(
   // there may be no thumbnail for some projects (see details in https://github.com/goplus/builder/issues/1025),
   // to ensure thumbnail for project-release, we jump to editor where we are able to generate thumbnails and then finish publishing
@@ -576,20 +592,25 @@ const remixesRet = useQuery(
             {{ $t({ en: 'Screenshot', zh: '截屏' }) }}
           </UIButton>
 
+          <!-- 录屏按钮 - 根据录屏状态显示不同内容 -->
           <UIButton
-            v-if="runnerState === 'running'&&!isMobile"
-            v-radar="{ name: 'Record button', desc: 'Click to start recording' }"
-            type="boring"
-            @click="handleRecord"
+            v-if="runnerState === 'running' && !isMobile"
+            v-radar="{ name: 'Record button', desc: recordingStore.isRecording.value ? 'Click to stop recording' : 'Click to start recording' }"
+            :type="recordingStore.isRecording.value ? 'danger' : 'boring'"
+            @click="recordingStore.isRecording.value ? handleStopRecording : handleRecord"
           >
             <template #icon>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg v-if="!recordingStore.isRecording.value" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5" fill="none" />
                 <circle cx="8" cy="8" r="2" fill="currentColor" />
                 <circle cx="12" cy="6" r="1" fill="currentColor" />
               </svg>
+              <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- 停止录屏图标 -->
+                <rect x="4" y="4" width="8" height="8" fill="currentColor" />
+              </svg>
             </template>
-            {{ $t({ en: 'Record', zh: '录屏' }) }}
+            {{ recordingStore.isRecording.value ? $t({ en: 'Stop-Recording', zh: '停止录屏' }) : $t({ en: 'Record', zh: '录屏' }) }}
           </UIButton>
           <UIButton
             v-if="runnerState === 'initial'"

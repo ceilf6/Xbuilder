@@ -567,15 +567,16 @@ const startFullGameRecording = async (screenshot: any) => {
     const recorder = await startGameRecording(screenshot)
     mediaRecorder.value = recorder
 
-    // 注意：不要立即隐藏弹窗，让用户可以看到停止录屏按钮
-    // emit('recordingStarted')
+    // 隐藏弹窗，让用户看到游戏界面上的停止录屏按钮
+    emit('recordingStarted')
 
-    console.log('游戏录制已开始，弹窗保持打开状态')
+    console.log('游戏录制已开始，弹窗已隐藏，用户可在游戏界面上停止录屏')
   } catch (error) {
     console.error('开始游戏录制失败:', error)
     // 如果录制失败，重置状态
     isRecording.value = false
     currentState.value = 'initial'
+    recordingStore.stopRecording()
     throw error
   }
 }
