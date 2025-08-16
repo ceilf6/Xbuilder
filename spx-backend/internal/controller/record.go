@@ -2,9 +2,10 @@ package controller
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
-	"database/sql"
 	"time"
 
 	"github.com/goplus/builder/spx-backend/internal/authn"
@@ -262,6 +263,127 @@ func (ctrl *Controller) RecordRecordView(ctx context.Context, owner, name string
 		return fmt.Errorf("failed to record view for record %q/%q: %w", owner, name, err)
 	}
 	return nil
+}
+
+// LikeRecord likes the specified record as the authenticated user.
+func (ctrl *Controller) LikeRecord(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	mUserRecordRelationship, err := model.FirstOrCreateUserRecordRelationship(ctx, ctrl.db, mUser.ID, mRecord.ID)
+	if err != nil {
+		return err
+	}
+	if mUserRecordRelationship.LikedAt.Valid {
+		return nil // Already liked
+	}
+
+	if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if queryResult := tx.
+			Model(mUserRecordRelationship).
+			Where("liked_at IS NULL").
+			UpdateColumn("liked_at", sql.NullTime{Time: time.Now().UTC(), Valid: true}); queryResult.Error != nil {
+			return queryResult.Error
+		} else if queryResult.RowsAffected == 0 {
+			return nil
+		}
+		if err := tx.Model(&mRecord).UpdateColumn("like_count", gorm.Expr("like_count + 1")).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to like record %q/%q: %w", owner, name, err)
+	}
+	return nil
+}
+
+// UnlikeRecord unlikes the specified record as the authenticated user.
+func (ctrl *Controller) UnlikeRecord(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	mUserRecordRelationship, err := model.FirstOrCreateUserRecordRelationship(ctx, ctrl.db, mUser.ID, mRecord.ID)
+	if err != nil {
+		return err
+	}
+	if !mUserRecordRelationship.LikedAt.Valid {
+		return nil // Already not liked
+	}
+
+	if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if queryResult := tx.
+			Model(mUserRecordRelationship).
+			Where("liked_at IS NOT NULL").
+			UpdateColumn("liked_at", sql.NullTime{}); queryResult.Error != nil {
+			return queryResult.Error
+		} else if queryResult.RowsAffected == 0 {
+			return nil
+		}
+		if err := tx.Model(&mRecord).UpdateColumn("like_count", gorm.Expr("like_count - 1")).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to unlike record %q/%q: %w", owner, name, err)
+	}
+	return nil
+}
+
+// IsLikingRecord checks if the authenticated user is liking the specified record.
+func (ctrl *Controller) IsLikingRecord(ctx context.Context, owner, name string) (bool, error) {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return false, nil // Not authenticated, so not liking
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return false, fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	var mUserRecordRelationship model.UserRecordRelationship
+	if err := ctrl.db.WithContext(ctx).
+		Where("user_id = ?", mUser.ID).
+		Where("record_id = ?", mRecord.ID).
+		Where("liked_at IS NOT NULL").
+		First(&mUserRecordRelationship).
+		Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check liking status: %w", err)
+	}
+
+	return true, nil
 }
 
 // ListRecordsOrderBy defines the available order by options

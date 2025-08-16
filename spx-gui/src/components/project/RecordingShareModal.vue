@@ -110,7 +110,7 @@
           </div>
         </div>
         <div class="tip-right">
-          <UIButton type="secondary" size="small" @click="handleReRecord">
+          <UIButton type="secondary" size="small" @click="handleReRecord.fn">
             {{ $t({ en: 'Re-record', zh: '重新录制' }) }}
           </UIButton>
         </div>
@@ -192,7 +192,7 @@ import XiaohongshuIconSvg from '@/assets/images/小红书.svg?raw'
 import BilibiliIconSvg from '@/assets/images/bilibili.svg?raw'
 import { ref, computed, onUnmounted, h, watch } from 'vue'
 // import { uploadFile } from '@/apis/usercontent'
-import { createRecord } from '@/apis/record'
+import { createRecord, deleteRecord, type RecordData } from '@/apis/record'
 import { saveFile } from '@/models/common/cloud'
 import { File } from '@/models/common/file'
 import { recordingStore } from '@/stores/recording'
@@ -254,16 +254,36 @@ const handleModalClose = (visible: boolean, reason?: string | Event) => {
   }
 }
 
-// 新增：重新录制处理函数
-const handleReRecord = () => {
-  // 重置录屏状态
-  resetRecordingState()
+const createdRecord = ref<RecordData | null>(null)
 
-  // 切换到初始状态
-  currentState.value = 'initial'
 
-  console.log('用户选择重新录制，状态已重置')
-}
+const handleReRecord = useMessageHandle(
+  async () => {
+    // 如果已经创建了Record，需要先删除它
+    if (createdRecord.value) {
+      try {
+        const { owner, name } = createdRecord.value
+        await deleteRecord(owner, name)
+        console.log('已删除之前创建的Record:', createdRecord.value.name)
+      } catch (error) {
+        console.error('删除Record失败:', error)
+        // 即使删除失败，也继续重置状态，让用户可以重新录制
+      }
+      createdRecord.value = null // 清空record引用
+    }
+    console.log('用户选择重新录制，重置状态')
+
+    // 重置录屏状态
+    resetRecordingState()
+
+    // 切换到初始状态
+    currentState.value = 'initial'
+
+    // console.log('用户选择重新录制，状态已重置')
+  },
+  { en: 'Failed to reset recording', zh: '重置录制失败' },
+  { en: 'Recording reset successfully', zh: '录制已重置' }
+)
 
 // 截图相关状态
 const screenshotData = ref<{
@@ -311,7 +331,7 @@ const resetRecordingState = () => {
     mediaRecorder.value = null
   }
 
-  console.log('录屏状态已重置到初始状态')
+  // console.log('录屏状态已重置到初始状态')
 }
 
 const props = defineProps<{
@@ -327,7 +347,7 @@ const props = defineProps<{
 const copyShareUrl = async () => {
   try {
     await navigator.clipboard.writeText(qrCodeUrl.value)
-    console.log('分享链接已复制到剪贴板')
+    // console.log('分享链接已复制到剪贴板')
     // 这里可以添加一个提示消息
   } catch (error) {
     console.error('复制链接失败:', error)
@@ -410,7 +430,7 @@ const platforms = computed(() => [
 
 const captureScreenshot = async () => {
   try {
-    console.log('开始获取游戏画面截图...')
+    // console.log('开始获取游戏画面截图...')
 
     // 检查项目运行器是否可用
     if (!props.projectRunner) {
@@ -439,7 +459,7 @@ const captureScreenshot = async () => {
 
     // 暂停游戏以确保画面稳定
     await props.projectRunner.pauseGame()
-    console.log('游戏已暂停，准备获取截图')
+    // console.log('游戏已暂停，准备获取截图')
 
     // 使用项目运行器的截图方法直接从游戏canvas获取
     const screenshot = await props.projectRunner.takeScreenshot()
@@ -447,7 +467,7 @@ const captureScreenshot = async () => {
       throw new Error('截图方法返回空结果')
     }
 
-    console.log('成功从游戏canvas获取截图', screenshot.width, 'x', screenshot.height)
+    // console.log('成功从游戏canvas获取截图', screenshot.width, 'x', screenshot.height)
 
     // 创建canvas用于后续处理
     const canvas = document.createElement('canvas')
@@ -468,7 +488,7 @@ const captureScreenshot = async () => {
 
     // 恢复游戏
     await props.projectRunner.resumeGame()
-    console.log('游戏已恢复')
+    // console.log('游戏已恢复')
 
     // 返回截图信息（不再需要屏幕流）
     return {
@@ -489,7 +509,7 @@ const handleStartRecording = useMessageHandle(
   async () => {
     isStarting.value = true
     try {
-      console.log('开始录屏流程...')
+      // console.log('开始录屏流程...')
 
       // 获取游戏画面截图
       const screenshot = await captureScreenshot()
@@ -510,7 +530,7 @@ const handleStartRecording = useMessageHandle(
 // 开始完整游戏录制
 const startFullGameRecording = async (screenshot: any) => {
   try {
-    console.log('开始完整游戏录制')
+    // console.log('开始完整游戏录制')
 
     // 更新状态
     isRecording.value = true
@@ -521,9 +541,9 @@ const startFullGameRecording = async (screenshot: any) => {
 
     // 开始录制时恢复游戏
     if (props.projectRunner) {
-      console.log('开始录制，恢复游戏...')
+      // console.log('开始录制，恢复游戏...')
       await props.projectRunner.resumeGame()
-      console.log('游戏已恢复')
+      // console.log('游戏已恢复')
     }
 
     // 开始录制整个游戏画面
@@ -533,7 +553,7 @@ const startFullGameRecording = async (screenshot: any) => {
     // 通知父组件录屏已开始，隐藏弹窗
     emit('recordingStarted')
 
-    console.log('游戏录制已开始')
+    // console.log('游戏录制已开始')
   } catch (error) {
     console.error('开始游戏录制失败:', error)
     throw error
@@ -543,7 +563,7 @@ const startFullGameRecording = async (screenshot: any) => {
 // 游戏录制核心函数 - 直接从游戏canvas录制整个画面
 const startGameRecording = async (screenshot: any) => {
   try {
-    console.log('开始游戏录制')
+    // console.log('开始游戏录制')
 
     // 检查项目运行器是否可用
     if (!props.projectRunner) {
@@ -562,7 +582,7 @@ const startGameRecording = async (screenshot: any) => {
     let animationId: number
     const drawFrame = async () => {
       if (!isRecording.value) {
-        console.log('录制已停止，停止绘制循环')
+        // console.log('录制已停止，停止绘制循环')
         return
       }
 
@@ -599,7 +619,7 @@ const startGameRecording = async (screenshot: any) => {
 
     // 从canvas获取录制流
     const recordingStream = canvas.captureStream(30) // 30fps
-    console.log('Canvas录制流已创建，帧率: 30fps')
+    // console.log('Canvas录制流已创建，帧率: 30fps')
 
     // 检查MediaRecorder支持的格式
     let mimeType = 'video/webm'
@@ -611,7 +631,7 @@ const startGameRecording = async (screenshot: any) => {
         mimeType = ''
       }
     }
-    console.log('使用录制格式:', mimeType)
+    // console.log('使用录制格式:', mimeType)
 
     // 创建MediaRecorder录制处理后的流
     const recorder = new MediaRecorder(recordingStream, {
@@ -623,17 +643,17 @@ const startGameRecording = async (screenshot: any) => {
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
         chunks.push(event.data)
-        console.log('录制数据块大小:', event.data.size, 'bytes')
+        // console.log('录制数据块大小:', event.data.size, 'bytes')
       }
     }
 
     recorder.onstop = () => {
-      console.log('游戏录制停止，开始生成视频文件')
+      // console.log('游戏录制停止，开始生成视频文件')
 
       // 停止绘制循环
       if (animationId) {
         cancelAnimationFrame(animationId)
-        console.log('绘制循环已停止')
+        // console.log('绘制循环已停止')
       }
 
       // 检查是否有录制数据
@@ -643,20 +663,20 @@ const startGameRecording = async (screenshot: any) => {
       }
 
       // 生成录制文件
-      const totalSize = chunks.reduce((total, chunk) => total + chunk.size, 0)
-      console.log('总录制数据大小:', totalSize, 'bytes')
+      // const totalSize = chunks.reduce((total, chunk) => total + chunk.size, 0)
+      // console.log('总录制数据大小:', totalSize, 'bytes')
 
       const blob = new Blob(chunks, {
         type: recorder.mimeType || 'video/webm'
       })
-      console.log('生成的Blob大小:', blob.size, 'bytes, 类型:', blob.type)
+      // console.log('生成的Blob大小:', blob.size, 'bytes, 类型:', blob.type)
 
       const url = URL.createObjectURL(blob)
       recordedVideoUrl.value = url
       hasRecording.value = true
       currentState.value = 'completed'
 
-      console.log('视频文件已生成，URL:', url)
+      // console.log('视频文件已生成，URL:', url)
 
       // 自动创建Record记录
       createRecordFromRecording().catch((error) => {
@@ -671,12 +691,12 @@ const startGameRecording = async (screenshot: any) => {
     }
 
     recorder.onstart = () => {
-      console.log('MediaRecorder已开始录制')
+      // console.log('MediaRecorder已开始录制')
     }
 
     // 开始录制
     recorder.start(1000) // 每秒生成一个数据块
-    console.log('游戏录制已开始，MediaRecorder状态:', recorder.state)
+    // console.log('游戏录制已开始，MediaRecorder状态:', recorder.state)
 
     // 开始计时
     recordingTime.value = 0
@@ -696,19 +716,19 @@ const handleStopRecording = useMessageHandle(
   async () => {
     isStopping.value = true
     try {
-      console.log('开始停止录制...')
+      // console.log('开始停止录制...')
 
       // 1. 停止MediaRecorder
       if (mediaRecorder.value && mediaRecorder.value.state === 'recording') {
         mediaRecorder.value.stop()
-        console.log('MediaRecorder已停止')
+        // console.log('MediaRecorder已停止')
       }
 
       // 2. 停止录制时暂停游戏
       if (props.projectRunner) {
-        console.log('停止录制，暂停游戏...')
+        // console.log('停止录制，暂停游戏...')
         await props.projectRunner.pauseGame()
-        console.log('游戏已暂停')
+        // console.log('游戏已暂停')
       }
 
       // 3. 重置状态
@@ -724,7 +744,7 @@ const handleStopRecording = useMessageHandle(
       }
 
       emit('recordingStopped')
-      console.log('录制完全停止，状态已重置')
+      // console.log('录制完全停止，状态已重置')
     } finally {
       isStopping.value = false
     }
@@ -744,7 +764,7 @@ const processImageForBilibili = async (imageBlob: Blob, projectName: string): Pr
         const originalWidth = img.width
         const originalHeight = img.height
 
-        console.log(`原始图片尺寸: ${originalWidth}x${originalHeight}`)
+        // console.log(`原始图片尺寸: ${originalWidth}x${originalHeight}`)
 
         // B站要求最小尺寸：960x600
         const minWidth = 960
@@ -763,7 +783,7 @@ const processImageForBilibili = async (imageBlob: Blob, projectName: string): Pr
         newWidth = Math.max(newWidth, minWidth)
         newHeight = Math.max(newHeight, minHeight)
 
-        console.log(`处理后尺寸: ${newWidth}x${newHeight} (缩放比例: ${scale.toFixed(2)})`)
+        // console.log(`处理后尺寸: ${newWidth}x${newHeight} (缩放比例: ${scale.toFixed(2)})`)
 
         // 设置canvas尺寸
         canvas.width = newWidth
@@ -797,7 +817,7 @@ const processImageForBilibili = async (imageBlob: Blob, projectName: string): Pr
         canvas.toBlob(
           (blob) => {
             if (blob) {
-              console.log(`封面处理完成，文件大小: ${(blob.size / 1024).toFixed(2)} KB`)
+              // console.log(`封面处理完成，文件大小: ${(blob.size / 1024).toFixed(2)} KB`)
               resolve(blob)
             } else {
               reject(new Error('Canvas转换Blob失败'))
@@ -827,7 +847,7 @@ const createRecordFromRecording = async () => {
   }
 
   try {
-    console.log('开始创建Record记录...')
+    // console.log('开始创建Record记录...')
 
     // 1. 获取视频Blob并上传到七牛云（使用正确的saveFile函数）
     const response = await fetch(recordedVideoUrl.value)
@@ -840,14 +860,14 @@ const createRecordFromRecording = async () => {
 
     // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
     const videoUniversalUrl = await saveFile(videoFile)
-    console.log('视频上传成功，Universal URL:', videoUniversalUrl)
+    // console.log('视频上传成功，Universal URL:', videoUniversalUrl)
 
     // 2. 处理并上传缩略图（同样使用正确的saveFile函数）
     let thumbnailUniversalUrl = ''
 
     if (props.projectThumbnail) {
       try {
-        console.log('开始处理并上传缩略图...')
+        // console.log('开始处理并上传缩略图...')
 
         // 获取缩略图数据
         let thumbnailBlob: Blob
@@ -868,7 +888,7 @@ const createRecordFromRecording = async () => {
 
         // 使用项目系统的saveFile函数上传，获得kodo://格式的Universal URL
         thumbnailUniversalUrl = await saveFile(thumbnailFile)
-        console.log('缩略图上传成功，Universal URL:', thumbnailUniversalUrl)
+        // console.log('缩略图上传成功，Universal URL:', thumbnailUniversalUrl)
       } catch (thumbnailError) {
         console.warn('缩略图上传失败，将使用空字符串:', thumbnailError)
         thumbnailUniversalUrl = ''
@@ -890,6 +910,7 @@ const createRecordFromRecording = async () => {
 
     // 4. 创建Record记录
     const record = await createRecord(recordData)
+    createdRecord.value = record // 保存创建的Record引用
     console.log('Record创建成功:', record)
   } catch (error) {
     console.error('创建Record记录失败:', error)
@@ -903,7 +924,7 @@ const handleBilibiliShare = useMessageHandle(
       throw new Error('录屏视频不存在')
     }
 
-    console.log('开始B站投稿流程...')
+    // console.log('开始B站投稿流程...')
 
     // 检查登录状态代码...
     const loginCheckResponse = await fetch('http://localhost:3000/check-login')
@@ -936,7 +957,7 @@ const handleBilibiliShare = useMessageHandle(
 
     // 3. 准备FormData - 直接使用Blob，避免File构造函数问题
     const formData = new FormData()
-    
+
     // 使用Blob的三参数形式，第三个参数是文件名
     formData.append('video', videoBlob, `${props.projectName}.webm`)
     formData.append('title', title)
@@ -950,11 +971,11 @@ const handleBilibiliShare = useMessageHandle(
         const thumbnailResponse = await fetch(props.projectThumbnail)
         const thumbnailBlob = await thumbnailResponse.blob()
         const processedCoverBlob = await processImageForBilibili(thumbnailBlob, props.projectName)
-        
+
         // 直接使用Blob，指定文件名
         formData.append('cover', processedCoverBlob, `${props.projectName}-cover.jpg`)
-        
-        console.log('封面图片已处理并添加到FormData')
+
+        // console.log('封面图片已处理并添加到FormData')
       } catch (error) {
         console.warn('封面图片处理失败，将使用默认封面:', error)
       }
@@ -969,7 +990,7 @@ const handleBilibiliShare = useMessageHandle(
     const result = await response2.json()
 
     if (result.success) {
-      console.log('B站投稿成功！', result)
+      // console.log('B站投稿成功！', result)
     } else {
       throw new Error(result.message || 'B站投稿失败')
     }
@@ -993,7 +1014,7 @@ const handleSocialMediaShare = async (platform: any) => {
     }
 
     // 生成二维码
-    console.log(`正在生成${platform.name}分享二维码...`)
+    // console.log(`正在生成${platform.name}分享二维码...`)
     const qrCodeDataUrl = await generateShareQRCode(platform.id, projectInfo, {
       width: 200,
       margin: 3
@@ -1003,7 +1024,7 @@ const handleSocialMediaShare = async (platform: any) => {
     // showQRCode.value = true
     qrCodeUrl.value = projectInfo.projectUrl // 暂定为 projectUrl
 
-    console.log(`${platform.name}分享二维码已生成`)
+    // console.log(`${platform.name}分享二维码已生成`)
   } catch (error) {
     console.error(`生成${platform.name}分享二维码失败:`, error)
     // 可以显示错误提示给用户
@@ -1013,11 +1034,11 @@ const handleSocialMediaShare = async (platform: any) => {
 // 修改分享到平台的函数
 const handlePlatformShare = async (platform: any) => {
   if (!hasRecording.value) {
-    console.log('录屏尚未完成，无法分享')
+    // console.log('录屏尚未完成，无法分享')
     return
   }
 
-  console.log(`准备分享到${platform.name}`)
+  // console.log(`准备分享到${platform.name}`)
 
   // 特殊处理B站平台
   if (platform.id === 'bilibili') {
@@ -1039,7 +1060,7 @@ const handlePlatformShare = async (platform: any) => {
     link.download = `${props.projectName}-for-${platform.id}.webm`
     link.href = recordedVideoUrl.value
     link.click()
-    console.log(`已为${platform.name}下载视频文件`)
+    // console.log(`已为${platform.name}下载视频文件`)
   }
 }
 
@@ -1057,7 +1078,7 @@ const handleManualDownload = () => {
     link.download = `${props.projectName}-for-${selectedPlatform.value}.webm`
     link.href = recordedVideoUrl.value
     link.click()
-    console.log(`手动下载${selectedPlatform.value}平台视频文件`)
+    // console.log(`手动下载${selectedPlatform.value}平台视频文件`)
   }
 }
 
@@ -1072,21 +1093,21 @@ const handleBackToPlatforms = () => {
 // 游戏暂停和恢复逻辑
 watch(() => props.visible, async (newVisible) => {
   if (!props.projectRunner) {
-    console.log('项目运行器不可用，跳过游戏暂停/恢复')
+    // console.log('项目运行器不可用，跳过游戏暂停/恢复')
     return
   }
 
   try {
     if (newVisible) {
       // 弹窗打开时暂停游戏
-      console.log('录屏弹窗打开，暂停游戏...')
+      // console.log('录屏弹窗打开，暂停游戏...')
       await props.projectRunner.pauseGame()
-      console.log('游戏已暂停')
+      // console.log('游戏已暂停')
     } else {
       // 弹窗关闭时恢复游戏
-      console.log('录屏弹窗关闭，恢复游戏...')
+      // console.log('录屏弹窗关闭，恢复游戏...')
       await props.projectRunner.resumeGame()
-      console.log('游戏已恢复')
+      // console.log('游戏已恢复')
     }
   } catch (error) {
     console.error('游戏暂停/恢复失败:', error)

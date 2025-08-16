@@ -52,6 +52,10 @@ type delete_record_owner_name struct {
 	yap.Handler
 	*AppV2
 }
+type delete_record_owner_name_liking struct {
+	yap.Handler
+	*AppV2
+}
 type delete_user_username_following struct {
 	yap.Handler
 	*AppV2
@@ -101,6 +105,10 @@ type get_projects_list struct {
 	*AppV2
 }
 type get_record_owner_name struct {
+	yap.Handler
+	*AppV2
+}
+type get_record_owner_name_liking struct {
 	yap.Handler
 	*AppV2
 }
@@ -173,6 +181,10 @@ type post_project_owner_name_liking struct {
 	*AppV2
 }
 type post_project_owner_name_view struct {
+	yap.Handler
+	*AppV2
+}
+type post_record_owner_name_liking struct {
 	yap.Handler
 	*AppV2
 }
@@ -309,47 +321,50 @@ func (this *AppV2) Main() {
 	_gop_obj3 := &delete_project_owner_name{AppV2: this}
 	_gop_obj4 := &delete_project_owner_name_liking{AppV2: this}
 	_gop_obj5 := &delete_record_owner_name{AppV2: this}
-	_gop_obj6 := &delete_user_username_following{AppV2: this}
-	_gop_obj7 := &get_asset_id{AppV2: this}
-	_gop_obj8 := &get_assets_list{AppV2: this}
-	_gop_obj9 := &get_course_series_id{AppV2: this}
-	_gop_obj10 := &get_course_serieses_list{AppV2: this}
-	_gop_obj11 := &get_course_id{AppV2: this}
-	_gop_obj12 := &get_courses_list{AppV2: this}
-	_gop_obj13 := &get_project_release_owner_project_release{AppV2: this}
-	_gop_obj14 := &get_project_releases_list{AppV2: this}
-	_gop_obj15 := &get_project_owner_name{AppV2: this}
-	_gop_obj16 := &get_project_owner_name_liking{AppV2: this}
-	_gop_obj17 := &get_projects_list{AppV2: this}
-	_gop_obj18 := &get_record_owner_name{AppV2: this}
-	_gop_obj19 := &get_records_list{AppV2: this}
-	_gop_obj20 := &get_user{AppV2: this}
-	_gop_obj21 := &get_user_username{AppV2: this}
-	_gop_obj22 := &get_user_username_following{AppV2: this}
-	_gop_obj23 := &get_users_list{AppV2: this}
-	_gop_obj24 := &get_util_upinfo{AppV2: this}
-	_gop_obj25 := &post_ai_interaction_turn{AppV2: this}
-	_gop_obj26 := &post_aigc_matting{AppV2: this}
-	_gop_obj27 := &post_asset{AppV2: this}
-	_gop_obj28 := &post_copilot_message{AppV2: this}
-	_gop_obj29 := &post_copilot_stream_message{AppV2: this}
-	_gop_obj30 := &post_course_series{AppV2: this}
-	_gop_obj31 := &post_course{AppV2: this}
-	_gop_obj32 := &post_project_release{AppV2: this}
-	_gop_obj33 := &post_project{AppV2: this}
-	_gop_obj34 := &post_project_owner_name_liking{AppV2: this}
-	_gop_obj35 := &post_project_owner_name_view{AppV2: this}
-	_gop_obj36 := &post_record_owner_name_view{AppV2: this}
-	_gop_obj37 := &post_records{AppV2: this}
-	_gop_obj38 := &post_user_username_following{AppV2: this}
-	_gop_obj39 := &post_util_fileurls{AppV2: this}
-	_gop_obj40 := &post_workflow_stream_message{AppV2: this}
-	_gop_obj41 := &put_asset_id{AppV2: this}
-	_gop_obj42 := &put_course_series_id{AppV2: this}
-	_gop_obj43 := &put_course_id{AppV2: this}
-	_gop_obj44 := &put_project_owner_name{AppV2: this}
-	_gop_obj45 := &put_user{AppV2: this}
-	yap.Gopt_AppV2_Main(this, _gop_obj0, _gop_obj1, _gop_obj2, _gop_obj3, _gop_obj4, _gop_obj5, _gop_obj6, _gop_obj7, _gop_obj8, _gop_obj9, _gop_obj10, _gop_obj11, _gop_obj12, _gop_obj13, _gop_obj14, _gop_obj15, _gop_obj16, _gop_obj17, _gop_obj18, _gop_obj19, _gop_obj20, _gop_obj21, _gop_obj22, _gop_obj23, _gop_obj24, _gop_obj25, _gop_obj26, _gop_obj27, _gop_obj28, _gop_obj29, _gop_obj30, _gop_obj31, _gop_obj32, _gop_obj33, _gop_obj34, _gop_obj35, _gop_obj36, _gop_obj37, _gop_obj38, _gop_obj39, _gop_obj40, _gop_obj41, _gop_obj42, _gop_obj43, _gop_obj44, _gop_obj45)
+	_gop_obj6 := &delete_record_owner_name_liking{AppV2: this}
+	_gop_obj7 := &delete_user_username_following{AppV2: this}
+	_gop_obj8 := &get_asset_id{AppV2: this}
+	_gop_obj9 := &get_assets_list{AppV2: this}
+	_gop_obj10 := &get_course_series_id{AppV2: this}
+	_gop_obj11 := &get_course_serieses_list{AppV2: this}
+	_gop_obj12 := &get_course_id{AppV2: this}
+	_gop_obj13 := &get_courses_list{AppV2: this}
+	_gop_obj14 := &get_project_release_owner_project_release{AppV2: this}
+	_gop_obj15 := &get_project_releases_list{AppV2: this}
+	_gop_obj16 := &get_project_owner_name{AppV2: this}
+	_gop_obj17 := &get_project_owner_name_liking{AppV2: this}
+	_gop_obj18 := &get_projects_list{AppV2: this}
+	_gop_obj19 := &get_record_owner_name{AppV2: this}
+	_gop_obj20 := &get_record_owner_name_liking{AppV2: this}
+	_gop_obj21 := &get_records_list{AppV2: this}
+	_gop_obj22 := &get_user{AppV2: this}
+	_gop_obj23 := &get_user_username{AppV2: this}
+	_gop_obj24 := &get_user_username_following{AppV2: this}
+	_gop_obj25 := &get_users_list{AppV2: this}
+	_gop_obj26 := &get_util_upinfo{AppV2: this}
+	_gop_obj27 := &post_ai_interaction_turn{AppV2: this}
+	_gop_obj28 := &post_aigc_matting{AppV2: this}
+	_gop_obj29 := &post_asset{AppV2: this}
+	_gop_obj30 := &post_copilot_message{AppV2: this}
+	_gop_obj31 := &post_copilot_stream_message{AppV2: this}
+	_gop_obj32 := &post_course_series{AppV2: this}
+	_gop_obj33 := &post_course{AppV2: this}
+	_gop_obj34 := &post_project_release{AppV2: this}
+	_gop_obj35 := &post_project{AppV2: this}
+	_gop_obj36 := &post_project_owner_name_liking{AppV2: this}
+	_gop_obj37 := &post_project_owner_name_view{AppV2: this}
+	_gop_obj38 := &post_record_owner_name_liking{AppV2: this}
+	_gop_obj39 := &post_record_owner_name_view{AppV2: this}
+	_gop_obj40 := &post_records{AppV2: this}
+	_gop_obj41 := &post_user_username_following{AppV2: this}
+	_gop_obj42 := &post_util_fileurls{AppV2: this}
+	_gop_obj43 := &post_workflow_stream_message{AppV2: this}
+	_gop_obj44 := &put_asset_id{AppV2: this}
+	_gop_obj45 := &put_course_series_id{AppV2: this}
+	_gop_obj46 := &put_course_id{AppV2: this}
+	_gop_obj47 := &put_project_owner_name{AppV2: this}
+	_gop_obj48 := &put_user{AppV2: this}
+	yap.Gopt_AppV2_Main(this, _gop_obj0, _gop_obj1, _gop_obj2, _gop_obj3, _gop_obj4, _gop_obj5, _gop_obj6, _gop_obj7, _gop_obj8, _gop_obj9, _gop_obj10, _gop_obj11, _gop_obj12, _gop_obj13, _gop_obj14, _gop_obj15, _gop_obj16, _gop_obj17, _gop_obj18, _gop_obj19, _gop_obj20, _gop_obj21, _gop_obj22, _gop_obj23, _gop_obj24, _gop_obj25, _gop_obj26, _gop_obj27, _gop_obj28, _gop_obj29, _gop_obj30, _gop_obj31, _gop_obj32, _gop_obj33, _gop_obj34, _gop_obj35, _gop_obj36, _gop_obj37, _gop_obj38, _gop_obj39, _gop_obj40, _gop_obj41, _gop_obj42, _gop_obj43, _gop_obj44, _gop_obj45, _gop_obj46, _gop_obj47, _gop_obj48)
 }
 //line cmd/spx-backend/delete_asset_#id.yap:6
 func (this *delete_asset_id) Main(_gop_arg0 *yap.Context) {
@@ -556,6 +571,41 @@ func (this *delete_record_owner_name) Classfname() string {
 	return "delete_record_#owner_#name"
 }
 func (this *delete_record_owner_name) Classclone() yap.HandlerProto {
+	_gop_ret := *this
+	return &_gop_ret
+}
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:10
+func (this *delete_record_owner_name_liking) Main(_gop_arg0 *yap.Context) {
+	this.Handler.Main(_gop_arg0)
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:10:1
+	ctx := &this.Context
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:11:1
+	if
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:11:1
+	_, ok := ensureAuthenticatedUser(ctx); !ok {
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:12:1
+		return
+	}
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:15:1
+	owner := this.Gop_Env("owner")
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:16:1
+	name := this.Gop_Env("name")
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:18:1
+	err := this.ctrl.UnlikeRecord(ctx.Context(), owner, name)
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:19:1
+	if err != nil {
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:20:1
+		replyWithInnerError(ctx, err)
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:21:1
+		return
+	}
+//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:23:1
+	this.Text__0(204, "", "")
+}
+func (this *delete_record_owner_name_liking) Classfname() string {
+	return "delete_record_#owner_#name_liking"
+}
+func (this *delete_record_owner_name_liking) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
@@ -1327,6 +1377,41 @@ func (this *get_record_owner_name) Classfname() string {
 	return "get_record_#owner_#name"
 }
 func (this *get_record_owner_name) Classclone() yap.HandlerProto {
+	_gop_ret := *this
+	return &_gop_ret
+}
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:10
+func (this *get_record_owner_name_liking) Main(_gop_arg0 *yap.Context) {
+	this.Handler.Main(_gop_arg0)
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:10:1
+	ctx := &this.Context
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:12:1
+	owner := this.Gop_Env("owner")
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:13:1
+	name := this.Gop_Env("name")
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:15:1
+	isLiking, err := this.ctrl.IsLikingRecord(ctx.Context(), owner, name)
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:16:1
+	if err != nil {
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:17:1
+		replyWithInnerError(ctx, err)
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:18:1
+		return
+	}
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:21:1
+	if !isLiking {
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:22:1
+		this.Text__0(404, "", "")
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:23:1
+		return
+	}
+//line cmd/spx-backend/get_record_#owner_#name_liking.yap:26:1
+	this.Text__0(204, "", "")
+}
+func (this *get_record_owner_name_liking) Classfname() string {
+	return "get_record_#owner_#name_liking"
+}
+func (this *get_record_owner_name_liking) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
@@ -2173,6 +2258,41 @@ func (this *post_project_owner_name_view) Classfname() string {
 	return "post_project_#owner_#name_view"
 }
 func (this *post_project_owner_name_view) Classclone() yap.HandlerProto {
+	_gop_ret := *this
+	return &_gop_ret
+}
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:10
+func (this *post_record_owner_name_liking) Main(_gop_arg0 *yap.Context) {
+	this.Handler.Main(_gop_arg0)
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:10:1
+	ctx := &this.Context
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:11:1
+	if
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:11:1
+	_, ok := ensureAuthenticatedUser(ctx); !ok {
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:12:1
+		return
+	}
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:15:1
+	owner := this.Gop_Env("owner")
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:16:1
+	name := this.Gop_Env("name")
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:18:1
+	err := this.ctrl.LikeRecord(ctx.Context(), owner, name)
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:19:1
+	if err != nil {
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:20:1
+		replyWithInnerError(ctx, err)
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:21:1
+		return
+	}
+//line cmd/spx-backend/post_record_#owner_#name_liking.yap:23:1
+	this.Text__0(204, "", "")
+}
+func (this *post_record_owner_name_liking) Classfname() string {
+	return "post_record_#owner_#name_liking"
+}
+func (this *post_record_owner_name_liking) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }

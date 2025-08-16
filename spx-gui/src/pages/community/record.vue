@@ -38,12 +38,16 @@ ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="me
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-              <UIButton v-if="record.project" type="primary" size="large" @click="handlePlayProject">
+              <UIButton
+v-if="record.project" type="primary" size="large" :loading="handlePlayProject.isLoading.value"
+                @click="handlePlayProject.fn">
                 <UIIcon type="play" />
                 {{ $t({ en: 'Play Game', zh: '一键开玩' }) }}
               </UIButton>
               <div class="button-row">
-                <UIButton type="secondary" size="medium" @click="handleLike">
+                <UIButton
+type="secondary" size="medium" :class="{ liking }" :loading="isTogglingLike"
+                  @click="handleToggleLike">
                   <UIIcon type="heart" />
                   {{ record.likeCount }}
                 </UIButton>
@@ -119,9 +123,9 @@ import { usePageTitle } from '@/utils/utils'
 import { useQuery } from '@/utils/query'
 import { humanizeTime, useAsyncComputed } from '@/utils/utils'
 import { getProjectPageRoute, getUserPageRoute } from '@/router'
-import { getSignedInUsername } from '@/stores/user'
+// import { getSignedInUsername } from '@/stores/user'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
-import { getRecord, recordRecordView, listRecord } from '@/apis/record'
+import { getRecord, recordRecordView, listRecord, likeRecord, unlikeRecord, isLikingRecord } from '@/apis/record'
 import { UILoading, UIError, UIButton, UIIcon, useResponsive } from '@/components/ui'
 import UserAvatar from '@/components/community/user/UserAvatar.vue'
 import CenteredWrapper from '@/components/community/CenteredWrapper.vue'
@@ -129,6 +133,11 @@ import ProjectsSection from '@/components/community/ProjectsSection.vue'
 import RecordItem from '@/components/record/RecordItem.vue'
 import RouterUILink from '@/components/common/RouterUILink.vue'
 import { watchEffect } from 'vue'
+import { useMessageHandle } from '@/utils/exception'
+import { useEnsureSignedIn } from '@/utils/user'
+import { Visibility } from '@/apis/project'
+import { useMessage } from '@/components/ui'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps<{
   owner: string
@@ -141,6 +150,56 @@ const videoRef = ref<HTMLVideoElement>()
 // 响应式布局
 const isDesktopLarge = useResponsive('desktop-large')
 const numInRow = computed(() => (isDesktopLarge.value ? 5 : 4))
+// 点赞状态
+const liking = ref(false)
+const isTogglingLike = ref(false)
+
+// 查询点赞状态
+const checkLikingStatus = async () => {
+  if (!record.value) return
+  try {
+    liking.value = await isLikingRecord(props.owner, props.name)
+  } catch (error) {
+    console.warn('Failed to check liking status:', error)
+    liking.value = false
+  }
+}
+
+const ensureSignedIn = useEnsureSignedIn()
+
+const handleLike = useMessageHandle(
+  async () => {
+    await ensureSignedIn()
+    await likeRecord(props.owner, props.name)
+    liking.value = true
+    // 更新本地计数
+    if (record.value) {
+      record.value.likeCount++
+    }
+  },
+  { en: 'Failed to like', zh: '点赞失败' }
+)
+
+const handleUnlike = useMessageHandle(
+  async () => {
+    await ensureSignedIn()
+    await unlikeRecord(props.owner, props.name)
+    liking.value = false
+    // 更新本地计数
+    if (record.value) {
+      record.value.likeCount--
+    }
+  },
+  { en: 'Failed to unlike', zh: '取消点赞失败' }
+)
+
+const handleToggleLike = () => {
+  isTogglingLike.value = true
+  const action = liking.value ? handleUnlike.fn : handleLike.fn
+  action().finally(() => {
+    isTogglingLike.value = false
+  })
+}
 
 // 获取record数据
 const {
@@ -169,9 +228,9 @@ usePageTitle(() => {
 })
 
 // 是否为录屏所有者
-const isOwner = computed(() => {
-  return record.value?.owner === getSignedInUsername()
-})
+// const isOwner = computed(() => {
+//   return record.value?.owner === getSignedInUsername()
+// })
 
 // 缩略图URL
 const thumbnailUrl = useAsyncComputed(async (onCleanup) => {
@@ -268,18 +327,36 @@ const handleVideoPlay = async () => {
   }
 }
 
-const handlePlayProject = () => {
-  if (record.value?.project) {
-    const projectPath = getProjectPageRoute(record.value.project.owner, record.value.project.name)
-    router.push(projectPath)
+const message = useMessage()
+const { t } = useI18n()
+
+const handlePlayProject = useMessageHandle(
+  async () => {
+    if (!record.value?.project) return
+
+    const project = record.value.project
+
+    // 检查项目可见性
+    if (project.visibility === Visibility.Private) {
+      // 项目已设置为不可见，显示提示
+      message.warning(
+        t({
+          en: 'This project has been set to private and is no longer accessible.',
+          zh: '该项目已设置为不可见，无法访问。'
+        })
+      )
+      return
+    }
+
+    // 项目可见，正常跳转
+    const projectPath = getProjectPageRoute(project.owner, project.name)
+    await router.push(projectPath)
+  },
+  {
+    en: 'Failed to access project',
+    zh: '访问项目失败'
   }
-}
-
-const handleLike = () => {
-  // TODO: 实现点赞功能
-  // console.log('Like clicked')
-}
-
+)
 const handleShare = () => {
   // 分享功能
   const url = window.location.href
@@ -292,10 +369,14 @@ const handleShare = () => {
 watchEffect(async () => {
   if (record.value && !isLoading.value) {
     try {
+      // 记录观看
       await recordRecordView(props.owner, props.name)
-      // console.log('Record view logged successfully') // 添加调试日志
+      // console.log('Record view logged successfully')
+
+      // 检查点赞状态
+      await checkLikingStatus()
     } catch (error) {
-      console.warn('Failed to record view:', error)
+      console.warn('Failed to record view or check liking status:', error)
     }
   }
 })
@@ -447,6 +528,14 @@ watchEffect(async () => {
     width: 100%;
     justify-content: center;
     gap: 8px;
+  }
+
+  .ui-button.liking {
+    color: var(--ui-color-primary-main);
+
+    .ui-icon {
+      color: var(--ui-color-red-main);
+    }
   }
 }
 
