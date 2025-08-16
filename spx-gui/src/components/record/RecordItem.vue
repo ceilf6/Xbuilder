@@ -18,7 +18,8 @@
           <template v-if="context !== 'public' && isOwner">
             <UIDropdown v-if="operatable" placement="bottom-end" :offset="{ x: -8, y: 4 }">
               <template #trigger>
-                <UIIcon v-radar="{ name: 'Record options', desc: 'Open record options menu' }" class="more-btn"
+                <UIIcon
+v-radar="{ name: 'Record options', desc: 'Open record options menu' }" class="more-btn"
                   type="more" />
               </template>
               <UIMenu>
@@ -32,7 +33,8 @@
             </UIDropdown>
             <i v-if="record.visibility === Visibility.Public" class="icon" :title="$t({ en: 'Public', zh: '公开' })">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd"
+                <path
+fill-rule="evenodd" clip-rule="evenodd"
                   d="M15.221 9.88533L14.829 10.2774C14.5792 10.5272 14.4387 10.8668 14.4387 11.2206V11.7726C14.4387 13.2447 13.2457 14.4377 11.7736 14.4377H11.2216C10.8678 14.4377 10.5291 14.5782 10.2784 14.828L9.88544 15.22C8.84446 16.261 7.15722 16.261 6.11624 15.22L5.72331 14.828C5.47351 14.5782 5.13389 14.4377 4.78009 14.4377H4.22807C2.75594 14.4377 1.56302 13.2447 1.56302 11.7726V11.2206C1.56302 10.8668 1.42249 10.5281 1.17269 10.2774L0.780732 9.88533C-0.260244 8.84435 -0.260244 7.15711 0.780732 6.11614L1.17269 5.72409C1.42249 5.4743 1.56302 5.13471 1.56302 4.7809V4.22885C1.56302 2.75673 2.75594 1.56376 4.22807 1.56376H4.78009C5.13389 1.56376 5.47262 1.4233 5.72331 1.1735L6.11624 0.781464C7.15722 -0.259511 8.84446 -0.259511 9.88544 0.781464L10.2784 1.1735C10.5282 1.4233 10.8678 1.56376 11.2216 1.56376H11.7736C13.2457 1.56376 14.4387 2.75673 14.4387 4.22885V4.7809C14.4387 5.13471 14.5792 5.47341 14.829 5.72409L15.221 6.11614C16.2619 7.15711 16.2619 8.84435 15.221 9.88533Z"
                   fill="#219FFC" />
                 <g clip-path="url(#clip0_480_7774)">
@@ -49,7 +51,8 @@
             </i>
             <i v-else class="icon" :title="$t({ en: 'Private', zh: '私有' })">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd"
+                <path
+fill-rule="evenodd" clip-rule="evenodd"
                   d="M15.221 9.88533L14.829 10.2774C14.5792 10.5272 14.4387 10.8668 14.4387 11.2206V11.7726C14.4387 13.2447 13.2457 14.4377 11.7736 14.4377H11.2216C10.8678 14.4377 10.5291 14.5782 10.2784 14.828L9.88544 15.22C8.84446 16.261 7.15722 16.261 6.11624 15.22L5.72331 14.828C5.47351 14.5782 5.13389 14.4377 4.78009 14.4377H4.22807C2.75594 14.4377 1.56302 13.2447 1.56302 11.7726V11.2206C1.56302 10.8668 1.42249 10.5281 1.17269 10.2774L0.780732 9.88533C-0.260244 8.84435 -0.260244 7.15711 0.780732 6.11614L1.17269 5.72409C1.42249 5.4743 1.56302 5.13471 1.56302 4.7809V4.22885C1.56302 2.75673 2.75594 1.56376 4.22807 1.56376H4.78009C5.13389 1.56376 5.47262 1.4233 5.72331 1.1735L6.11624 0.781464C7.15722 -0.259511 8.84446 -0.259511 9.88544 0.781464L10.2784 1.1735C10.5282 1.4233 10.8678 1.56376 11.2216 1.56376H11.7736C13.2457 1.56376 14.4387 2.75673 14.4387 4.22885V4.7809C14.4387 5.13471 14.5792 5.47341 14.829 5.72409L15.221 6.11614C16.2619 7.15711 16.2619 8.84435 15.221 9.88533Z"
                   fill="#FAA135" />
                 <path
@@ -80,7 +83,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 import { useMessageHandle } from '@/utils/exception'
 import { humanizeCount, humanizeExactCount, humanizeTime, humanizeExactTime, useAsyncComputed } from '@/utils/utils'
 import { getRecordPageRoute } from '@/router'
@@ -118,7 +121,7 @@ const emit = defineEmits<{
 const isOwner = computed(() => props.record.owner === getSignedInUsername())
 const operatable = computed(() => props.context === 'mine' && isOwner.value)
 
-const router = useRouter()
+// const router = useRouter()
 
 const to = computed(() => {
   const { owner, name } = props.record
@@ -161,7 +164,7 @@ const timeTitle = computed(() => {
 
 function handleEdit() {
   // TODO: 实现录屏编辑逻辑
-  console.log('Edit record:', props.record.name)
+  // console.log('Edit record:', props.record.name)
 }
 
 const handleRemove = useMessageHandle(
@@ -306,7 +309,7 @@ const handleRemove = useMessageHandle(
     color: var(--ui-color-grey-600);
     line-height: 1.4;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    // -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
