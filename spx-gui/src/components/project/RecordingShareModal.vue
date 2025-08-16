@@ -1,10 +1,12 @@
 <template>
   <UIFormModal :title="modalTitle" :visible="props.visible" :auto-focus="false" style="width: 500px"
     @update:visible="handleModalClose">
-    <!-- 调试信息 - 临时添加 -->
-    <!-- <div style="background: red; color: white; padding: 10px; margin: 10px">
-      DEBUG: currentState = {{ currentState }}, isRecording = {{ isRecording }}, hasRecording = {{ hasRecording }}
-    </div> -->
+         <!-- 调试信息 - 临时添加 -->
+     <div style="background: red; color: white; padding: 10px; margin: 10px">
+       DEBUG: currentState = {{ currentState }}, isRecording = {{ isRecording }}, hasRecording = {{ hasRecording }}
+       <br>
+       recordingStore.isRecording = {{ recordingStore.isRecording.value }}
+     </div>
     <!-- 录屏界面 (initial/recording状态) -->
     <div v-if="currentState === 'initial' || currentState === 'recording'" class="recording-page">
       <!-- 项目预览区域 -->

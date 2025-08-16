@@ -483,13 +483,21 @@ const handleRecord = async () => {
 // 停止录屏处理函数
 const handleStopRecording = async () => {
   try {
+    console.log('开始停止录屏，当前状态:', {
+      recordingStoreIsRecording: recordingStore.isRecording.value,
+      localIsRecording: isRecording.value
+    })
+    
     // 停止录屏状态
     recordingStore.stopRecording()
     
     // 关闭录屏弹窗（如果还在显示）
     showRecordingModal.value = false
     
-    console.log('录屏已停止')
+    console.log('录屏已停止，状态已更新:', {
+      recordingStoreIsRecording: recordingStore.isRecording.value,
+      localIsRecording: isRecording.value
+    })
   } catch (error) {
     console.error('停止录屏失败:', error)
   }
@@ -499,6 +507,12 @@ const handleStopRecording = async () => {
 const handleRecordingStarted = () => {
   console.log('录屏已开始，隐藏弹窗')
   showRecordingModal.value = false
+  
+  // 确保录屏状态正确更新
+  console.log('录屏开始后的状态:', {
+    recordingStoreIsRecording: recordingStore.isRecording.value,
+    localIsRecording: isRecording.value
+  })
 }
 
 // 录屏停止事件处理
@@ -624,6 +638,11 @@ const remixesRet = useQuery(
             </template>
             {{ recordingStore.isRecording.value ? $t({ en: 'Stop-Recording', zh: '停止录屏' }) : $t({ en: 'Record', zh: '录屏' }) }}
           </UIButton>
+          
+          <!-- 调试信息 - 临时添加 -->
+          <div v-if="runnerState === 'running' && !isMobile" style="background: yellow; color: black; padding: 5px; margin: 5px; font-size: 12px; border-radius: 4px;">
+            DEBUG: recordingStore.isRecording = {{ recordingStore.isRecording.value }}
+          </div>
           <UIButton
             v-if="runnerState === 'initial'"
             v-radar="{ name: 'Full screen run button', desc: 'Click to run project in full screen' }"
