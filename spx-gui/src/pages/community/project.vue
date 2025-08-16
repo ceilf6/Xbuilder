@@ -211,6 +211,7 @@ const isStopping = ref(false)
 const hasRecording = ref(false)
 const recordingTime = ref(0)
 const mediaRecorder = ref<MediaRecorder | null>(null)
+const recordedVideoUrl = ref<string | null>(null)
 let recordingTimer: ReturnType<typeof setInterval> | null = null
 const isScreenshotModalVisible = ref(false)
 const screenshotDataUrl = ref<string | undefined>()
