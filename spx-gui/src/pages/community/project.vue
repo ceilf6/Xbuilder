@@ -470,10 +470,18 @@ async function handleCloseScreenshotModal() {
 
 const handleRecord = async () => {
   try {
+    console.log('=== handleRecord 被调用 ===')
+    console.log('当前录屏状态:', recordingStore.isRecording.value)
+    
     // 复用项目中已有的登录验证逻辑
     await ensureSignedIn()
+    console.log('用户已登录，准备显示录屏模态框')
+    
     // 用户已登录，显示录屏模态框
     showRecordingModal.value = true
+    console.log('录屏模态框已显示')
+    
+    console.log('=== handleRecord 完成 ===')
   } catch (error) {
     // 用户取消登录或登录失败，不执行后续操作
     console.log('用户未登录或取消登录')
@@ -505,6 +513,7 @@ const handleStopRecording = async () => {
 
 // 录屏开始事件处理
 const handleRecordingStarted = () => {
+  console.log('=== handleRecordingStarted 被调用 ===')
   console.log('录屏已开始，隐藏弹窗')
   showRecordingModal.value = false
   
@@ -513,6 +522,14 @@ const handleRecordingStarted = () => {
     recordingStoreIsRecording: recordingStore.isRecording.value,
     localIsRecording: isRecording.value
   })
+  
+  // 延迟检查状态，看看是否有异步更新
+  setTimeout(() => {
+    console.log('延迟检查录屏状态:', {
+      recordingStoreIsRecording: recordingStore.isRecording.value,
+      localIsRecording: isRecording.value
+    })
+  }, 100)
 }
 
 // 录屏停止事件处理

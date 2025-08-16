@@ -546,6 +546,7 @@ const handleStartRecording = useMessageHandle(
 // 开始完整游戏录制
 const startFullGameRecording = async (screenshot: any) => {
   try {
+    console.log('=== startFullGameRecording 开始 ===')
     console.log('开始完整游戏录制')
 
     // 更新状态
@@ -555,7 +556,9 @@ const startFullGameRecording = async (screenshot: any) => {
     console.log('录屏状态已更新:', { isRecording: isRecording.value, currentState: currentState.value })
     
     // 通知录屏状态管理器
+    console.log('调用 recordingStore.startRecording() 前，状态:', recordingStore.isRecording.value)
     recordingStore.startRecording()
+    console.log('调用 recordingStore.startRecording() 后，状态:', recordingStore.isRecording.value)
 
     // 开始录制时恢复游戏
     if (props.projectRunner) {
@@ -569,9 +572,11 @@ const startFullGameRecording = async (screenshot: any) => {
     mediaRecorder.value = recorder
 
     // 隐藏弹窗，让用户看到游戏界面上的停止录屏按钮
+    console.log('准备触发 recordingStarted 事件')
     emit('recordingStarted')
 
     console.log('游戏录制已开始，弹窗已隐藏，用户可在游戏界面上停止录屏')
+    console.log('=== startFullGameRecording 完成 ===')
   } catch (error) {
     console.error('开始游戏录制失败:', error)
     // 如果录制失败，重置状态
