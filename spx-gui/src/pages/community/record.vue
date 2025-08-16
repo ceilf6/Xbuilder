@@ -272,6 +272,7 @@ const relatedRecordsQuery = useQuery(
 
     const projectFullName = `${record.value.project.owner}/${record.value.project.name}`
     const { data: records } = await listRecord({
+      owner: '*',  // 关键！传入 '*' 表示查询所有用户
       projectFullName: projectFullName,
       pageIndex: 1,
       pageSize: numInRow.value,

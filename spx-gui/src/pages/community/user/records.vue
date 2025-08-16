@@ -129,7 +129,7 @@ const handleNewProject = useMessageHandle(
           }}</UISelectOption>
         </UISelect>
       </label>
-      <UIButton
+      <!-- <UIButton
         v-if="isSignedInUser && !isMobile"
         v-radar="{ name: 'New record button', desc: 'Click to create a new record' }"
         type="secondary"
@@ -137,7 +137,7 @@ const handleNewProject = useMessageHandle(
         @click="handleNewProject"
       >
         {{ $t({ en: 'New record', zh: '新建录屏' }) }}
-      </UIButton>
+      </UIButton> -->
     </template>
     <div class="records-wrapper">
       <ListResultWrapper v-slot="slotProps" content-type="record" :query-ret="queryRet" :height="524">
