@@ -187,7 +187,7 @@
           <button class="manual-download-btn" @click="handleManualDownload">
             {{ $t({ en: 'Download Video', zh: '手动下载视频' }) }}
           </button>
-          <button class="copy-url-btn" @click="copyShareUrl">{{ $t({ en: 'Copy Link', zh: '复制链接' }) }}</button>
+          <button class="copy-url-btn" @click="copyShareUrl.fn">{{ $t({ en: 'Copy Link', zh: '复制链接' }) }}</button>
         </div>
       </div>
     </div>
@@ -211,6 +211,7 @@ import { createRecord, deleteRecord, type RecordData } from '@/apis/record'
 import { saveFile } from '@/models/common/cloud'
 import { File } from '@/models/common/file'
 import { recordingStore } from '@/stores/recording'
+import { getSignedInUsername } from '@/stores/user'
 
 const { t } = useI18n()
 // 新增：创建SVG图标组件
@@ -359,15 +360,13 @@ const props = defineProps<{
 }>()
 
 // 复制分享链接
-const copyShareUrl = async () => {
-  try {
+const copyShareUrl = useMessageHandle(
+  async () => {
     await navigator.clipboard.writeText(qrCodeUrl.value)
-    // console.log('分享链接已复制到剪贴板')
-    // 这里可以添加一个提示消息
-  } catch (error) {
-    console.error('复制链接失败:', error)
-  }
-}
+  },
+  { en: 'Failed to copy link', zh: '复制链接失败' },
+  { en: 'Link copied to clipboard', zh: '链接已复制到剪贴板' }
+)
 
 const emit = defineEmits<{
   cancelled: []
@@ -525,6 +524,7 @@ const handleStartRecording = useMessageHandle(
     isStarting.value = true
     try {
       // console.log('开始录屏流程...')
+      emit('cancelled') // 隐藏弹窗
 
       // 获取游戏画面截图
       const screenshot = await captureScreenshot()
@@ -1034,10 +1034,11 @@ const handleSocialMediaShare = async (platform: any) => {
     const projectInfo: ProjectShareInfo = {
       projectName: props.projectName,
       // projectUrl: `${window.location.origin}/project/${props.owner}/${props.projectName}`, // 根据实际路由调整
-      projectUrl: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.projectName}`,
+      projectUrl: `${window.location.origin}/record/${getSignedInUsername()}/${createdRecord.value?.name}`, 
       description: `这是我在XBuilder上创作的游戏作品《${props.projectName}》！🎮 在XBuilder学编程，创造属于你的游戏世界！`,
       thumbnail: props.projectThumbnail
     }
+    console.log('地址:', projectInfo.projectUrl)
 
     // 生成二维码
     // console.log(`正在生成${platform.name}分享二维码...`)
