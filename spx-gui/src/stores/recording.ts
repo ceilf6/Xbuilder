@@ -13,21 +13,14 @@ class RecordingStore {
 
   // 开始录屏
   startRecording() {
-    console.log('=== recordingStore.startRecording() 被调用 ===')
-    console.log('调用前 _isRecording.value:', this._isRecording.value)
-    
     this._isRecording.value = true
     this._recordingStartTime.value = Date.now()
     this._recordingDuration.value = 0
-    
-    console.log('调用后 _isRecording.value:', this._isRecording.value)
-    console.log('_recordingStartTime.value:', this._recordingStartTime.value)
     
     // 开始计时
     this._startTimer()
     
     console.log('录屏状态：开始录屏')
-    console.log('=== recordingStore.startRecording() 完成 ===')
   }
 
   // 停止录屏

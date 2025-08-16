@@ -7,8 +7,8 @@
        <br>
        recordingStore.isRecording = {{ recordingStore.isRecording.value }}
      </div>
-    <!-- 录屏界面 (initial/recording状态) -->
-    <div v-if="currentState === 'initial' || currentState === 'recording'" class="recording-page">
+    <!-- 录屏界面 (initial状态) -->
+    <div v-if="currentState === 'initial'" class="recording-page">
       <!-- 项目预览区域 -->
       <div class="preview-section">
         <div class="project-preview">
@@ -22,7 +22,7 @@
 
           <!-- 录屏控制按钮 -->
           <div class="record-overlay">
-            <UIButton v-if="!isRecording" type="primary" size="large" :loading="isStarting"
+            <UIButton type="primary" size="large" :loading="isStarting"
               @click="handleStartRecording.fn">
               <template #icon>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -34,25 +34,32 @@
               </template>
               {{ $t({ en: 'Record', zh: '录屏' }) }}
             </UIButton>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 提示文字 -->
+      <div class="tip">
+        {{ $t({ en: 'Click Record to start recording, then click Stop-Recording button in the game interface to stop', zh: '点击录屏开始录制，然后在游戏界面点击停止录屏按钮结束录制' }) }}
+      </div>
+    </div>
 
-            <UIButton v-else type="danger" size="large" :loading="isStopping" @click="handleStopRecording.fn">
-              <template #icon>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <!-- 圆形背景 -->
-                  <circle cx="10" cy="10" r="9" fill="currentColor" opacity="0.2" />
-                  <!-- 左竖条 -->
-                  <rect x="6.5" y="5" width="2.5" height="10" fill="currentColor" />
-                  <!-- 右竖条 -->
-                  <rect x="11" y="5" width="2.5" height="10" fill="currentColor" />
-                </svg>
-              </template>
-              {{ $t({ en: 'Stop-Record', zh: '停止录屏' }) }}
-            </UIButton>
+    <!-- 录屏中界面 (recording状态) -->
+    <div v-else-if="currentState === 'recording'" class="recording-page">
+      <!-- 项目预览区域 -->
+      <div class="preview-section">
+        <div class="project-preview">
+          <!-- 现有的预览内容保持不变 -->
+          <img v-if="projectThumbnail" :src="projectThumbnail" alt="Project thumbnail" />
+
+          <div v-else class="placeholder">
+            <div class="game-icon">🎮</div>
+            <div class="project-name">{{ projectName }}</div>
           </div>
         </div>
 
         <!-- 录屏状态显示 -->
-        <div v-if="isRecording" class="recording-status">
+        <div class="recording-status">
           <div class="recording-indicator">
             <div class="red-dot"></div>
             {{ $t({ en: 'Recording...', zh: '录制中...' }) }}
@@ -60,32 +67,10 @@
           <div class="recording-time">{{ formatTime(recordingTime) }}</div>
         </div>
       </div>
-      <!-- 分享平台区域 - 录屏时显示但禁用 -->
-      <div class="share-section">
-        <h4>{{ $t({ en: 'Share to Platform', zh: '分享到平台' }) }}</h4>
-        <div class="platforms">
-          <div v-for="platform in platforms" :key="platform.id"
-            :class="['platform-item', { disabled: isRecording || !hasRecording }]"
-            @click="isRecording ? null : handlePlatformShare(platform)">
-            <div class="platform-icon">
-              <component :is="platform.icon" />
-            </div>
-            <span class="platform-name">{{ platform.name }}</span>
-          </div>
-        </div>
-
-        <!-- 提示文字 -->
-        <div v-if="isRecording" class="tip">
-          {{
-            $t({
-              en: 'Recording in progress, platforms will be available after completion',
-              zh: '录制中，完成录制后即可分享到各平台'
-            })
-          }}
-        </div>
-        <div v-else-if="!hasRecording" class="tip">
-          {{ $t({ en: 'Complete recording to share', zh: '完成录屏后即可分享到各平台' }) }}
-        </div>
+      
+      <!-- 提示文字 -->
+      <div class="tip">
+        {{ $t({ en: 'Recording in progress, click Stop-Recording button in the game interface to stop', zh: '录制中，在游戏界面点击停止录屏按钮结束录制' }) }}
       </div>
     </div>
 
@@ -1571,5 +1556,16 @@ onUnmounted(() => {
   .tip-right {
     flex-shrink: 0;
   }
+}
+
+.tip {
+  text-align: center;
+  padding: 16px;
+  margin-top: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
 }
 </style>
