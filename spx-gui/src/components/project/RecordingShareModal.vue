@@ -1,6 +1,5 @@
 <template>
-  <UIFormModal
-:title="modalTitle" :visible="props.visible" :auto-focus="false" style="width: 500px"
+  <UIFormModal :title="modalTitle" :visible="props.visible" :auto-focus="false" style="width: 500px"
     @update:visible="handleModalClose">
     <!-- 调试信息 - 临时添加
     <div style="background: red; color: white; padding: 10px; margin: 10px">
@@ -21,8 +20,7 @@
 
           <!-- 录屏控制按钮 -->
           <div class="record-overlay">
-            <UIButton
-v-if="!isRecording" type="primary" size="large" :loading="isStarting"
+            <UIButton v-if="!isRecording" type="primary" size="large" :loading="isStarting"
               @click="handleStartRecording.fn">
               <template #icon>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -64,8 +62,7 @@ v-if="!isRecording" type="primary" size="large" :loading="isStarting"
       <div class="share-section">
         <h4>{{ $t({ en: 'Share to Platform', zh: '分享到平台' }) }}</h4>
         <div class="platforms">
-          <div
-v-for="platform in platforms" :key="platform.id"
+          <div v-for="platform in platforms" :key="platform.id"
             :class="['platform-item', { disabled: isRecording || !hasRecording }]"
             @click="isRecording ? null : handlePlatformShare(platform)">
             <div class="platform-icon">
@@ -95,8 +92,7 @@ v-for="platform in platforms" :key="platform.id"
       <!-- 显示录制完成的视频 -->
       <div class="preview-section">
         <div class="project-preview">
-          <video
-v-if="recordedVideoUrl" :src="recordedVideoUrl" controls :poster="projectThumbnail"
+          <video v-if="recordedVideoUrl" :src="recordedVideoUrl" controls :poster="projectThumbnail"
             class="recorded-video">
             您的浏览器不支持视频播放
           </video>
@@ -114,7 +110,7 @@ v-if="recordedVideoUrl" :src="recordedVideoUrl" controls :poster="projectThumbna
           </div>
         </div>
         <div class="tip-right">
-          <UIButton type="secondary" size="small" @click="handleReRecord">
+          <UIButton type="secondary" size="small" @click="handleReRecord.fn">
             {{ $t({ en: 'Re-record', zh: '重新录制' }) }}
           </UIButton>
         </div>
@@ -124,8 +120,7 @@ v-if="recordedVideoUrl" :src="recordedVideoUrl" controls :poster="projectThumbna
       <div class="share-section">
         <h4>{{ $t({ en: 'Share to Platform', zh: '分享到平台' }) }}</h4>
         <div class="platforms">
-          <div
-v-for="platform in platforms" :key="platform.id" class="platform-item"
+          <div v-for="platform in platforms" :key="platform.id" class="platform-item"
             @click="handlePlatformShare(platform)">
             <div class="platform-icon">
               <component :is="platform.icon" />
@@ -197,7 +192,7 @@ import XiaohongshuIconSvg from '@/assets/images/小红书.svg?raw'
 import BilibiliIconSvg from '@/assets/images/bilibili.svg?raw'
 import { ref, computed, onUnmounted, h, watch } from 'vue'
 // import { uploadFile } from '@/apis/usercontent'
-import { createRecord } from '@/apis/record'
+import { createRecord, deleteRecord, type RecordData } from '@/apis/record'
 import { saveFile } from '@/models/common/cloud'
 import { File } from '@/models/common/file'
 
@@ -258,16 +253,36 @@ const handleModalClose = (visible: boolean, reason?: string | Event) => {
   }
 }
 
-// 新增：重新录制处理函数
-const handleReRecord = () => {
-  // 重置录屏状态
-  resetRecordingState()
+const createdRecord = ref<RecordData | null>(null)
 
-  // 切换到初始状态
-  currentState.value = 'initial'
 
-  // console.log('用户选择重新录制，状态已重置')
-}
+const handleReRecord = useMessageHandle(
+  async () => {
+    // 如果已经创建了Record，需要先删除它
+    if (createdRecord.value) {
+      try {
+        const { owner, name } = createdRecord.value
+        await deleteRecord(owner, name)
+        console.log('已删除之前创建的Record:', createdRecord.value.name)
+      } catch (error) {
+        console.error('删除Record失败:', error)
+        // 即使删除失败，也继续重置状态，让用户可以重新录制
+      }
+      createdRecord.value = null // 清空record引用
+    }
+    console.log('用户选择重新录制，重置状态')
+
+    // 重置录屏状态
+    resetRecordingState()
+
+    // 切换到初始状态
+    currentState.value = 'initial'
+
+    // console.log('用户选择重新录制，状态已重置')
+  },
+  { en: 'Failed to reset recording', zh: '重置录制失败' },
+  { en: 'Recording reset successfully', zh: '录制已重置' }
+)
 
 // 截图相关状态
 const screenshotData = ref<{
@@ -888,6 +903,7 @@ const createRecordFromRecording = async () => {
 
     // 4. 创建Record记录
     const record = await createRecord(recordData)
+    createdRecord.value = record // 保存创建的Record引用
     console.log('Record创建成功:', record)
   } catch (error) {
     console.error('创建Record记录失败:', error)
@@ -934,7 +950,7 @@ const handleBilibiliShare = useMessageHandle(
 
     // 3. 准备FormData - 直接使用Blob，避免File构造函数问题
     const formData = new FormData()
-    
+
     // 使用Blob的三参数形式，第三个参数是文件名
     formData.append('video', videoBlob, `${props.projectName}.webm`)
     formData.append('title', title)
@@ -948,10 +964,10 @@ const handleBilibiliShare = useMessageHandle(
         const thumbnailResponse = await fetch(props.projectThumbnail)
         const thumbnailBlob = await thumbnailResponse.blob()
         const processedCoverBlob = await processImageForBilibili(thumbnailBlob, props.projectName)
-        
+
         // 直接使用Blob，指定文件名
         formData.append('cover', processedCoverBlob, `${props.projectName}-cover.jpg`)
-        
+
         // console.log('封面图片已处理并添加到FormData')
       } catch (error) {
         console.warn('封面图片处理失败，将使用默认封面:', error)

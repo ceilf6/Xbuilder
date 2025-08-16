@@ -38,7 +38,9 @@ ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="me
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-              <UIButton v-if="record.project" type="primary" size="large" @click="handlePlayProject">
+              <UIButton
+v-if="record.project" type="primary" size="large" :loading="handlePlayProject.isLoading.value"
+                @click="handlePlayProject.fn">
                 <UIIcon type="play" />
                 {{ $t({ en: 'Play Game', zh: '一键开玩' }) }}
               </UIButton>
@@ -133,6 +135,9 @@ import RouterUILink from '@/components/common/RouterUILink.vue'
 import { watchEffect } from 'vue'
 import { useMessageHandle } from '@/utils/exception'
 import { useEnsureSignedIn } from '@/utils/user'
+import { Visibility } from '@/apis/project'
+import { useMessage } from '@/components/ui'
+import { useI18n } from '@/utils/i18n'
 
 const props = defineProps<{
   owner: string
@@ -322,13 +327,36 @@ const handleVideoPlay = async () => {
   }
 }
 
-const handlePlayProject = () => {
-  if (record.value?.project) {
-    const projectPath = getProjectPageRoute(record.value.project.owner, record.value.project.name)
-    router.push(projectPath)
-  }
-}
+const message = useMessage()
+const { t } = useI18n()
 
+const handlePlayProject = useMessageHandle(
+  async () => {
+    if (!record.value?.project) return
+
+    const project = record.value.project
+
+    // 检查项目可见性
+    if (project.visibility === Visibility.Private) {
+      // 项目已设置为不可见，显示提示
+      message.warning(
+        t({
+          en: 'This project has been set to private and is no longer accessible.',
+          zh: '该项目已设置为不可见，无法访问。'
+        })
+      )
+      return
+    }
+
+    // 项目可见，正常跳转
+    const projectPath = getProjectPageRoute(project.owner, project.name)
+    await router.push(projectPath)
+  },
+  {
+    en: 'Failed to access project',
+    zh: '访问项目失败'
+  }
+)
 const handleShare = () => {
   // 分享功能
   const url = window.location.href
@@ -506,7 +534,7 @@ watchEffect(async () => {
     color: var(--ui-color-primary-main);
 
     .ui-icon {
-      color: var(--ui-color-primary-main);
+      color: var(--ui-color-red-main);
     }
   }
 }
