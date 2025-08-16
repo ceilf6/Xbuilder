@@ -523,7 +523,10 @@ const handleStopRecording = async () => {
       recordingTimer = null
     }
     
-    // 4. 直接显示录屏完成弹框（不再需要停止录屏按钮）
+    // 4. 设置录屏完成状态
+    hasRecording.value = true
+    
+    // 5. 直接显示录屏完成弹框（不再需要停止录屏按钮）
     showRecordingModal.value = true
     
     console.log('录制完全停止，状态已重置，弹窗已显示')
@@ -878,7 +881,7 @@ const remixesRet = useQuery(
             v-radar="{ name: 'Stop recording button', desc: 'Click to stop recording' }"
             type="danger"
             :loading="isStopping"
-            @click="handleRecord"
+            @click="handleStopRecording"
           >
             <template #icon>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
