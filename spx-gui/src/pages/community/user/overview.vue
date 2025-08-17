@@ -217,7 +217,7 @@ v-radar="{ name: 'User liked records', desc: 'Section showing records liked by t
             })
           }}
         </template>
-        <RecordItem v-for="record in likedRecordsRet.data.value" :key="record.id" :record="record" />
+        <RecordItem v-for="record in likedRecordsRet.data.value" :key="record.id" context="public" :record="record" />
       </ProjectsSection>
     </CommunityCard>
   </div>

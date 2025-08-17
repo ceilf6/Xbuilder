@@ -100,7 +100,7 @@ const recordsQueryRet = useQuery(
       <div class="records-wrapper">
         <ListResultWrapper v-slot="slotProps" content-type="record" :query-ret="recordsQueryRet" :height="350">
           <ul class="records">
-            <RecordItem v-for="record in slotProps.data.data" :key="record.id" :record="record" />
+            <RecordItem v-for="record in slotProps.data.data" :key="record.id" context="public" :record="record" />
           </ul>
         </ListResultWrapper>
         <!-- 录屏部分不需要分页，只显示概览 -->
