@@ -103,6 +103,7 @@ const { data: liking } = useIsLikingProject(() => ({ owner: props.owner, name: p
 
 const projectRunnerRef = ref<InstanceType<typeof ProjectRunner> | null>(null)
 const isFullScreenRunning = ref(false)
+// 录屏相关状态
 const showRecordingModal = ref(false)
 const isRecording = ref(false)
 const isStarting = ref(false)
@@ -457,7 +458,7 @@ const handleStartRecording = async () => {
   }
 }
 
-// 停止录屏 - 修改为直接弹窗
+// 停止录屏 - 显示分享弹窗
 const handleStopRecording = async () => {
   if (!isRecording.value) return
   
@@ -487,7 +488,7 @@ const handleStopRecording = async () => {
     // 5. 设置录屏完成状态
     hasRecording.value = true
     
-    // 6. 直接显示录屏完成弹框（不再需要停止录屏按钮）
+    // 6. 显示录屏完成弹框
     showRecordingModal.value = true
     
     console.log('录制完全停止，状态已重置，弹窗已显示')
@@ -498,20 +499,20 @@ const handleStopRecording = async () => {
   }
 }
 
-// 录屏按钮点击处理 - 修改为点击后自动开始录屏
+// 录屏按钮点击处理 - 简化逻辑
 const handleRecord = async () => {
   if (!isRecording.value) {
     await handleStartRecording()
   }
 }
 
-// 处理录屏开始事件
+// 处理录屏开始事件 - 隐藏弹窗
 const handleRecordingStarted = () => {
   console.log('录屏开始事件触发，隐藏弹窗')
   showRecordingModal.value = false
 }
 
-// 处理录屏停止事件
+// 处理录屏停止事件 - 显示弹窗
 const handleRecordingStopped = () => {
   console.log('录屏停止事件触发，显示弹窗')
   showRecordingModal.value = true
@@ -519,7 +520,12 @@ const handleRecordingStopped = () => {
 
 // 处理重新录制事件（弹窗re-record按钮）
 function handleReRecordFromModal() {
-  // 关闭弹窗后自动开始录制
+  // 重置状态
+  hasRecording.value = false
+  recordedVideoUrl.value = null
+  showRecordingModal.value = false
+  
+  // 延迟一下再开始录制，确保弹窗完全关闭
   setTimeout(() => {
     handleRecord()
   }, 300)

@@ -398,7 +398,7 @@ watch(() => props.hasRecording, (newHasRecording) => {
       console.log('弹窗状态已同步：录屏未完成，重置到初始状态')
     }
   }
-}, { immediate: true })
+}, { immediate: false }) // 改为false，避免组件挂载时触发
 
 // 同步录屏状态到外部 - 当弹窗内部开始录屏时
 watch(isRecording, (newIsRecording) => {
@@ -411,15 +411,15 @@ watch(isRecording, (newIsRecording) => {
     emit('recordingStopped')
     console.log('弹窗内部录屏状态变化，通知外部录屏已停止')
   }
-}, { immediate: true })
+}, { immediate: false }) // 改为false，避免组件挂载时触发
 
 // 同步外部传入的视频URL
 watch(() => props.recordedVideoUrl, (newVideoUrl) => {
-  if (newVideoUrl) {
+  if (newVideoUrl && props.visible) { // 只有在弹窗打开时才同步
     recordedVideoUrl.value = newVideoUrl
     console.log('弹窗视频URL已同步:', newVideoUrl)
   }
-}, { immediate: true })
+}, { immediate: false }) // 改为false，避免组件挂载时触发
 
 // 在现有状态后添加
 const selectedPlatform = ref<string | null>(null) // 当前选中的平台
