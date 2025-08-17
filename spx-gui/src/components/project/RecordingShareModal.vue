@@ -98,7 +98,7 @@
           </div>
         </div>
         <div class="tip-right">
-          <UIButton type="secondary" size="small" @click="handleReRecord.fn">
+          <UIButton type="secondary" size="small" @click="() => { handleReRecord.fn(); $emit('re-record') }">
             {{ $t({ en: 'Re-record', zh: '重新录制' }) }}
           </UIButton>
         </div>
@@ -369,6 +369,7 @@ const emit = defineEmits<{
   resolved: []
   recordingStarted: [] // 录屏开始时触发
   recordingStopped: [] // 录屏停止时触发
+  're-record': [] // 新增：重新录制时触发
 }>()
 
 // 状态管理

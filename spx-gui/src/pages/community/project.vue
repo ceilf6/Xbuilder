@@ -153,6 +153,10 @@ function checkQQEnvironment() {
 
 // 页面加载完成后执行检测
 onMounted(() => {
+  // 页面初始化时重置录屏相关状态，避免直接弹窗
+  showRecordingModal.value = false
+  hasRecording.value = false
+  isRecording.value = false
   // console.log('onMounted 被调用') // 调试日志
   // 延迟执行，确保QQ环境完全加载
   setTimeout(() => {
@@ -511,6 +515,14 @@ const handleRecordingStarted = () => {
 const handleRecordingStopped = () => {
   console.log('录屏停止事件触发，显示弹窗')
   showRecordingModal.value = true
+}
+
+// 处理重新录制事件（弹窗re-record按钮）
+function handleReRecordFromModal() {
+  // 关闭弹窗后自动开始录制
+  setTimeout(() => {
+    handleRecord()
+  }, 300)
 }
 
 // 获取游戏画面截图的函数
@@ -1080,6 +1092,7 @@ const remixesRet = useQuery(
       @resolved="showRecordingModal = false"
       @recording-started="handleRecordingStarted"
       @recording-stopped="handleRecordingStopped"
+      @re-record="handleReRecordFromModal"
     />
   </CenteredWrapper>
 
