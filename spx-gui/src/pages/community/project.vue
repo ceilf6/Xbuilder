@@ -622,20 +622,6 @@ const handleStopRecording = async () => {
     // 7. 显示录屏完成弹框
     showRecordingModal.value = true
     
-    // 8. 等待弹窗显示后，调用弹窗组件的createRecord方法
-    await nextTick()
-    if (recordingModalRef.value) {
-      try {
-        console.log('调用弹窗组件的createRecord方法...')
-        await recordingModalRef.value.createRecord()
-        console.log('Record创建成功，后端已接收到录屏数据')
-      } catch (error) {
-        console.error('调用弹窗组件createRecord方法失败:', error)
-      }
-    } else {
-      console.warn('弹窗组件引用不存在，无法调用createRecord方法')
-    }
-    
     console.log('录制完全停止，状态已重置，弹窗已显示')
   } catch (error) {
     console.error('停止录制失败:', error)
@@ -854,6 +840,22 @@ const startGameRecording = async (screenshot: any) => {
       hasRecording.value = true
       
       console.log('视频文件已生成，URL:', url)
+      
+      // 直接调用弹窗组件的createRecord方法，确保能正确创建record
+      if (recordingModalRef.value) {
+        // 使用setTimeout确保状态更新完成后再调用
+        setTimeout(async () => {
+          try {
+            console.log('录屏完成后，直接调用弹窗组件的createRecord方法...')
+            await recordingModalRef.value!.createRecord()
+            console.log('Record创建成功，后端已接收到录屏数据')
+          } catch (error) {
+            console.error('录屏完成后调用createRecord方法失败:', error)
+          }
+        }, 100)
+      } else {
+        console.warn('弹窗组件引用不存在，无法创建Record')
+      }
     }
     
     recorder.onerror = (event) => {
