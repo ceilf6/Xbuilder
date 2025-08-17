@@ -112,11 +112,23 @@ watch(runnerState, (newState) => {
     
     // 清理录屏资源
     if (mediaRecorder.value) {
+      // 如果正在录制，先停止
+      if (mediaRecorder.value.state === 'recording') {
+        try {
+          mediaRecorder.value.stop()
+        } catch (error) {
+          console.warn('停止MediaRecorder时出错:', error)
+        }
+      }
       mediaRecorder.value = null
     }
     if (recordingTimer) {
       clearInterval(recordingTimer)
       recordingTimer = null
+    }
+    if (currentAnimationId) {
+      cancelAnimationFrame(currentAnimationId)
+      currentAnimationId = null
     }
     if (recordedVideoUrl.value) {
       URL.revokeObjectURL(recordedVideoUrl.value)
@@ -143,6 +155,8 @@ const recordingTime = ref(0)
 const mediaRecorder = ref<MediaRecorder | null>(null)
 const recordedVideoUrl = ref<string | null>(null)
 let recordingTimer: ReturnType<typeof setInterval> | null = null
+// 新增：用于管理绘制循环的ID
+let currentAnimationId: number | null = null
 const isScreenshotModalVisible = ref(false)
 const screenshotDataUrl = ref<string | undefined>()
 const screenshotWidth = ref<number | undefined>()
@@ -248,11 +262,23 @@ const handleRun = useMessageHandle(
       
       // 清理录屏资源
       if (mediaRecorder.value) {
+        // 如果正在录制，先停止
+        if (mediaRecorder.value.state === 'recording') {
+          try {
+            mediaRecorder.value.stop()
+          } catch (error) {
+            console.warn('停止MediaRecorder时出错:', error)
+          }
+        }
         mediaRecorder.value = null
       }
       if (recordingTimer) {
         clearInterval(recordingTimer)
         recordingTimer = null
+      }
+      if (currentAnimationId) {
+        cancelAnimationFrame(currentAnimationId)
+        currentAnimationId = null
       }
       if (recordedVideoUrl.value) {
         URL.revokeObjectURL(recordedVideoUrl.value)
@@ -287,11 +313,23 @@ const handleStop = useMessageHandle(
       
       // 清理录屏资源
       if (mediaRecorder.value) {
+        // 如果正在录制，先停止
+        if (mediaRecorder.value.state === 'recording') {
+          try {
+            mediaRecorder.value.stop()
+          } catch (error) {
+            console.warn('停止MediaRecorder时出错:', error)
+          }
+        }
         mediaRecorder.value = null
       }
       if (recordingTimer) {
         clearInterval(recordingTimer)
         recordingTimer = null
+      }
+      if (currentAnimationId) {
+        cancelAnimationFrame(currentAnimationId)
+        currentAnimationId = null
       }
       if (recordedVideoUrl.value) {
         URL.revokeObjectURL(recordedVideoUrl.value)
@@ -569,10 +607,17 @@ const handleStopRecording = async () => {
       recordingTimer = null
     }
     
-    // 5. 设置录屏完成状态
+    // 5. 停止绘制循环
+    if (currentAnimationId) {
+      cancelAnimationFrame(currentAnimationId)
+      currentAnimationId = null
+      console.log('绘制循环已停止')
+    }
+    
+    // 6. 设置录屏完成状态
     hasRecording.value = true
     
-    // 6. 显示录屏完成弹框
+    // 7. 显示录屏完成弹框
     showRecordingModal.value = true
     
     console.log('录制完全停止，状态已重置，弹窗已显示')
@@ -681,6 +726,12 @@ const startGameRecording = async (screenshot: any) => {
       throw new Error('项目运行器不可用')
     }
     
+    // 清理之前的绘制循环（如果有）
+    if (currentAnimationId) {
+      cancelAnimationFrame(currentAnimationId)
+      currentAnimationId = null
+    }
+    
     // 创建canvas用于录制
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
@@ -690,7 +741,6 @@ const startGameRecording = async (screenshot: any) => {
     canvas.height = screenshot.height
     
     // 开始绘制循环
-    let animationId: number
     const drawFrame = async () => {
       if (!isRecording.value) {
         console.log('录制已停止，停止绘制循环')
@@ -702,7 +752,7 @@ const startGameRecording = async (screenshot: any) => {
         const screenshot = await projectRunnerRef.value!.takeScreenshot()
         if (!screenshot) {
           console.warn('获取游戏画面失败，跳过当前帧')
-          animationId = requestAnimationFrame(drawFrame)
+          currentAnimationId = requestAnimationFrame(drawFrame)
           return
         }
         
@@ -717,11 +767,11 @@ const startGameRecording = async (screenshot: any) => {
         // 将整个游戏画面绘制到canvas
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         
-        animationId = requestAnimationFrame(drawFrame)
+        currentAnimationId = requestAnimationFrame(drawFrame)
       } catch (error) {
         console.error('绘制帧时出错:', error)
         // 如果绘制出错，继续下一帧而不是停止录制
-        animationId = requestAnimationFrame(drawFrame)
+        currentAnimationId = requestAnimationFrame(drawFrame)
       }
     }
     
@@ -762,8 +812,9 @@ const startGameRecording = async (screenshot: any) => {
       console.log('游戏录制停止，开始生成视频文件')
       
       // 停止绘制循环
-      if (animationId) {
-        cancelAnimationFrame(animationId)
+      if (currentAnimationId) {
+        cancelAnimationFrame(currentAnimationId)
+        currentAnimationId = null
         console.log('绘制循环已停止')
       }
       
@@ -826,8 +877,18 @@ onUnmounted(() => {
   if (recordingTimer) {
     clearInterval(recordingTimer)
   }
+  if (currentAnimationId) {
+    cancelAnimationFrame(currentAnimationId)
+  }
   if (recordedVideoUrl.value) {
     URL.revokeObjectURL(recordedVideoUrl.value)
+  }
+  if (mediaRecorder.value && mediaRecorder.value.state === 'recording') {
+    try {
+      mediaRecorder.value.stop()
+    } catch (error) {
+      console.warn('组件卸载时停止MediaRecorder出错:', error)
+    }
   }
 })
 
