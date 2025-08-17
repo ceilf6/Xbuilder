@@ -387,22 +387,23 @@ const recordedVideoUrl = ref<string | null>(null)
 let recordingTimer: ReturnType<typeof setInterval> | null = null // 修改这里
 
 // 同步外部传入的录屏状态
-watch(() => props.hasRecording, (newHasRecording) => {
-  // 只有在弹窗真正打开时才同步状态
-  if (props.visible) {
-    if (newHasRecording) {
+watch(
+  () => [props.hasRecording, props.recordedVideoUrl],
+  ([newHasRecording, newVideoUrl]) => {
+    // 只有在弹窗可见，并且确实有录制完成的状态和URL时，才切换到完成页面
+    if (props.visible && newHasRecording && newVideoUrl && typeof newVideoUrl === 'string') {
       hasRecording.value = true
-      // 直接设置为completed状态，显示分享页面
+      recordedVideoUrl.value = newVideoUrl // 确保本地URL也同步了
       currentState.value = 'completed'
-      console.log('弹窗状态已同步：录屏完成，直接显示分享页面')
-    } else {
-      // 如果外部状态变为false，重置弹窗状态
+      console.log('弹窗状态已同步：录屏完成，直接显示分享页面 (通过增强的侦听器)')
+    } else if (props.visible && !newHasRecording) {
+      // 如果外部状态变回false，也重置
       hasRecording.value = false
       currentState.value = 'initial'
-      console.log('弹窗状态已同步：录屏未完成，重置到初始状态')
     }
-  }
-}, { immediate: false }) // 改为false，避免组件挂载时触发
+  },
+  { immediate: true } // immediate: true 可以在弹窗第一次打开时就立即检查一次状态
+)
 
 // 同步录屏状态到外部 - 当弹窗内部开始录屏时
 watch(isRecording, (newIsRecording) => {

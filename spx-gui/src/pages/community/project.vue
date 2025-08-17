@@ -549,6 +549,13 @@ const handleStartRecording = async () => {
   if (isRecording.value) return
   
   try {
+    console.log('开始新录制，重置状态...')
+    hasRecording.value = false
+    recordingTime.value = 0
+    if (recordedVideoUrl.value) {
+      URL.revokeObjectURL(recordedVideoUrl.value)
+      recordedVideoUrl.value = null
+    }
     // 复用项目中已有的登录验证逻辑
     await ensureSignedIn()
     
@@ -618,9 +625,11 @@ const handleStopRecording = async () => {
     
     // 6. 设置录屏完成状态
     hasRecording.value = true
+    console.log('🔄 project.vue: hasRecording 设置为 true') 
     
     // 7. 显示录屏完成弹框
     showRecordingModal.value = true
+    console.log('🔄 project.vue: showRecordingModal 设置为 true')
     
     console.log('录制完全停止，状态已重置，弹窗已显示')
   } catch (error) {
@@ -837,7 +846,9 @@ const startGameRecording = async (screenshot: any) => {
       
       const url = URL.createObjectURL(blob)
       recordedVideoUrl.value = url
+      console.log('🔄 project.vue: recordedVideoUrl 设置为:', url)
       hasRecording.value = true
+      console.log('🔄 project.vue: 在 onstop 中 hasRecording 设置为 true') 
       
       console.log('视频文件已生成，URL:', url)
       
@@ -1038,7 +1049,7 @@ const remixesRet = useQuery(
                 <rect x="6" y="4" width="4" height="8" fill="currentColor" />
               </svg>
             </template>
-            {{ $t({ en: 'Stop-Recording', zh: '停止录屏' }) }}
+            {{ $t({ en: 'Recording', zh: '录屏中' }) }}
           </UIButton>
           
           <!-- 录屏状态显示 -->
