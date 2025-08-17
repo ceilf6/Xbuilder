@@ -98,6 +98,36 @@ watch(
   }
 )
 
+// 监听游戏状态变化，重置录屏状态
+watch(runnerState, (newState) => {
+  if (newState === 'initial') {
+    // 游戏停止时，重置所有录屏相关状态
+    console.log('游戏状态变为initial，重置录屏状态')
+    isRecording.value = false
+    isStarting.value = false
+    isStopping.value = false
+    hasRecording.value = false
+    recordingTime.value = 0
+    showRecordingModal.value = false
+    
+    // 清理录屏资源
+    if (mediaRecorder.value) {
+      mediaRecorder.value = null
+    }
+    if (recordingTimer) {
+      clearInterval(recordingTimer)
+      recordingTimer = null
+    }
+    if (recordedVideoUrl.value) {
+      URL.revokeObjectURL(recordedVideoUrl.value)
+      recordedVideoUrl.value = null
+    }
+    
+    // 通知录屏状态管理器
+    recordingStore.stopRecording()
+  }
+})
+
 const isOwner = computed(() => props.owner === getSignedInUsername())
 const { data: liking } = useIsLikingProject(() => ({ owner: props.owner, name: props.name }))
 
@@ -206,6 +236,33 @@ const ensureSignedIn = useEnsureSignedIn()
 
 const handleRun = useMessageHandle(
   async () => {
+    // 开始新游戏时，重置录屏状态
+    if (isRecording.value || hasRecording.value) {
+      console.log('开始新游戏，重置录屏状态')
+      isRecording.value = false
+      isStarting.value = false
+      isStopping.value = false
+      hasRecording.value = false
+      recordingTime.value = 0
+      showRecordingModal.value = false
+      
+      // 清理录屏资源
+      if (mediaRecorder.value) {
+        mediaRecorder.value = null
+      }
+      if (recordingTimer) {
+        clearInterval(recordingTimer)
+        recordingTimer = null
+      }
+      if (recordedVideoUrl.value) {
+        URL.revokeObjectURL(recordedVideoUrl.value)
+        recordedVideoUrl.value = null
+      }
+      
+      // 通知录屏状态管理器
+      recordingStore.stopRecording()
+    }
+    
     runnerState.value = 'loading'
     await projectRunnerRef.value?.run()
     runnerState.value = 'running'
@@ -217,6 +274,33 @@ const handleStop = useMessageHandle(
   async () => {
     await projectRunnerRef.value?.stop()
     runnerState.value = 'initial'
+    
+    // 手动停止游戏时，确保录屏状态被重置
+    if (isRecording.value || hasRecording.value) {
+      console.log('手动停止游戏，重置录屏状态')
+      isRecording.value = false
+      isStarting.value = false
+      isStopping.value = false
+      hasRecording.value = false
+      recordingTime.value = 0
+      showRecordingModal.value = false
+      
+      // 清理录屏资源
+      if (mediaRecorder.value) {
+        mediaRecorder.value = null
+      }
+      if (recordingTimer) {
+        clearInterval(recordingTimer)
+        recordingTimer = null
+      }
+      if (recordedVideoUrl.value) {
+        URL.revokeObjectURL(recordedVideoUrl.value)
+        recordedVideoUrl.value = null
+      }
+      
+      // 通知录屏状态管理器
+      recordingStore.stopRecording()
+    }
   },
   { en: 'Failed to stop project', zh: '停止项目失败' }
 )
