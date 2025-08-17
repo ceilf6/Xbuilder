@@ -172,6 +172,7 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
 }
 
 .header-right {
@@ -182,6 +183,10 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   justify-content: flex-end;
   align-items: center;
   padding-right: 20px;
+  
+  @include responsive(mobile) {
+    margin-right: 100px;
+  }
  
 
 }

@@ -85,9 +85,11 @@ export type ListRecordParams = PaginationParams & {
     /** Filter records by name pattern */
     keyword?: string
     /** Field by which to order the results */
-    orderBy?: 'createdAt' | 'updatedAt' | 'duration' | 'viewCount' | 'likeCount'
+    orderBy?: 'createdAt' | 'updatedAt' | 'duration' | 'viewCount' | 'likeCount' | 'likedAt'
     /** Order in which to sort the results */
     sortOrder?: 'asc' | 'desc'
+    /** Filter records liked by the specified user */
+    liker?: string
 }
 
 export async function listRecord(params?: ListRecordParams) {

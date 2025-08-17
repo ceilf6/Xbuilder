@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { getUserPageRoute } from '@/router'
+import { useResponsive } from '@/components/ui/responsive'
 import CommunityCard from '../../CommunityCard.vue'
 import UserSidebarItem from './UserSidebarItem.vue'
 
-defineProps<{
+const props = defineProps<{
   username: string
 }>()
+
+const emit = defineEmits<{
+  close: []
+}>()
+
+const isMobile = useResponsive('mobile')
 </script>
 
 <template>
   <CommunityCard v-radar="{ name: 'User sidebar', desc: 'Sidebar navigation for user pages' }" class="user-sidebar">
+
+    
     <!-- TODO: check text here -->
     <UserSidebarItem
       v-radar="{ name: 'Overview link', desc: 'Click to navigate to user overview' }"
@@ -45,18 +54,11 @@ defineProps<{
       v-radar="{ name: 'Records link', desc: 'Click to navigate to user record list' }"
       :to="getUserPageRoute(username, 'records')"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path
-          d="M7.11634 2.93311H4.01097C3.06592 2.93311 2.2998 3.69922 2.2998 4.64427V14.5685C2.2998 15.5135 3.06592 16.2796 4.01097 16.2796H15.9885C16.9335 16.2796 17.6996 15.5135 17.6996 14.5685V8.39797C17.6996 7.45292 16.9335 6.68681 15.9885 6.68681H12.0024C11.8144 6.68681 11.6328 6.61872 11.4911 6.49513L7.62765 3.12479C7.48598 3.0012 7.30434 2.93311 7.11634 2.93311Z"
-          stroke="currentColor"
-          stroke-width="1.44671"
-        />
-        <path
-          d="M8.85693 4.18408L15.9886 4.18408C16.9337 4.18408 17.6998 4.9502 17.6998 5.89525V9.18902"
-          stroke="currentColor"
-          stroke-width="1.44671"
-        />
-      </svg>
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5" fill="none" />
+                <circle cx="8" cy="8" r="2" fill="currentColor" />
+                <circle cx="12" cy="6" r="1" fill="currentColor" />
+              </svg>
       {{ $t({ en: 'Records', zh: '录屏' }) }}
     </UserSidebarItem>
     <UserSidebarItem
@@ -110,6 +112,14 @@ defineProps<{
       </svg>
       {{ $t({ en: 'Followers', zh: '关注者' }) }}
     </UserSidebarItem>
+    
+    <!-- 移动端收缩按钮 -->
+    <div v-if="isMobile" class="mobile-collapse-btn" @click="emit('close')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>{{ $t({ en: 'Collapse', zh: '收起' }) }}</span>
+    </div>
   </CommunityCard>
 </template>
 
@@ -121,10 +131,34 @@ defineProps<{
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
 
   width: 212px;
   @include responsive(desktop-large) {
     width: 216px;
+  }
+  
+  @include responsive(mobile) {
+  position: fixed;
+  z-index: 999;
+  }
+}
+
+.mobile-collapse-btn {
+  margin-top: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 6px;
+  background-color: var(--ui-color-grey-100);
+  cursor: pointer;
+  color: var(--ui-color-text);
+  font-size: 12px;
+  
+  &:hover {
+    background-color: var(--ui-color-grey-200);
   }
 }
 </style>

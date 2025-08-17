@@ -11,7 +11,7 @@ ctx := &Context
 
 params := controller.NewListRecordsParams()
 
-// Handle owner parameter - 完全参考 get_projects_list.yap
+// Handle owner parameter
 switch owner := ${owner}; owner {
 case "":
 	mUser, ok := ensureAuthenticatedUser(ctx)
@@ -40,6 +40,11 @@ if keyword := ${keyword}; keyword != "" {
 	params.Keyword = &keyword
 }
 
+// Handle liker filter
+if liker := ${liker}; liker != "" {
+	params.Liker = &liker
+}
+
 // Handle orderBy parameter
 if orderBy := ${orderBy}; orderBy != "" {
 	params.OrderBy = controller.ListRecordsOrderBy(orderBy)
@@ -50,7 +55,7 @@ if sortOrder := ${sortOrder}; sortOrder != "" {
 	params.SortOrder = controller.SortOrder(sortOrder)
 }
 
-// Handle pagination - 参考 get_projects_list.yap 使用 paramInt
+// Handle pagination
 params.Pagination.Index = paramInt("pageIndex", firstPageIndex)
 params.Pagination.Size = paramInt("pageSize", defaultPageSize)
 

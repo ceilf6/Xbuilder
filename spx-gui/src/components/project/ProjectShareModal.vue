@@ -92,6 +92,8 @@
             :img-src="props.thumbnail"
             img-alt="Project thumbnail"
             :project-name="props.name"
+            :creator-name="props.creatorName || props.owner"
+            :project-description="props.projectDescription"
             :stats="projectStats"
             :logo-src="logoSrc"
             :show-qr="true"
@@ -134,6 +136,8 @@
     owner: string
     name: string
     thumbnail: string
+    creatorName?: string
+    projectDescription?: string
     projectStats?: {
       viewCount?: number
       likeCount?: number

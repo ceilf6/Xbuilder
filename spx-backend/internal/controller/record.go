@@ -2,30 +2,35 @@ package controller
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/goplus/builder/spx-backend/internal/authn"
 	"github.com/goplus/builder/spx-backend/internal/model"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // RecordDTO is the DTO for records.
 type RecordDTO struct {
 	ModelDTO
 
-	Owner        string     `json:"owner"`
-	ProjectID    int64      `json:"projectId"`
-	Project      *ProjectDTO `json:"project,omitempty"`
-	Name         string     `json:"name"`
-	Title        string     `json:"title"`
-	Description  string     `json:"description"`
-	VideoURL     string     `json:"videoUrl"`
-	ThumbnailURL string     `json:"thumbnailUrl"`
-	Duration     int64      `json:"duration"`
-	FileSize     int64      `json:"fileSize"`
+	Owner        string           `json:"owner"`
+	ProjectID    int64            `json:"projectId"`
+	Project      *ProjectDTO      `json:"project,omitempty"`
+	Name         string           `json:"name"`
+	Title        string           `json:"title"`
+	Description  string           `json:"description"`
+	VideoURL     string           `json:"videoUrl"`
+	ThumbnailURL string           `json:"thumbnailUrl"`
+	Duration     int64            `json:"duration"`
+	FileSize     int64            `json:"fileSize"`
 	Visibility   model.Visibility `json:"visibility"`
-	ViewCount    int64      `json:"viewCount"`
-	LikeCount    int64      `json:"likeCount"`
+	ViewCount    int64            `json:"viewCount"`
+	LikeCount    int64            `json:"likeCount"`
 }
 
 // toRecordDTO converts the model record to its DTO.
@@ -186,6 +191,202 @@ func (ctrl *Controller) GetRecord(ctx context.Context, owner, name string) (*Rec
 	return &recordDTO, nil
 }
 
+// DeleteRecord deletes a record by owner and name.
+func (ctrl *Controller) DeleteRecord(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	record, err := ctrl.ensureRecord(ctx, owner, name, true) // ownedOnly=true
+	if err != nil {
+		return err
+	}
+
+	// Additional check: ensure the current user is the owner of the record
+	if record.UserID != mUser.ID {
+		return authn.ErrUnauthorized
+	}
+
+	if err := ctrl.db.WithContext(ctx).Delete(record).Error; err != nil {
+		return fmt.Errorf("failed to delete record: %w", err)
+	}
+
+	return nil
+}
+
+// RecordRecordView records a view for the specified record as the authenticated user.
+func (ctrl *Controller) RecordRecordView(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	mUserRecordRelationship, err := model.FirstOrCreateUserRecordRelationship(ctx, ctrl.db, mUser.ID, mRecord.ID)
+	if err != nil {
+		return err
+	}
+	if mUserRecordRelationship.LastViewedAt.Valid && time.Since(mUserRecordRelationship.LastViewedAt.Time) < time.Minute {
+		// Ignore views within a minute.
+		return nil
+	}
+
+	if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		query := tx.Model(mUserRecordRelationship)
+		if mUserRecordRelationship.LastViewedAt.Valid {
+			query = query.Where("last_viewed_at = ?", mUserRecordRelationship.LastViewedAt)
+		} else {
+			query = query.Where("last_viewed_at IS NULL")
+		}
+		if queryResult := query.UpdateColumns(map[string]any{
+			"view_count":     gorm.Expr("view_count + 1"),
+			"last_viewed_at": sql.NullTime{Time: time.Now().UTC(), Valid: true},
+		}); queryResult.Error != nil {
+			return queryResult.Error
+		} else if queryResult.RowsAffected == 0 {
+			return nil
+		}
+		if err := tx.Model(&mRecord).UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to record view for record %q/%q: %w", owner, name, err)
+	}
+	return nil
+}
+
+// LikeRecord likes the specified record as the authenticated user.
+func (ctrl *Controller) LikeRecord(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	mUserRecordRelationship, err := model.FirstOrCreateUserRecordRelationship(ctx, ctrl.db, mUser.ID, mRecord.ID)
+	if err != nil {
+		return err
+	}
+	if mUserRecordRelationship.LikedAt.Valid {
+		return nil // Already liked
+	}
+
+	if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if queryResult := tx.
+			Model(mUserRecordRelationship).
+			Where("liked_at IS NULL").
+			UpdateColumn("liked_at", sql.NullTime{Time: time.Now().UTC(), Valid: true}); queryResult.Error != nil {
+			return queryResult.Error
+		} else if queryResult.RowsAffected == 0 {
+			return nil
+		}
+		if err := tx.Model(&mRecord).UpdateColumn("like_count", gorm.Expr("like_count + 1")).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to like record %q/%q: %w", owner, name, err)
+	}
+	return nil
+}
+
+// UnlikeRecord unlikes the specified record as the authenticated user.
+func (ctrl *Controller) UnlikeRecord(ctx context.Context, owner, name string) error {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return authn.ErrUnauthorized
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	mUserRecordRelationship, err := model.FirstOrCreateUserRecordRelationship(ctx, ctrl.db, mUser.ID, mRecord.ID)
+	if err != nil {
+		return err
+	}
+	if !mUserRecordRelationship.LikedAt.Valid {
+		return nil // Already not liked
+	}
+
+	if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if queryResult := tx.
+			Model(mUserRecordRelationship).
+			Where("liked_at IS NOT NULL").
+			UpdateColumn("liked_at", sql.NullTime{}); queryResult.Error != nil {
+			return queryResult.Error
+		} else if queryResult.RowsAffected == 0 {
+			return nil
+		}
+		if err := tx.Model(&mRecord).UpdateColumn("like_count", gorm.Expr("like_count - 1")).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to unlike record %q/%q: %w", owner, name, err)
+	}
+	return nil
+}
+
+// IsLikingRecord checks if the authenticated user is liking the specified record.
+func (ctrl *Controller) IsLikingRecord(ctx context.Context, owner, name string) (bool, error) {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return false, nil // Not authenticated, so not liking
+	}
+
+	var mRecord model.Record
+	if err := ctrl.db.WithContext(ctx).
+		Joins("JOIN user ON user.id = record.user_id").
+		Where("user.username = ?", owner).
+		Where("record.name = ?", name).
+		First(&mRecord).
+		Error; err != nil {
+		return false, fmt.Errorf("failed to get record %q/%q: %w", owner, name, err)
+	}
+
+	var mUserRecordRelationship model.UserRecordRelationship
+	if err := ctrl.db.WithContext(ctx).
+		Where("user_id = ?", mUser.ID).
+		Where("record_id = ?", mRecord.ID).
+		Where("liked_at IS NOT NULL").
+		First(&mUserRecordRelationship).
+		Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check liking status: %w", err)
+	}
+
+	return true, nil
+}
+
 // ListRecordsOrderBy defines the available order by options
 type ListRecordsOrderBy string
 
@@ -195,6 +396,7 @@ const (
 	ListRecordsOrderByDuration  ListRecordsOrderBy = "duration"
 	ListRecordsOrderByViewCount ListRecordsOrderBy = "viewCount"
 	ListRecordsOrderByLikeCount ListRecordsOrderBy = "likeCount"
+	ListRecordsOrderByLikedAt   ListRecordsOrderBy = "likedAt"
 )
 
 // IsValid reports whether the order by condition is valid.
@@ -204,7 +406,8 @@ func (ob ListRecordsOrderBy) IsValid() bool {
 		ListRecordsOrderByUpdatedAt,
 		ListRecordsOrderByDuration,
 		ListRecordsOrderByViewCount,
-		ListRecordsOrderByLikeCount:
+		ListRecordsOrderByLikeCount,
+		ListRecordsOrderByLikedAt:
 		return true
 	}
 	return false
@@ -229,6 +432,9 @@ type ListRecordsParams struct {
 
 	// Pagination is the pagination information
 	Pagination Pagination
+
+	// Liker filters records liked by the specified user
+	Liker *string
 }
 
 // NewListRecordsParams creates a new ListRecordsParams with default values.
@@ -267,12 +473,29 @@ func (ctrl *Controller) ListRecords(ctx context.Context, params *ListRecordsPara
 	if params.Owner != nil {
 		query = query.Joins("JOIN user ON user.id = record.user_id").
 			Where("user.username = ?", *params.Owner)
-	} else if mUser != nil {
+	} else if mUser != nil && params.Liker == nil {
 		// Default to current user's records if no owner specified and user is authenticated
+		// BUT only if we're not filtering by liker
 		query = query.Where("record.user_id = ?", mUser.ID)
-	} else {
-		// For unauthenticated users, only show public records
+	} else if params.Liker == nil {
+		// For unauthenticated users, only show public records (only if not filtering by liker)
 		query = query.Where("record.visibility = ?", model.VisibilityPublic)
+	}
+	
+	// Apply liker filter
+	if params.Liker != nil {
+		query = query.
+			Joins("JOIN user_record_relationship AS liker_relationship ON liker_relationship.record_id = record.id").
+			Joins("JOIN user AS liker ON liker.id = liker_relationship.user_id").
+			Where("liker.username = ?", *params.Liker).
+			Where("liker_relationship.liked_at IS NOT NULL")
+		
+		// When filtering by liker, also apply visibility rules
+		if mUser != nil {
+			query = query.Where(ctrl.db.Where("record.user_id = ?", mUser.ID).Or("record.visibility = ?", model.VisibilityPublic))
+		} else {
+			query = query.Where("record.visibility = ?", model.VisibilityPublic)
+		}
 	}
 	
 	// Apply keyword filter
@@ -308,6 +531,12 @@ func (ctrl *Controller) ListRecords(ctx context.Context, params *ListRecordsPara
 		queryOrderByColumn = "record.view_count"
 	case ListRecordsOrderByLikeCount:
 		queryOrderByColumn = "record.like_count"
+	case ListRecordsOrderByLikedAt:
+		if params.Liker != nil {
+			queryOrderByColumn = "liker_relationship.liked_at"
+		} else {
+			queryOrderByColumn = "record.created_at" // fallback
+		}
 	}
 	if queryOrderByColumn == "" {
 		queryOrderByColumn = "record.created_at"
@@ -335,4 +564,78 @@ func (ctrl *Controller) ListRecords(ctx context.Context, params *ListRecordsPara
 		Total: total,
 		Data:  recordDTOs,
 	}, nil
+}
+
+// UpdateRecordParams holds parameters for updating record.
+type UpdateRecordParams struct {
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Visibility  model.Visibility `json:"visibility"`
+}
+
+// Validate validates the parameters.
+func (p *UpdateRecordParams) Validate() (ok bool, msg string) {
+	if p.Title != "" && !recordTitleRE.Match([]byte(p.Title)) {
+		return false, "invalid title"
+	}
+	return true, ""
+}
+
+// Diff returns the updates between the parameters and the model record.
+func (p *UpdateRecordParams) Diff(mRecord *model.Record) map[string]any {
+	updates := map[string]any{}
+	if p.Title != "" && p.Title != mRecord.Title {
+		updates["title"] = p.Title
+	}
+	if p.Description != mRecord.Description {
+		updates["description"] = p.Description
+	}
+	if p.Visibility != 0 && p.Visibility != mRecord.Visibility {
+		updates["visibility"] = p.Visibility
+	}
+	return updates
+}
+
+// UpdateRecord updates a record.
+func (ctrl *Controller) UpdateRecord(ctx context.Context, owner, name string, params *UpdateRecordParams) (*RecordDTO, error) {
+	mUser, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return nil, authn.ErrUnauthorized
+	}
+
+	mRecord, err := ctrl.ensureRecord(ctx, owner, name, true) // ownedOnly=true
+	if err != nil {
+		return nil, err
+	}
+
+	// Additional check: ensure the current user is the owner of the record
+	if mRecord.UserID != mUser.ID {
+		return nil, authn.ErrUnauthorized
+	}
+
+	updates := params.Diff(mRecord)
+	if len(updates) > 0 {
+		if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(mRecord).Error; err != nil {
+				return err
+			}
+			updates = params.Diff(mRecord)
+			if len(updates) == 0 {
+				return nil
+			}
+
+			if queryResult := tx.Model(mRecord).Updates(updates); queryResult.Error != nil {
+				return queryResult.Error
+			} else if queryResult.RowsAffected == 0 {
+				return nil
+			}
+
+			return nil
+		}); err != nil {
+			return nil, fmt.Errorf("failed to update record %q/%q: %w", owner, name, err)
+		}
+	}
+
+	recordDTO := toRecordDTO(*mRecord)
+	return &recordDTO, nil
 }

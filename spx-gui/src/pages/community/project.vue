@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessageHandle } from '@/utils/exception/index'
 import { useQuery } from '@/utils/query'
@@ -12,6 +12,7 @@ import { listProject } from '@/apis/project'
 import { listReleases } from '@/apis/project-release'
 import { Project } from '@/models/project'
 import { useUser, isSignedIn, getSignedInUsername } from '@/stores/user'
+import { recordingStore } from '@/stores/recording'
 import { getOwnProjectEditorRoute, getProjectEditorRoute, getUserPageRoute } from '@/router'
 import RecordingShareModal from '@/components/project/RecordingShareModal.vue'
 import { useFileUrl } from '@/utils/file'
@@ -104,7 +105,13 @@ const projectRunnerRef = ref<InstanceType<typeof ProjectRunner> | null>(null)
 const isFullScreenRunning = ref(false)
 const showRecordingModal = ref(false)
 const isRecording = ref(false)
+const isStarting = ref(false)
+const isStopping = ref(false)
+const hasRecording = ref(false)
+const recordingTime = ref(0)
 const mediaRecorder = ref<MediaRecorder | null>(null)
+const recordedVideoUrl = ref<string | null>(null)
+let recordingTimer: ReturnType<typeof setInterval> | null = null
 const isScreenshotModalVisible = ref(false)
 const screenshotDataUrl = ref<string | undefined>()
 const screenshotWidth = ref<number | undefined>()
@@ -266,6 +273,8 @@ const handleShare = useMessageHandle(async () => {
     props.owner, 
     props.name, 
     thumbnailUrl.value || '',
+    props.owner, // 创作者名字
+    p.description, // 项目描述
     {
       viewCount: p.viewCount,
       likeCount: p.likeCount,
@@ -406,17 +415,319 @@ async function handleCloseScreenshotModal() {
   }
 }
 
-const handleRecord = async () => {
+// 开始录屏
+const handleStartRecording = async () => {
+  if (isRecording.value) return
+  
   try {
     // 复用项目中已有的登录验证逻辑
     await ensureSignedIn()
-    // 用户已登录，显示录屏模态框
-    showRecordingModal.value = true
+    
+    isStarting.value = true
+    console.log('开始录屏流程...')
+    
+    // 设置录屏状态
+    isRecording.value = true
+    console.log('录屏状态已设置为true')
+    
+    // 通知录屏状态管理器 - 这会触发绿边显示
+    recordingStore.startRecording()
+    console.log('recordingStore状态已更新，绿边应该显示')
+    
+    // 获取游戏画面截图
+    const screenshot = await captureScreenshot()
+    
+    // 开始录制整个游戏画面
+    await startFullGameRecording(screenshot)
+    
+    console.log('录屏已开始')
   } catch (error) {
-    // 用户取消登录或登录失败，不执行后续操作
-    console.log('用户未登录或取消登录')
+    console.error('录制启动失败:', error)
+    // 如果失败，重置录屏状态
+    isRecording.value = false
+    recordingStore.stopRecording()
+    // 显示错误提示
+    console.error('开始录屏失败:', error)
+  } finally {
+    isStarting.value = false
   }
 }
+
+// 停止录屏 - 修改为直接弹窗
+const handleStopRecording = async () => {
+  if (!isRecording.value) return
+  
+  try {
+    isStopping.value = true
+    console.log('开始停止录制...')
+    
+    // 1. 停止MediaRecorder
+    if (mediaRecorder.value && mediaRecorder.value.state === 'recording') {
+      mediaRecorder.value.stop()
+      console.log('MediaRecorder已停止')
+    }
+    
+    // 2. 重置状态
+    isRecording.value = false
+    
+    // 3. 通知录屏状态管理器 - 这会移除绿边
+    recordingStore.stopRecording()
+    console.log('recordingStore状态已更新，绿边应该移除')
+    
+    // 4. 停止计时器
+    if (recordingTimer) {
+      clearInterval(recordingTimer)
+      recordingTimer = null
+    }
+    
+    // 5. 设置录屏完成状态
+    hasRecording.value = true
+    
+    // 6. 直接显示录屏完成弹框（不再需要停止录屏按钮）
+    showRecordingModal.value = true
+    
+    console.log('录制完全停止，状态已重置，弹窗已显示')
+  } catch (error) {
+    console.error('停止录制失败:', error)
+  } finally {
+    isStopping.value = false
+  }
+}
+
+// 录屏按钮点击处理 - 修改为点击后自动开始录屏
+const handleRecord = async () => {
+  if (!isRecording.value) {
+    await handleStartRecording()
+  }
+}
+
+// 处理录屏开始事件
+const handleRecordingStarted = () => {
+  console.log('录屏开始事件触发，隐藏弹窗')
+  showRecordingModal.value = false
+}
+
+// 处理录屏停止事件
+const handleRecordingStopped = () => {
+  console.log('录屏停止事件触发，显示弹窗')
+  showRecordingModal.value = true
+}
+
+// 获取游戏画面截图的函数
+const captureScreenshot = async () => {
+  try {
+    console.log('开始获取游戏画面截图...')
+    
+    // 检查项目运行器是否可用
+    if (!projectRunnerRef.value) {
+      throw new Error('项目运行器不可用')
+    }
+    
+    // 暂停游戏以确保画面稳定
+    await projectRunnerRef.value.pauseGame()
+    console.log('游戏已暂停，准备获取截图')
+    
+    // 使用项目运行器的截图方法直接从游戏canvas获取
+    const screenshot = await projectRunnerRef.value.takeScreenshot()
+    if (!screenshot) {
+      throw new Error('截图方法返回空结果')
+    }
+    
+    console.log('成功从游戏canvas获取截图', screenshot.width, 'x', screenshot.height)
+    
+    // 恢复游戏
+    await projectRunnerRef.value.resumeGame()
+    console.log('游戏已恢复')
+    
+    return screenshot
+  } catch (error) {
+    console.error('获取游戏画面截图失败:', error)
+    throw error
+  }
+}
+
+// 开始完整游戏录制
+const startFullGameRecording = async (screenshot: any) => {
+  try {
+    console.log('开始完整游戏录制')
+    
+    // 更新状态
+    isRecording.value = true
+    
+    console.log('录屏状态已更新:', { isRecording: isRecording.value })
+    
+    // 开始录制整个游戏画面
+    const recorder = await startGameRecording(screenshot)
+    mediaRecorder.value = recorder
+    
+    console.log('游戏录制已开始')
+  } catch (error) {
+    console.error('开始游戏录制失败:', error)
+    // 如果录制失败，重置状态
+    isRecording.value = false
+    throw error
+  }
+}
+
+// 游戏录制核心函数
+const startGameRecording = async (screenshot: any) => {
+  try {
+    console.log('开始游戏录制')
+    
+    // 检查项目运行器是否可用
+    if (!projectRunnerRef.value) {
+      throw new Error('项目运行器不可用')
+    }
+    
+    // 创建canvas用于录制
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')!
+    
+    // 设置canvas尺寸为游戏画面大小
+    canvas.width = screenshot.width
+    canvas.height = screenshot.height
+    
+    // 开始绘制循环
+    let animationId: number
+    const drawFrame = async () => {
+      if (!isRecording.value) {
+        console.log('录制已停止，停止绘制循环')
+        return
+      }
+      
+      try {
+        // 直接从游戏canvas获取当前帧
+        const screenshot = await projectRunnerRef.value!.takeScreenshot()
+        if (!screenshot) {
+          console.warn('获取游戏画面失败，跳过当前帧')
+          animationId = requestAnimationFrame(drawFrame)
+          return
+        }
+        
+        // 加载截图到临时image
+        const img = new Image()
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve()
+          img.onerror = () => reject(new Error('图片加载失败'))
+          img.src = screenshot.dataURL
+        })
+        
+        // 将整个游戏画面绘制到canvas
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        
+        animationId = requestAnimationFrame(drawFrame)
+      } catch (error) {
+        console.error('绘制帧时出错:', error)
+        // 如果绘制出错，继续下一帧而不是停止录制
+        animationId = requestAnimationFrame(drawFrame)
+      }
+    }
+    
+    // 开始绘制循环
+    drawFrame()
+    
+    // 从canvas获取录制流
+    const recordingStream = canvas.captureStream(30) // 30fps
+    console.log('Canvas录制流已创建，帧率: 30fps')
+    
+    // 检查MediaRecorder支持的格式
+    let mimeType = 'video/webm'
+    if (!MediaRecorder.isTypeSupported('video/webm')) {
+      if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4'
+      } else {
+        console.warn('浏览器不支持常见的视频格式，使用默认格式')
+        mimeType = ''
+      }
+    }
+    console.log('使用录制格式:', mimeType)
+    
+    // 创建MediaRecorder录制处理后的流
+    const recorder = new MediaRecorder(recordingStream, {
+      mimeType: mimeType || undefined
+    })
+    
+    const chunks: Blob[] = []
+    
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        chunks.push(event.data)
+        console.log('录制数据块大小:', event.data.size, 'bytes')
+      }
+    }
+    
+    recorder.onstop = () => {
+      console.log('游戏录制停止，开始生成视频文件')
+      
+      // 停止绘制循环
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+        console.log('绘制循环已停止')
+      }
+      
+      // 检查是否有录制数据
+      if (chunks.length === 0) {
+        console.error('没有录制到任何数据')
+        return
+      }
+      
+      // 生成录制文件
+      const totalSize = chunks.reduce((total, chunk) => total + chunk.size, 0)
+      console.log('总录制数据大小:', totalSize, 'bytes')
+      
+      const blob = new Blob(chunks, {
+        type: recorder.mimeType || 'video/webm'
+      })
+      console.log('生成的Blob大小:', blob.size, 'bytes, 类型:', blob.type)
+      
+      const url = URL.createObjectURL(blob)
+      recordedVideoUrl.value = url
+      hasRecording.value = true
+      
+      console.log('视频文件已生成，URL:', url)
+    }
+    
+    recorder.onerror = (event) => {
+      console.error('MediaRecorder录制出错:', event)
+    }
+    
+    recorder.onstart = () => {
+      console.log('MediaRecorder已开始录制')
+    }
+    
+    // 开始录制
+    recorder.start(1000) // 每秒生成一个数据块
+    console.log('游戏录制已开始，MediaRecorder状态:', recorder.state)
+    
+    // 开始计时
+    recordingTime.value = 0
+    recordingTimer = setInterval(() => {
+      recordingTime.value++
+    }, 1000)
+    
+    return recorder
+  } catch (error) {
+    console.error('游戏录制失败:', error)
+    throw error
+  }
+}
+
+// 格式化时间
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+}
+
+// 清理录屏资源
+onUnmounted(() => {
+  if (recordingTimer) {
+    clearInterval(recordingTimer)
+  }
+  if (recordedVideoUrl.value) {
+    URL.revokeObjectURL(recordedVideoUrl.value)
+  }
+})
 
 const handlePublish = useMessageHandle(
   // there may be no thumbnail for some projects (see details in https://github.com/goplus/builder/issues/1025),
@@ -515,10 +826,12 @@ const remixesRet = useQuery(
             {{ $t({ en: 'Screenshot', zh: '截屏' }) }}
           </UIButton>
 
+          <!-- Record按钮 - 根据录屏状态显示不同按钮 -->
           <UIButton
-            v-if="runnerState === 'running'&&!isMobile"
+            v-if="runnerState === 'running' && !isMobile && !isRecording"
             v-radar="{ name: 'Record button', desc: 'Click to start recording' }"
-            type="boring"
+            type="primary"
+            :loading="isStarting"
             @click="handleRecord"
           >
             <template #icon>
@@ -530,6 +843,31 @@ const remixesRet = useQuery(
             </template>
             {{ $t({ en: 'Record', zh: '录屏' }) }}
           </UIButton>
+          
+          <!-- Stop-Recording按钮 - 录屏中显示 -->
+          <UIButton
+            v-if="runnerState === 'running' && !isMobile && isRecording"
+            v-radar="{ name: 'Stop recording button', desc: 'Click to stop recording' }"
+            type="danger"
+            :loading="isStopping"
+            @click="handleStopRecording"
+          >
+            <template #icon>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="6" y="4" width="4" height="8" fill="currentColor" />
+              </svg>
+            </template>
+            {{ $t({ en: 'Stop-Recording', zh: '停止录屏' }) }}
+          </UIButton>
+          
+          <!-- 录屏状态显示 -->
+          <div v-if="isRecording" class="recording-status">
+            <div class="recording-indicator">
+              <div class="red-dot"></div>
+              {{ $t({ en: 'Recording...', zh: '录制中...' }) }}
+            </div>
+            <div class="recording-time">{{ formatTime(recordingTime) }}</div>
+          </div>
           <UIButton
             v-if="runnerState === 'initial'"
             v-radar="{ name: 'Full screen run button', desc: 'Click to run project in full screen' }"
@@ -736,10 +1074,12 @@ const remixesRet = useQuery(
       :project-runner="projectRunnerRef"
       :project-id="project.id"
       :owner="project.owner"
+      :recorded-video-url="recordedVideoUrl"
+      :has-recording="hasRecording"
       @cancelled="showRecordingModal = false"
       @resolved="showRecordingModal = false"
-      @recording-started="showRecordingModal = false"
-      @recording-stopped="showRecordingModal = true"
+      @recording-started="handleRecordingStarted"
+      @recording-stopped="handleRecordingStopped"
     />
   </CenteredWrapper>
 
@@ -750,6 +1090,8 @@ const remixesRet = useQuery(
     :screenshot-width="screenshotWidth"
     :screenshot-height="screenshotHeight"
     :project-name="props.name"
+    :creator-name="props.owner"
+    :project-description="project?.description"
     :project-stats="{
       viewCount: project?.viewCount,
       likeCount: project?.likeCount,
@@ -1044,4 +1386,55 @@ const remixesRet = useQuery(
     color: #333;
   }
 }
+
+/* 录屏状态样式 */
+.recording-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.red-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dc2626;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.recording-time {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 16px;
+  color: #dc2626;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
 </style>
+

@@ -16,6 +16,8 @@
             :img-src="screenshotDataUrl"
             img-alt="Screenshot"
             :project-name="projectName"
+            :creator-name="creatorName"
+            :project-description="projectDescription"
             :stats="posterStats"
             :logo-src="logoSrc"
             :show-qr="true"
@@ -105,6 +107,8 @@ const props = defineProps<{
   screenshotWidth?: number
   screenshotHeight?: number
   projectName?: string
+  creatorName?: string
+  projectDescription?: string
   projectStats?: ProjectStats
 }>()
 
@@ -493,7 +497,6 @@ onMounted(() => {
   background-image: url('@/assets/images/postBackground.jpg');
   background-size: cover;
   background-position: center;
-  border-radius: 16px;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -501,7 +504,7 @@ onMounted(() => {
   overflow: hidden;
   /* box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15); */
   transition: all 0.3s ease;
-  max-height: 400px;
+  max-height: 500px;
 }
 
 @keyframes shimmer {

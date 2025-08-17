@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 import { useRouteQueryParamInt, useRouteQueryParamStrEnum } from '@/utils/route'
-import { useMessageHandle } from '@/utils/exception/index'
+// import { useMessageHandle } from '@/utils/exception/index'
 import { useQuery } from '@/utils/query'
 import { usePageTitle } from '@/utils/utils'
-import { useEnsureSignedIn } from '@/utils/user'
-import { listRecord, type ListRecordParams } from '@/apis/record'
-import { getOwnProjectEditorRoute } from '@/router'
+// import { useEnsureSignedIn } from '@/utils/user'
+import { listRecord, type ListRecordParams, type RecordData } from '@/apis/record'
+// import { getOwnProjectEditorRoute } from '@/router'
 import { getSignedInUsername, useUser } from '@/stores/user'
 import { UISelect, UISelectOption, UIPagination, UIButton, useResponsive } from '@/components/ui'
-import { useCreateProject } from '@/components/project'
+// import { useCreateProject } from '@/components/project'
 import ListResultWrapper from '@/components/common/ListResultWrapper.vue'
 import UserContent from '@/components/community/user/content/UserContent.vue'
 import RecordItem from '@/components/record/RecordItem.vue'
@@ -19,7 +19,7 @@ const props = defineProps<{
   name: string
 }>()
 
-const isSignedInUser = computed(() => props.name === getSignedInUsername())
+// const isSignedInUser = computed(() => props.name === getSignedInUsername())
 
 const { data: user } = useUser(() => props.name)
 usePageTitle(() => {
@@ -31,7 +31,11 @@ usePageTitle(() => {
 })
 
 const isDesktopLarge = useResponsive('desktop-large')
-const numInRow = computed(() => (isDesktopLarge.value ? 5 : 4))
+const isMobile = useResponsive('mobile')
+const numInRow = computed(() => {
+  if (isMobile.value) return 2
+  return isDesktopLarge.value ? 5 : 4
+})
 const pageSize = computed(() => numInRow.value * 2)
 const pageTotal = computed(() => Math.ceil((queryRet.data.value?.total ?? 0) / pageSize.value))
 const page = useRouteQueryParamInt('p', 1)
@@ -78,17 +82,30 @@ const queryRet = useQuery(() => listRecord(listParams.value), {
   zh: '加载录屏失败'
 })
 
-const router = useRouter()
-const ensureSignedIn = useEnsureSignedIn()
-const createProject = useCreateProject()
-const handleNewProject = useMessageHandle(
-  async () => {
-    await ensureSignedIn()
-    const name = await createProject()
-    router.push(getOwnProjectEditorRoute(name))
-  },
-  { en: 'Failed to create new record', zh: '新建录屏失败' }
-).fn
+const handleRecordUpdated = (updatedRecord: RecordData) => {
+  // 方法1：重新获取数据（简单但可能影响性能）
+  queryRet.refetch()
+  
+  // 方法2：精确更新本地数据（推荐）
+  // if (queryRet.data.value?.data) {
+  //   const index = queryRet.data.value.data.findIndex(r => r.id === updatedRecord.id)
+  //   if (index !== -1) {
+  //     queryRet.data.value.data[index] = updatedRecord
+  //   }
+  // }
+}
+
+// const router = useRouter()
+// const ensureSignedIn = useEnsureSignedIn()
+// const createProject = useCreateProject()
+// const handleNewProject = useMessageHandle(
+//   async () => {
+//     await ensureSignedIn()
+//     const name = await createProject()
+//     router.push(getOwnProjectEditorRoute(name))
+//   },
+//   { en: 'Failed to create new record', zh: '新建录屏失败' }
+// ).fn
 </script>
 
 <template>
@@ -125,15 +142,15 @@ const handleNewProject = useMessageHandle(
           }}</UISelectOption>
         </UISelect>
       </label>
-      <UIButton
-        v-if="isSignedInUser"
+      <!-- <UIButton
+        v-if="isSignedInUser && !isMobile"
         v-radar="{ name: 'New record button', desc: 'Click to create a new record' }"
         type="secondary"
         icon="plus"
         @click="handleNewProject"
       >
         {{ $t({ en: 'New record', zh: '新建录屏' }) }}
-      </UIButton>
+      </UIButton> -->
     </template>
     <div class="records-wrapper">
       <ListResultWrapper v-slot="slotProps" content-type="record" :query-ret="queryRet" :height="524">
@@ -144,6 +161,7 @@ const handleNewProject = useMessageHandle(
             context="mine"
             :record="record"
             @removed="queryRet.refetch()"
+            @updated="handleRecordUpdated"
           />
         </ul>
       </ListResultWrapper>
@@ -153,24 +171,44 @@ const handleNewProject = useMessageHandle(
 </template>
 
 <style lang="scss" scoped>
+@import '@/components/ui/responsive.scss';
+
 .sort {
   display: flex;
   align-items: center;
   gap: 8px;
+  
+  @include responsive(mobile) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
 }
 
 .records-wrapper {
   margin-top: 8px;
+  
+  @include responsive(mobile) {
+    margin-top: 12px;
+  }
 }
 
 .records {
   display: grid;
   grid-template-columns: repeat(var(--project-num-in-row), 1fr);
   gap: var(--ui-gap-middle);
+  
+  @include responsive(mobile) {
+    gap: 16px;
+  }
 }
 
 .pagination {
   margin: 36px 0 20px;
   justify-content: center;
+  
+  @include responsive(mobile) {
+    margin: 24px 0 16px;
+  }
 }
 </style>
