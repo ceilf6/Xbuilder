@@ -277,6 +277,10 @@ const handleReRecord = useMessageHandle(
     // 切换到初始状态
     currentState.value = 'initial'
 
+    // 通知外部录屏状态已重置
+    emit('recordingStopped')
+    console.log('重新录制：录屏状态已重置，通知外部')
+
     // console.log('用户选择重新录制，状态已重置')
   },
   { en: 'Failed to reset recording', zh: '重置录制失败' },
@@ -328,6 +332,10 @@ const resetRecordingState = () => {
   if (mediaRecorder.value) {
     mediaRecorder.value = null
   }
+
+  // 通知录屏状态管理器
+  recordingStore.stopRecording()
+  console.log('重置录屏状态：已通知recordingStore停止录屏')
 
   // console.log('录屏状态已重置到初始状态')
 }
@@ -385,6 +393,10 @@ watch(isRecording, (newIsRecording) => {
     // 通知外部录屏已开始
     emit('recordingStarted')
     console.log('弹窗内部录屏状态变化，通知外部录屏已开始')
+  } else {
+    // 通知外部录屏已停止
+    emit('recordingStopped')
+    console.log('弹窗内部录屏状态变化，通知外部录屏已停止')
   }
 }, { immediate: true })
 
