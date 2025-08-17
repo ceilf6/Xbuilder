@@ -389,8 +389,9 @@ watch(() => props.hasRecording, (newHasRecording) => {
   if (props.visible) {
     if (newHasRecording) {
       hasRecording.value = true
+      // 直接设置为completed状态，显示分享页面
       currentState.value = 'completed'
-      console.log('弹窗状态已同步：录屏完成')
+      console.log('弹窗状态已同步：录屏完成，直接显示分享页面')
     } else {
       // 如果外部状态变为false，重置弹窗状态
       hasRecording.value = false
