@@ -12,6 +12,7 @@ import { listProject } from '@/apis/project'
 import { listReleases } from '@/apis/project-release'
 import { Project } from '@/models/project'
 import { useUser, isSignedIn, getSignedInUsername } from '@/stores/user'
+import { recordingStore } from '@/stores/recording'
 import { getOwnProjectEditorRoute, getProjectEditorRoute, getUserPageRoute } from '@/router'
 import RecordingShareModal from '@/components/project/RecordingShareModal.vue'
 import { useFileUrl } from '@/utils/file'
@@ -488,6 +489,10 @@ const handleStartRecording = async () => {
     isRecording.value = true
     console.log('录屏状态已设置为true')
     
+    // 通知录屏状态管理器 - 这会触发绿边显示
+    recordingStore.startRecording()
+    console.log('recordingStore状态已更新，绿边应该显示')
+    
     // 获取游戏画面截图
     const screenshot = await captureScreenshot()
     
@@ -499,6 +504,7 @@ const handleStartRecording = async () => {
     console.error('录制启动失败:', error)
     // 如果失败，重置录屏状态
     isRecording.value = false
+    recordingStore.stopRecording()
     // 显示错误提示
     console.error('开始录屏失败:', error)
   } finally {
@@ -523,16 +529,20 @@ const handleStopRecording = async () => {
     // 2. 重置状态
     isRecording.value = false
     
-    // 3. 停止计时器
+    // 3. 通知录屏状态管理器 - 这会移除绿边
+    recordingStore.stopRecording()
+    console.log('recordingStore状态已更新，绿边应该移除')
+    
+    // 4. 停止计时器
     if (recordingTimer) {
       clearInterval(recordingTimer)
       recordingTimer = null
     }
     
-    // 4. 设置录屏完成状态
+    // 5. 设置录屏完成状态
     hasRecording.value = true
     
-    // 5. 直接显示录屏完成弹框（不再需要停止录屏按钮）
+    // 6. 直接显示录屏完成弹框（不再需要停止录屏按钮）
     showRecordingModal.value = true
     
     console.log('录制完全停止，状态已重置，弹窗已显示')
