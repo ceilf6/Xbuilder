@@ -384,6 +384,15 @@ watch(() => props.hasRecording, (newHasRecording) => {
   }
 }, { immediate: true })
 
+// 同步录屏状态到外部 - 当弹窗内部开始录屏时
+watch(isRecording, (newIsRecording) => {
+  if (newIsRecording) {
+    // 通知外部录屏已开始
+    emit('recordingStarted')
+    console.log('弹窗内部录屏状态变化，通知外部录屏已开始')
+  }
+}, { immediate: true })
+
 // 同步外部传入的视频URL
 watch(() => props.recordedVideoUrl, (newVideoUrl) => {
   if (newVideoUrl) {

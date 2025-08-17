@@ -484,6 +484,10 @@ const handleStartRecording = async () => {
     isStarting.value = true
     console.log('开始录屏流程...')
     
+    // 设置录屏状态
+    isRecording.value = true
+    console.log('录屏状态已设置为true')
+    
     // 获取游戏画面截图
     const screenshot = await captureScreenshot()
     
@@ -493,6 +497,8 @@ const handleStartRecording = async () => {
     console.log('录屏已开始')
   } catch (error) {
     console.error('录制启动失败:', error)
+    // 如果失败，重置录屏状态
+    isRecording.value = false
     // 显示错误提示
     console.error('开始录屏失败:', error)
   } finally {
@@ -542,6 +548,18 @@ const handleRecord = async () => {
   if (!isRecording.value) {
     await handleStartRecording()
   }
+}
+
+// 处理录屏开始事件
+const handleRecordingStarted = () => {
+  console.log('录屏开始事件触发，隐藏弹窗')
+  showRecordingModal.value = false
+}
+
+// 处理录屏停止事件
+const handleRecordingStopped = () => {
+  console.log('录屏停止事件触发，显示弹窗')
+  showRecordingModal.value = true
 }
 
 // 获取游戏画面截图的函数
@@ -1118,8 +1136,8 @@ const remixesRet = useQuery(
       :has-recording="hasRecording"
       @cancelled="showRecordingModal = false"
       @resolved="showRecordingModal = false"
-      @recording-started="showRecordingModal = false"
-      @recording-stopped="showRecordingModal = true"
+      @recording-started="handleRecordingStarted"
+      @recording-stopped="handleRecordingStopped"
     />
   </CenteredWrapper>
 
