@@ -157,6 +157,8 @@ const recordedVideoUrl = ref<string | null>(null)
 let recordingTimer: ReturnType<typeof setInterval> | null = null
 // 新增：用于管理绘制循环的ID
 let currentAnimationId: number | null = null
+// 新增：弹窗组件引用
+const recordingModalRef = ref<InstanceType<typeof RecordingShareModal> | null>(null)
 const isScreenshotModalVisible = ref(false)
 const screenshotDataUrl = ref<string | undefined>()
 const screenshotWidth = ref<number | undefined>()
@@ -619,6 +621,20 @@ const handleStopRecording = async () => {
     
     // 7. 显示录屏完成弹框
     showRecordingModal.value = true
+    
+    // 8. 等待弹窗显示后，调用弹窗组件的createRecord方法
+    await nextTick()
+    if (recordingModalRef.value) {
+      try {
+        console.log('调用弹窗组件的createRecord方法...')
+        await recordingModalRef.value.createRecord()
+        console.log('Record创建成功，后端已接收到录屏数据')
+      } catch (error) {
+        console.error('调用弹窗组件createRecord方法失败:', error)
+      }
+    } else {
+      console.warn('弹窗组件引用不存在，无法调用createRecord方法')
+    }
     
     console.log('录制完全停止，状态已重置，弹窗已显示')
   } catch (error) {
@@ -1230,6 +1246,7 @@ const remixesRet = useQuery(
       <ProjectItem v-for="remix in remixesRet.data.value" :key="remix.id" :project="remix" />
     </ProjectsSection>
     <RecordingShareModal
+      ref="recordingModalRef"
       v-if="project != null"
       :visible="showRecordingModal"
       :project-name="project.name"

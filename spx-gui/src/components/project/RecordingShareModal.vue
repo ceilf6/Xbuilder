@@ -1182,8 +1182,20 @@ watch(() => props.visible, async (newVisible) => {
   }
 })
 
+// 暴露createRecordFromRecording函数给外部调用
+const exposeCreateRecord = () => {
+  if (recordedVideoUrl.value && hasRecording.value) {
+    return createRecordFromRecording()
+  } else {
+    console.warn('没有录制的视频或录屏未完成，无法创建Record')
+    return Promise.resolve()
+  }
+}
 
-
+// 暴露方法给父组件
+defineExpose({
+  createRecord: exposeCreateRecord
+})
 
 
 // 清理定时器和资源
