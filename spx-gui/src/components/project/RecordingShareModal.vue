@@ -17,8 +17,7 @@
 
           <!-- 录屏控制按钮 -->
           <div class="record-overlay">
-            <UIButton type="primary" size="large" :loading="isStarting"
-              @click="handleStartRecording.fn">
+            <UIButton type="primary" size="large" :loading="isStarting" @click="handleStartRecording.fn">
               <template #icon>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <!-- 圆形背景 -->
@@ -32,10 +31,13 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 提示文字 -->
       <div class="tip">
-        {{ $t({ en: 'Click Record to start recording, then click Stop-Recording button in the game interface to stop', zh: '点击录屏开始录制，然后在游戏界面点击停止录屏按钮结束录制' }) }}
+        {{ $t({
+          en: 'Click Record to start recording, then click Stop-Recording button in the game interface to stop',
+          zh:
+        '点击录屏开始录制，然后在游戏界面点击停止录屏按钮结束录制' }) }}
       </div>
     </div>
 
@@ -62,10 +64,12 @@
           <div class="recording-time">{{ formatTime(recordingTime) }}</div>
         </div>
       </div>
-      
+
       <!-- 提示文字 -->
       <div class="tip">
-        {{ $t({ en: 'Recording in progress, click Stop-Recording button in the game interface to stop', zh: '录制中，在游戏界面点击停止录屏按钮结束录制' }) }}
+        {{ $t({
+          en: 'Recording in progress, click Stop-Recording button in the game interface to stop', zh:
+            '录制中，在游戏界面点击停止录屏按钮结束录制' }) }}
       </div>
     </div>
 
@@ -80,8 +84,7 @@
               {{ $t({ en: 'Generating video...', zh: '正在生成视频...' }) }}
             </div>
           </div>
-          <video v-else :src="recordedVideoUrl" controls :poster="projectThumbnail"
-            class="recorded-video">
+          <video v-else :src="recordedVideoUrl" controls :poster="projectThumbnail" class="recorded-video">
             您的浏览器不支持视频播放
           </video>
         </div>
@@ -108,7 +111,7 @@
       <div class="share-section">
         <h4>{{ $t({ en: 'Share to Platform', zh: '分享到平台' }) }}</h4>
         <div class="platforms">
-          <div v-for="platform in platforms" :key="platform.id" 
+          <div v-for="platform in platforms" :key="platform.id"
             :class="['platform-item', { disabled: !recordedVideoUrl }]"
             @click="recordedVideoUrl ? handlePlatformShare(platform) : null">
             <div class="platform-icon">
@@ -117,7 +120,7 @@
             <span class="platform-name">{{ platform.name }}</span>
           </div>
         </div>
-        
+
         <!-- 提示文字 -->
         <div v-if="!recordedVideoUrl" class="tip">
           {{ $t({ en: 'Video is being generated, please wait...', zh: '视频正在生成中，请稍候...' }) }}
@@ -586,9 +589,9 @@ const startFullGameRecording = async (screenshot: any) => {
     // 更新状态
     isRecording.value = true
     currentState.value = 'recording'
-    
+
     console.log('录屏状态已更新:', { isRecording: isRecording.value, currentState: currentState.value })
-    
+
     // 通知录屏状态管理器
     console.log('调用 recordingStore.startRecording() 前，状态:', recordingStore.isRecording.value)
     recordingStore.startRecording()
@@ -796,7 +799,7 @@ const handleStopRecording = useMessageHandle(
       // 3. 重置状态
       isRecording.value = false
       console.log('录屏状态已重置:', { isRecording: isRecording.value })
-      
+
       // 4. 通知录屏状态管理器
       recordingStore.stopRecording()
 
@@ -971,7 +974,8 @@ const createRecordFromRecording = async () => {
       description: `这是项目 ${props.projectName} 的录屏记录`,
       videoUrl: videoUniversalUrl, // ✅ 使用kodo://格式的Universal URL
       thumbnailUrl: thumbnailUniversalUrl, // ✅ 使用kodo://格式的Universal URL
-      duration: Math.floor(recordingTime.value),
+      // 确保duration至少为1秒
+      duration: Math.max(1, Math.floor(recordingTime.value)),
       fileSize: videoBlob.size
     }
 
@@ -1075,7 +1079,7 @@ const handleSocialMediaShare = async (platform: any) => {
     const projectInfo: ProjectShareInfo = {
       projectName: props.projectName,
       // projectUrl: `${window.location.origin}/project/${props.owner}/${props.projectName}`, // 根据实际路由调整
-      projectUrl: `${window.location.origin}/record/${getSignedInUsername()}/${createdRecord.value?.name}`, 
+      projectUrl: `${window.location.origin}/record/${getSignedInUsername()}/${createdRecord.value?.name}`,
       description: `这是我在XBuilder上创作的游戏作品《${props.projectName}》！🎮 在XBuilder学编程，创造属于你的游戏世界！`,
       thumbnail: props.projectThumbnail
     }
@@ -1433,8 +1437,13 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .recording-complete {
