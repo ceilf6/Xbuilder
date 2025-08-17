@@ -47,108 +47,6 @@ const props = defineProps<{
   name: string
 }>()
 
-// 使用类型断言避免全局声明冲突
-// 新增：获取 QQ 内置浏览器 UA 关键信息
-function getQQBrowserInfo() {
-  const ua = navigator.userAgent
-
-  // QQ 内置浏览器标识
-  // Android 例:  Mozilla/5.0 (Linux; Android 12; M2012K11AC Build/SKQ1.211006.001; wv) AppleWebKit/537.36 … QQ/9.0.8 NetType/WIFI
-  // iOS 例:     Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 … QQ/9.0.8
-  const qqMatch = ua.match(/QQ\/([\d.]+)/i)          // QQ 主版本
-  const qbMatch = ua.match(/MQQBrowser\/([\d.]+)/i)  // QQ 浏览器（独立版）
-  const wxMatch = ua.match(/MicroMessenger\//i)      // 防止在微信里误判
-
-  let platform = 'unknown'
-  if (/iPhone|iPad|iPod/i.test(ua)) {
-    platform = 'iOS'
-  } else if (/Android/i.test(ua)) {
-    platform = 'Android'
-  }
-
-  return {
-    platform,
-    qqVer: qqMatch ? qqMatch[1] : null,
-    qbVer: qbMatch ? qbMatch[1] : null,
-    isWechat: !!wxMatch,
-    rawUA: ua
-  }
-}
-// Type declaration for QQ mqq API
-declare global {
-    interface Window {
-      mqq: {
-        invoke: (module: string, method: string, data: any) => void
-      }
-    }
-  }
-// 2. 分享数据
-const shareData = {
-  title: `${props.owner}/${props.name}`,
-  desc: '分享来自XBuilder的创意项目',
-  share_url: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
-  image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
-}
-
-// // 创建页面内调试信息显示
-// const debugInfo = ref('')
-// const showDebugInfo = ref(false)
-
-// function showDebugMessage(message: string) {
-//   console.log('显示调试信息:', message) // 添加console用于调试
-//   debugInfo.value = message
-//   showDebugInfo.value = true
-// }
-
-// 检查QQ浏览器环境并显示调试信息
-function checkQQEnvironment() {
-  
-  // const mqqExists = !!window.mqq
-  // const mqqType = typeof window.mqq
-  // const mqqKeys = window.mqq ? Object.keys(window.mqq) : []
-  // const browserInfo = getQQBrowserInfo()
-  
-  // const debugMsg = `QQ环境检测:
-  //   mqq存在: ${mqqExists}
-  //   mqq类型: ${mqqType}
-  //   mqq属性: ${mqqKeys.join(', ')}
-  //   平台: ${browserInfo.platform}
-  //   QQ版本: ${browserInfo.qqVer || '—'}
-  //   QB版本: ${browserInfo.qbVer || '—'}
-  //   是否微信: ${browserInfo.isWechat}
-  //   UserAgent: ${navigator.userAgent}`
-  
-  // console.log('准备显示调试信息:', debugMsg) // 调试日志
-  // showDebugMessage(debugMsg)
-  
-  // 尝试调用QQ分享API
-  if (window.mqq) {
-    try {
-      window.mqq.invoke('data', 'setShareInfo', shareData)
-      // showDebugMessage('QQ分享设置成功！')
-    } catch (error) {
-      // showDebugMessage('QQ分享设置失败: ' + (error instanceof Error ? error.message : String(error)))
-    }
-  } else {
-    // showDebugMessage('未检测到QQ浏览器环境')
-  }
-}
-
-// 页面加载完成后执行检测
-onMounted(() => {
-  // console.log('onMounted 被调用') // 调试日志
-  // 延迟执行，确保QQ环境完全加载
-  setTimeout(() => {
-    // console.log('延迟执行 checkQQEnvironment') // 调试日志
-    checkQQEnvironment()
-  }, 1000)
-})
-
-// 手动触发调试信息显示（用于测试）
-function manualCheckQQ() {
-  checkQQEnvironment()
-}
-
 const router = useRouter()
 
 const {
@@ -212,6 +110,49 @@ const screenshotDataUrl = ref<string | undefined>()
 const screenshotWidth = ref<number | undefined>()
 const screenshotHeight = ref<number | undefined>()
 const [thumbnailUrl] = useFileUrl(() => project.value?.thumbnail)
+
+// 使用类型断言避免全局声明冲突
+// Type declaration for QQ mqq API
+declare global {
+    interface Window {
+      mqq: {
+        invoke: (module: string, method: string, data: any) => void
+      }
+    }
+  }
+// 2. 分享数据
+const shareData = {
+  title: `${props.owner}/${props.name}`,
+  desc: `${project.value?.description}` || '分享来自XBuilder的创意项目',
+  share_url: `https://xbuilder-sharing-test.gopluscdn.com/project/${props.owner}/${props.name}`,
+  image_url: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
+}
+
+// 检查QQ浏览器环境并显示调试信息
+function checkQQEnvironment() {
+  
+  // 尝试调用QQ分享API
+  if (window.mqq) {
+    try {
+      window.mqq.invoke('data', 'setShareInfo', shareData)
+      // showDebugMessage('QQ分享设置成功！')
+    } catch (error) {
+      // showDebugMessage('QQ分享设置失败: ' + (error instanceof Error ? error.message : String(error)))
+    }
+  } else {
+    // showDebugMessage('未检测到QQ浏览器环境')
+  }
+}
+
+// 页面加载完成后执行检测
+onMounted(() => {
+  // console.log('onMounted 被调用') // 调试日志
+  // 延迟执行，确保QQ环境完全加载
+  setTimeout(() => {
+    // console.log('延迟执行 checkQQEnvironment') // 调试日志
+    checkQQEnvironment()
+  }, 1000)
+})
 
 const likeCount = computed(() => {
   if (project.value == null) return null
@@ -629,15 +570,6 @@ const remixesRet = useQuery(
             </template>
             {{ $t({ en: 'Share', zh: '分享' }) }}
           </UITooltip>
-          
-          <!-- QQ调试按钮 -->
-          <UIButton
-            type="boring"
-            size="small"
-            @click="manualCheckQQ"
-          >
-            QQ调试
-          </UIButton>
         </div>
       </div>
       <div class="right">

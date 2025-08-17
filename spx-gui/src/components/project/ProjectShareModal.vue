@@ -129,15 +129,6 @@
   import PosterBackground from './PosterBackground.vue'
   import logoSrc from '@/components/navbar/logo.svg'
 
-  // Type declaration for QQ mqq API
-  declare global {
-    interface Window {
-      mqq: {
-        invoke: (module: string, method: string, data: any) => void
-      }
-    }
-  }
-
   const props = defineProps<{
     visible: boolean
     owner: string
@@ -154,23 +145,6 @@
     cancelled: []
     resolved: []
   }>()
-
-  const shareData = {
-        title:    `${props.owner}/${props.name}`,
-        desc:     '分享来自XBuilder的创意项目',
-        share_url:'https://xbuilder-sharing-test.gopluscdn.com/project/'+props.owner+'/'+props.name,
-        image_url:'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png'
-    };
-
-  // Only call mqq API if it exists (when running in QQ browser)
-  if (window.mqq) {
-    try {
-      window.mqq.invoke('data', 'setShareInfo', shareData);
-      // alert('QQ分享卡片信息已设置')
-    } catch (error: any) {
-      // alert('QQ分享卡片信息设置失败: ' + (error?.message || '未知错误'))
-    }
-  }
 
   const selectedPlatform = ref('qq')
 
