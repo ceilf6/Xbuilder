@@ -1,19 +1,28 @@
 <template>
   <li class="record-item" :class="{ [context]: true }">
     <!-- 右上角操作按钮 -->
-    <div v-if="context !== 'public' && isOwner && operatable" class="corner-actions">
-      <button
-v-radar="{ name: 'Edit record button', desc: 'Click to edit record' }" class="corner-btn edit-btn"
-        @click.stop="handleEdit.fn">
-        <UIIcon type="edit" />
-      </button>
-      <button
-v-radar="{ name: 'Delete record button', desc: 'Click to delete record' }" class="corner-btn delete-btn"
-        @click.stop="handleRemove">
-        <UIIcon type="trash" />
-      </button>
+    <UIDropdown v-if="context !== 'public' && isOwner && operatable" trigger="click" placement="bottom-end">
+  <template #trigger>
+    <div
+      v-radar="{
+        name: 'Record item operations',
+        desc: 'More operations (edit, remove) for record item, click to open the menu'
+      }"
+      class="options"
+      @click.stop.prevent
+    >
+      <UIIcon class="icon" type="more" />
     </div>
-    <RouterLink :to="to" class="link" @click="$emit('selected')">
+  </template>
+  <UIMenu>
+    <UIMenuItem v-radar="{ name: 'Edit option', desc: 'Click to edit the record' }" @click="handleEdit.fn">
+      {{ $t({ en: 'Edit', zh: '编辑' }) }}
+    </UIMenuItem>
+    <UIMenuItem v-radar="{ name: 'Remove option', desc: 'Click to remove the record' }" @click="handleRemove">
+      {{ $t({ en: 'Remove', zh: '删除' }) }}
+    </UIMenuItem>
+  </UIMenu>
+</UIDropdown>    <RouterLink :to="to" class="link" @click="$emit('selected')">
       <div class="media">
         <div class="thumbnail">
           <UIImg :src="thumbnailUrl" :alt="record.title" />
@@ -195,8 +204,53 @@ const handleRemove = useMessageHandle(
   }
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    .options {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.options {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  color: var(--ui-color-grey-800);
+  background-color: var(--ui-color-grey-100);
+  cursor: pointer;
+  transition: 0.1s;
+  z-index: 10;
+  
+  // 移动端调整操作按钮大小
+  @include responsive(mobile) {
+    width: 28px;
+    height: 28px;
+    top: 6px;
+    right: 6px;
+  }
+
+  &:hover {
+    color: var(--ui-color-grey-100);
+    background-color: var(--ui-color-primary-main);
+  }
+
+  .icon {
+    width: 21px;
+    height: 21px;
+    
+    // 移动端调整图标大小
+    @include responsive(mobile) {
+      width: 18px;
+      height: 18px;
+    }
   }
 }
 
