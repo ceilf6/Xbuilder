@@ -65,7 +65,7 @@ import { createFileWithUniversalUrl } from '@/models/common/cloud'
 import { getSignedInUsername } from '@/stores/user'
 import { UIImg, UIDropdown, UIIcon, UIMenu, UIMenuItem } from '@/components/ui'
 import UserAvatar from '@/components/community/user/UserAvatar.vue'
-import { useEditRecord } from '.'
+import { useEditRecord, useRemoveRecord } from '.'  // ← 添加 useRemoveRecord
 /**
  * Context (list) where the record item is used
  * - `public`: List of public records from all users
@@ -162,10 +162,11 @@ const handleEdit = useMessageHandle(
   { en: 'Failed to edit record', zh: '编辑录屏失败' }
 )
 
+const removeRecord = useRemoveRecord()
 const handleRemove = useMessageHandle(
   async () => {
     const { owner, name } = props.record
-    await deleteRecord(owner, name)
+    await removeRecord(owner, name)
     emit('removed')
   },
   { en: 'Failed to remove record', zh: '删除录屏失败' },
