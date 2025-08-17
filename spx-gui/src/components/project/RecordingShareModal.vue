@@ -281,6 +281,10 @@ const handleReRecord = useMessageHandle(
     emit('recordingStopped')
     console.log('重新录制：录屏状态已重置，通知外部')
 
+    // 确保弹窗关闭，让用户看到游戏界面
+    emit('cancelled')
+    console.log('重新录制：弹窗已关闭，用户可以开始新的录制')
+
     // console.log('用户选择重新录制，状态已重置')
   },
   { en: 'Failed to reset recording', zh: '重置录制失败' },
@@ -380,10 +384,18 @@ let recordingTimer: ReturnType<typeof setInterval> | null = null // 修改这里
 
 // 同步外部传入的录屏状态
 watch(() => props.hasRecording, (newHasRecording) => {
-  if (newHasRecording) {
-    hasRecording.value = true
-    currentState.value = 'completed'
-    console.log('弹窗状态已同步：录屏完成')
+  // 只有在弹窗真正打开时才同步状态
+  if (props.visible) {
+    if (newHasRecording) {
+      hasRecording.value = true
+      currentState.value = 'completed'
+      console.log('弹窗状态已同步：录屏完成')
+    } else {
+      // 如果外部状态变为false，重置弹窗状态
+      hasRecording.value = false
+      currentState.value = 'initial'
+      console.log('弹窗状态已同步：录屏未完成，重置到初始状态')
+    }
   }
 }, { immediate: true })
 
