@@ -239,7 +239,7 @@ const handleModalClose = (visible: boolean, reason?: string | Event) => {
     }
 
     // 如果是录屏完成状态被关闭，重置状态
-    if (hasRecording.value) {
+    if (localHasRecording.value) {
       resetRecordingState()
     }
 
@@ -306,8 +306,8 @@ const screenshotData = ref<{
 // 重置录屏状态的函数
 const resetRecordingState = () => {
   // 重置录屏相关状态
-  hasRecording.value = false
-  recordedVideoUrl.value = null
+        localHasRecording.value = false
+      localRecordedVideoUrl.value = null
   recordingTime.value = 0
   isRecording.value = false
   isStarting.value = false
@@ -331,8 +331,8 @@ const resetRecordingState = () => {
   }
 
   // 清理视频URL
-  if (recordedVideoUrl.value) {
-    URL.revokeObjectURL(recordedVideoUrl.value)
+  if (localRecordedVideoUrl.value) {
+    URL.revokeObjectURL(localRecordedVideoUrl.value)
   }
 
   // 清理MediaRecorder
@@ -379,10 +379,10 @@ const emit = defineEmits<{
 const isRecording = ref(false)
 const isStarting = ref(false)
 const isStopping = ref(false)
-const hasRecording = ref(false)
+const localHasRecording = ref(false)
 const recordingTime = ref(0)
 const mediaRecorder = ref<MediaRecorder | null>(null)
-const recordedVideoUrl = ref<string | null>(null)
+const localRecordedVideoUrl = ref<string | null>(null)
 // let recordingTimer: number | null = null
 let recordingTimer: ReturnType<typeof setInterval> | null = null // 修改这里
 
@@ -392,13 +392,13 @@ watch(
   ([newHasRecording, newVideoUrl]) => {
     // 只有在弹窗可见，并且确实有录制完成的状态和URL时，才切换到完成页面
     if (props.visible && newHasRecording && newVideoUrl && typeof newVideoUrl === 'string') {
-      hasRecording.value = true
-      recordedVideoUrl.value = newVideoUrl // 确保本地URL也同步了
+      localHasRecording.value = true
+      localRecordedVideoUrl.value = newVideoUrl // 确保本地URL也同步了
       currentState.value = 'completed'
       console.log('弹窗状态已同步：录屏完成，直接显示分享页面 (通过增强的侦听器)')
     } else if (props.visible && !newHasRecording) {
       // 如果外部状态变回false，也重置
-      hasRecording.value = false
+      localHasRecording.value = false
       currentState.value = 'initial'
     }
   },
@@ -421,7 +421,7 @@ watch(isRecording, (newIsRecording) => {
 // 同步外部传入的视频URL
 watch(() => props.recordedVideoUrl, (newVideoUrl) => {
   if (newVideoUrl && props.visible) { // 只有在弹窗打开时才同步
-    recordedVideoUrl.value = newVideoUrl
+    localRecordedVideoUrl.value = newVideoUrl
     console.log('弹窗视频URL已同步:', newVideoUrl)
   }
 }, { immediate: false }) // 改为false，避免组件挂载时触发
@@ -683,7 +683,7 @@ const startGameRecording = async (screenshot: any) => {
     drawFrame()
 
     // 从canvas获取录制流
-    const recordingStream = canvas.captureStream(30) // 30fps
+    const recordingStream = canvas.captureStream(60) // 30fps
     // console.log('Canvas录制流已创建，帧率: 30fps')
 
     // 检查MediaRecorder支持的格式

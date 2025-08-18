@@ -792,7 +792,7 @@ const startGameRecording = async (screenshot: any) => {
     drawFrame()
 
     // 从canvas获取录制流
-    const recordingStream = canvas.captureStream(30) // 30fps
+    const recordingStream = canvas.captureStream(60) // 30fps
     console.log('Canvas录制流已创建，帧率: 30fps')
 
     // 检查MediaRecorder支持的格式
