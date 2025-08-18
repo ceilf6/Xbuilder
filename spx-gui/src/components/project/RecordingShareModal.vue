@@ -190,7 +190,7 @@ import WeChatIconSvg from '@/assets/images/微信.svg?raw'
 import DouyinIconSvg from '@/assets/images/抖音.svg?raw'
 import XiaohongshuIconSvg from '@/assets/images/小红书.svg?raw'
 import BilibiliIconSvg from '@/assets/images/bilibili.svg?raw'
-import { ref, computed, onUnmounted, h, watch } from 'vue'
+import { ref, computed, onUnmounted, h, watch, type Ref } from 'vue'
 // import { uploadFile } from '@/apis/usercontent'
 import { createRecord, deleteRecord, type RecordData } from '@/apis/record'
 import { saveFile } from '@/models/common/cloud'
@@ -239,7 +239,7 @@ const handleModalClose = (visible: boolean, reason?: string | Event) => {
     }
 
     // 如果是录屏完成状态被关闭，重置状态
-    if (localHasRecording.value) {
+    if (hasRecording.value) {
       resetRecordingState()
     }
 
@@ -255,7 +255,7 @@ const handleModalClose = (visible: boolean, reason?: string | Event) => {
   }
 }
 
-const createdRecord = ref<RecordData | null>(null)
+const createdRecord: Ref<RecordData | null> = ref<RecordData | null>(null)
 
 
 const handleReRecord = useMessageHandle(
@@ -295,7 +295,13 @@ const handleReRecord = useMessageHandle(
 )
 
 // 截图相关状态
-const screenshotData = ref<{
+const screenshotData: Ref<{
+  canvas: HTMLCanvasElement
+  dataUrl: string
+  width: number
+  height: number
+  gameCanvas?: boolean // 标记是否从游戏canvas获取
+} | null> = ref<{
   canvas: HTMLCanvasElement
   dataUrl: string
   width: number
@@ -306,8 +312,8 @@ const screenshotData = ref<{
 // 重置录屏状态的函数
 const resetRecordingState = () => {
   // 重置录屏相关状态
-        localHasRecording.value = false
-      localRecordedVideoUrl.value = null
+  hasRecording.value = false
+  recordedVideoUrl.value = null
   recordingTime.value = 0
   isRecording.value = false
   isStarting.value = false
@@ -331,8 +337,8 @@ const resetRecordingState = () => {
   }
 
   // 清理视频URL
-  if (localRecordedVideoUrl.value) {
-    URL.revokeObjectURL(localRecordedVideoUrl.value)
+  if (recordedVideoUrl.value) {
+    URL.revokeObjectURL(recordedVideoUrl.value)
   }
 
   // 清理MediaRecorder
@@ -376,13 +382,13 @@ const emit = defineEmits<{
 }>()
 
 // 状态管理
-const isRecording = ref(false)
-const isStarting = ref(false)
-const isStopping = ref(false)
-const localHasRecording = ref(false)
-const recordingTime = ref(0)
-const mediaRecorder = ref<MediaRecorder | null>(null)
-const localRecordedVideoUrl = ref<string | null>(null)
+const isRecording: Ref<boolean> = ref(false)
+const isStarting: Ref<boolean> = ref(false)
+const isStopping: Ref<boolean> = ref(false)
+const hasRecording: Ref<boolean> = ref(false)
+const recordingTime: Ref<number> = ref(0)
+const mediaRecorder: Ref<MediaRecorder | null> = ref<MediaRecorder | null>(null)
+const recordedVideoUrl: Ref<string | null> = ref<string | null>(null)
 // let recordingTimer: number | null = null
 let recordingTimer: ReturnType<typeof setInterval> | null = null // 修改这里
 
@@ -392,13 +398,13 @@ watch(
   ([newHasRecording, newVideoUrl]) => {
     // 只有在弹窗可见，并且确实有录制完成的状态和URL时，才切换到完成页面
     if (props.visible && newHasRecording && newVideoUrl && typeof newVideoUrl === 'string') {
-      localHasRecording.value = true
-      localRecordedVideoUrl.value = newVideoUrl // 确保本地URL也同步了
+      hasRecording.value = true
+      recordedVideoUrl.value = newVideoUrl // 确保本地URL也同步了
       currentState.value = 'completed'
       console.log('弹窗状态已同步：录屏完成，直接显示分享页面 (通过增强的侦听器)')
     } else if (props.visible && !newHasRecording) {
       // 如果外部状态变回false，也重置
-      localHasRecording.value = false
+      hasRecording.value = false
       currentState.value = 'initial'
     }
   },
@@ -421,19 +427,19 @@ watch(isRecording, (newIsRecording) => {
 // 同步外部传入的视频URL
 watch(() => props.recordedVideoUrl, (newVideoUrl) => {
   if (newVideoUrl && props.visible) { // 只有在弹窗打开时才同步
-    localRecordedVideoUrl.value = newVideoUrl
+    recordedVideoUrl.value = newVideoUrl
     console.log('弹窗视频URL已同步:', newVideoUrl)
   }
 }, { immediate: false }) // 改为false，避免组件挂载时触发
 
 // 在现有状态后添加
-const selectedPlatform = ref<string | null>(null) // 当前选中的平台
+const selectedPlatform: Ref<string | null> = ref<string | null>(null) // 当前选中的平台
 // const showQRCode = ref(false) // 是否显示二维码
-const qrCodeUrl = ref<string>('') // 二维码对应的URL
-const qrCodeData = ref<string>('') // 二维码数据
+const qrCodeUrl: Ref<string> = ref<string>('') // 二维码对应的URL
+const qrCodeData: Ref<string> = ref<string>('') // 二维码数据
 // 新增：页面状态管理
 type PageState = 'initial' | 'recording' | 'completed' | 'qrcode'
-const currentState = ref<PageState>('initial')
+const currentState: Ref<PageState> = ref<PageState>('initial')
 
 // 动态标题
 const modalTitle = computed(() => {
@@ -683,7 +689,7 @@ const startGameRecording = async (screenshot: any) => {
     drawFrame()
 
     // 从canvas获取录制流
-    const recordingStream = canvas.captureStream(60) // 30fps
+    const recordingStream = canvas.captureStream(30) // 30fps
     // console.log('Canvas录制流已创建，帧率: 30fps')
 
     // 检查MediaRecorder支持的格式
