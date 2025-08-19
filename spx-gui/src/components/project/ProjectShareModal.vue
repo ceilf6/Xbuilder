@@ -38,50 +38,10 @@
 
       <!-- 分享方式区域 -->
       <div class="share-methods-section">
-        <div class="section-label">{{ $t({ en: 'Share Method', zh: '分享方式' }) }}</div>
-        <div class="social-icons">
-          <div
-            v-for="platform in socialPlatforms"
-            :key="platform.name"
-            class="social-icon"
-            :class="{ active: selectedPlatform === platform.name }"
-            @click="handlePlatformChange(platform)"
-          >
-            <div class="icon-wrapper">
-              <img
-                v-if="platform.name === 'qq'"
-                :src="qqIcon"
-                class="icon"
-                alt="QQ"
-              />
-              <img
-                v-else-if="platform.name === 'wechat'"
-                :src="wechatIcon"
-                class="icon"
-                alt="WeChat"
-              />
-              <img
-                v-else-if="platform.name === 'douyin'"
-                :src="douyinIcon"
-                class="icon"
-                alt="Douyin"
-              />
-              <img
-                v-else-if="platform.name === 'xiaohongshu'"
-                :src="xiaohongshuIcon"
-                class="icon"
-                alt="Xiaohongshu"
-              />
-              <img
-                v-else-if="platform.name === 'bilibili'"
-                :src="bilibiliIcon"
-                class="icon"
-                alt="Bilibili"
-              />
-            </div>
-            <span class="platform-name">{{ $t(platform.label) }}</span>
-          </div>
-        </div>
+        <SharePlatform
+          v-model="selectedPlatform"
+          @change="handlePlatformChange"
+        />
       </div>
 
       <!-- 分享主要内容区域 -->
@@ -122,13 +82,9 @@
   import { useMessageHandle } from '@/utils/exception'
   import { computed, ref } from 'vue'
   import { getProjectShareRoute } from '@/router'
-  import qqIcon from '@/assets/images/qq.svg'
-  import wechatIcon from '@/assets/images/微信.svg'
-  import douyinIcon from '@/assets/images/抖音.svg'
-  import xiaohongshuIcon from '@/assets/images/小红书.svg'
-  import bilibiliIcon from '@/assets/images/bilibili.svg'
-  import { generateShareQRCode, type ProjectShareInfo } from '@/utils/qrcode'
-  import PosterBackground from './PosterBackground.vue'
+  import { generateQRCode } from '@/utils/qrcode'
+  import PosterBackground from '@/components/project/PosterBackground.vue'
+  import SharePlatform from '@/components/project/SharePlatform.vue'
   import logoSrc from '@/components/navbar/logo.svg'
 
   const props = defineProps<{
@@ -151,6 +107,12 @@
   }>()
 
   const selectedPlatform = ref('qq')
+  interface ProjectShareInfo {
+    projectName: string
+    projectUrl: string
+    description?: string
+    thumbnail?: string
+  }
 
   // const showQRCode = ref(false) // 是否显示二维码
   const qrCodeUrl = ref<string>('') // 二维码对应的URL
@@ -187,17 +149,10 @@
     { en: 'Link copied to clipboard', zh: '分享链接已复制到剪贴板' }
   )
 
-  // 社交平台配置
-  const socialPlatforms = [
-    { name: 'qq', label: { en: 'QQ', zh: 'QQ' }, color: '#FF6B35' },
-    { name: 'wechat', label: { en: 'WeChat', zh: '微信' }, color: '#07C160' },
-    { name: 'douyin', label: { en: 'TikTok', zh: '抖音' }, color: '#000000' },
-    { name: 'xiaohongshu', label: { en: 'RedNote', zh: '小红书' }, color: '#FF2442' },
-    { name: 'bilibili', label: { en: 'Bilibili', zh: 'b站' }, color: '#FB7299' }
-  ]
+
 
     // 处理平台切换
-  const handlePlatformChange = async (platform: any) => {
+  const handlePlatformChange = async (platform: { name: string; label: { en: string; zh: string }; color: string }) => {
     selectedPlatform.value = platform.name
     await handleSocialMediaShare(platform)
   }
@@ -215,16 +170,24 @@
         thumbnail: props.thumbnail
       }
 
+      // 构造平台对应的分享链接（平台定义和颜色在 SharePlatform 中，不在 qrcode 工具中）
+      const url = new URL(projectInfo.projectUrl)
+      if (platform.name !== 'qq') {
+        url.searchParams.set('from', platform.name)
+        url.searchParams.set('share', 'qrcode')
+      }
+
       // 生成二维码
       console.log(`正在生成${platform.name}分享二维码...`)
-      const qrCodeDataUrl = await generateShareQRCode(platform.name, projectInfo, {
+      const qrCodeDataUrl = await generateQRCode(url.toString(), {
         width: 120,
-        margin: 3
+        margin: 3,
+        platform: platform
       })
 
       qrCodeData.value = qrCodeDataUrl
       // showQRCode.value = true
-      qrCodeUrl.value = projectInfo.projectUrl // 暂定为 projectUrl
+      qrCodeUrl.value = url.toString()
 
       console.log(`${platform.name}分享二维码已生成`)
     } catch (error) {
@@ -234,7 +197,8 @@
   }
 
   onMounted(() => {
-    handleSocialMediaShare(socialPlatforms[0])
+    // 默认选择第一个平台（QQ）
+    handleSocialMediaShare({ name: 'qq', label: { en: 'QQ', zh: 'QQ' }, color: '#FF6B35' })
   })
 </script>
 
@@ -326,53 +290,6 @@
 
 .share-methods-section {
   margin-bottom: 24px;
-}
-
-.social-icons {
-  display: flex;
-  gap: 48px;
-  justify-content: center;
-}
-
-.social-icon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-
-  &.active .icon-wrapper {
-    border: 2px solid var(--ui-color-red-main);
-  }
-}
-
-.icon-wrapper {
-  width: 48px;
-  height: 48px;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  transition: all 0.2s ease;
-}
-
-.icon {
-  width: 42px;
-  height: 42px;
-  display: block;
-  flex-shrink: 0;
-}
-
-.platform-name {
-  font-size: 12px;
-  color: var(--ui-color-hint-1);
 }
 
 .qr-section {
