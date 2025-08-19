@@ -183,7 +183,7 @@
 <script setup lang="ts">
 import { UIButton, UIFormModal } from '@/components/ui'
 import { useMessageHandle } from '@/utils/exception'
-import { generateShareQRCode, type ProjectShareInfo } from '@/utils/qrcode'
+import { generateQRCode } from '@/utils/qrcode'
 import { useI18n } from '@/utils/i18n' // 如果还没有导入的话
 import QQIconSvg from '@/assets/images/qq.svg?raw'
 import WeChatIconSvg from '@/assets/images/微信.svg?raw'
@@ -1083,7 +1083,7 @@ const handleSocialMediaShare = async (platform: any) => {
     selectedPlatform.value = platform.id
 
     // 准备项目分享信息
-    const projectInfo: ProjectShareInfo = {
+    const projectInfo = {
       projectName: props.projectName,
       // projectUrl: `${window.location.origin}/project/${props.owner}/${props.projectName}`, // 根据实际路由调整
       projectUrl: `${window.location.origin}/record/${getSignedInUsername()}/${createdRecord.value?.name}`,
@@ -1094,7 +1094,7 @@ const handleSocialMediaShare = async (platform: any) => {
 
     // 生成二维码
     // console.log(`正在生成${platform.name}分享二维码...`)
-    const qrCodeDataUrl = await generateShareQRCode(platform.id, projectInfo, {
+    const qrCodeDataUrl = await generateQRCode(projectInfo.projectUrl, {
       width: 200,
       margin: 3
     })

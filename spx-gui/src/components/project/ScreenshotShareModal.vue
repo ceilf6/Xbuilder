@@ -78,7 +78,7 @@ import { UIButton, UIIcon } from '@/components/ui'
 import { UIFormModal } from '@/components/ui/modal'
 import { humanizeCount } from '@/utils/utils'
 import logoSrc from '@/components/navbar/logo.svg'
-import { generateShareQRCode, type ProjectShareInfo } from '@/utils/qrcode'
+import { generateQRCode } from '@/utils/qrcode'
 
 interface Platform {
   id: string
@@ -275,7 +275,7 @@ watch(() => props.visible, (newVisible) => {
     
     // 生成二维码
     nextTick(() => {
-      generateQRCode()
+      generateShareQRCode()
     })
   } else if (!newVisible) {
     // 关闭时重置状态
@@ -286,13 +286,13 @@ watch(() => props.visible, (newVisible) => {
 
 function selectPlatform(platform: Platform) {
   selectedPlatform.value = platform
-  generateQRCode()
+  generateShareQRCode()
 }
 
-async function generateQRCode() {
+async function generateShareQRCode() {
   try {
     // 准备项目分享信息
-    const projectInfo: ProjectShareInfo = {
+    const projectInfo = {
       projectName: props.projectName || '',
       projectUrl: getCurrentProjectUrl(),
       description: `这是我在XBuilder上创作的游戏作品${props.projectName ? `《${props.projectName}》` : ''}！🎮 在XBuilder学编程，创造属于你的游戏世界！`,
@@ -301,7 +301,7 @@ async function generateQRCode() {
 
     // 生成二维码
     console.log(`正在生成${selectedPlatform.value.name.zh}分享二维码...`)
-    const qrCodeDataUrl = await generateShareQRCode(selectedPlatform.value.id, projectInfo, {
+    const qrCodeDataUrl = await generateQRCode(projectInfo.projectUrl, {
       width: 120,
       margin: 3
     })

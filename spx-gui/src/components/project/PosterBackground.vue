@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { UIIcon } from '@/components/ui'
-import { generateProjectQRCode } from '@/utils/qrcode'
+import { generateQRCode } from '@/utils/qrcode'
 
 const props = defineProps<{
   imgSrc?: string
@@ -132,10 +132,8 @@ const drawQRCodeToCanvas = async (canvas: HTMLCanvasElement, url: string) => {
     
     // 使用qrcode工具生成高分辨率二维码
     const qrSize = Math.min(displayWidth, displayHeight) * pixelRatio
-    const dataUrl = await generateProjectQRCode({
-      projectName: props.projectName || '',
-      projectUrl: url,
-    }, { 
+    
+    const dataUrl = await generateQRCode(url, { 
       width: qrSize, 
       margin: 2 // 添加一些边距确保二维码完整显示
     })
@@ -166,7 +164,7 @@ const drawQRCodeToCanvas = async (canvas: HTMLCanvasElement, url: string) => {
 }
 
 // 生成二维码
-const generateQRCode = async () => {
+const renderQRCode = async () => {
   if (projectQrCanvas.value && props.showQr) {
     const currentUrl = getCurrentProjectUrl()
     await drawQRCodeToCanvas(projectQrCanvas.value, currentUrl)
@@ -176,14 +174,14 @@ const generateQRCode = async () => {
 // 监听属性变化，重新生成二维码
 watch(() => [props.showQr, props.projectName, props.projectUrl], () => {
   nextTick(() => {
-    generateQRCode()
+    renderQRCode()
   })
 })
 
 onMounted(() => {
   if (props.showQr && projectQrCanvas.value) {
     nextTick(() => {
-      generateQRCode()
+      renderQRCode()
     })
   }
 })
