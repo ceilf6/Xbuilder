@@ -43,7 +43,7 @@ export class QRCodeGenerator {
    */
   async generateDataURL(text: string, options?: QRCodeOptions): Promise<string> {
     const mergedOptions = { ...this.defaultOptions, ...options }
-    
+
     try {
       return await QRCode.toDataURL(text, {
         width: mergedOptions.width,
@@ -62,7 +62,7 @@ export class QRCodeGenerator {
    */
   async generateCanvas(text: string, options?: QRCodeOptions): Promise<HTMLCanvasElement> {
     const mergedOptions = { ...this.defaultOptions, ...options }
-    
+
     try {
       const canvas = document.createElement('canvas')
       await QRCode.toCanvas(canvas, text, {
@@ -83,8 +83,7 @@ export class QRCodeGenerator {
 export const qrCodeGenerator = new QRCodeGenerator()
 
 // 便捷函数：仅负责将给定文本/链接生成二维码
-export const generateQRCode = (text: string, options?: QRCodeOptions) => 
-  qrCodeGenerator.generateDataURL(text, options)
+export const generateQRCode = (text: string, options?: QRCodeOptions) => qrCodeGenerator.generateDataURL(text, options)
 
 // 便捷函数：根据平台名返回二维码颜色（深色/浅色）
 export const getPlatformQrColor = (platform?: string) => {
