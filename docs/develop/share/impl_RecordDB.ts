@@ -5,80 +5,33 @@
  * It provides the actual business logic and API integration.
  */
 
-import { client, ownerAll } from '../../../spx-gui/src/apis/common'
-import type { ByPage } from '../../../spx-gui/src/apis/common'
+import { client, ownerAll, Visibility } from '../../../spx-gui/src/apis/common'
 import { ApiException, ApiExceptionCode } from '../../../spx-gui/src/apis/common/exception'
+import type { ByPage } from '../../../spx-gui/src/apis/common'
 import type {
     RecordData,
     CreateRecordParams,
     UpdateRecordParams,
     ListRecordParams,
-    RecordIdentifier,
     RecordService,
-    RecordInteractionService,
-    RecordUtils,
-    Record as IRecord
+    RecordInteractionService
 } from './module_RecordDB'
 
-// ============================================================================
-// Utility Implementation
-// ============================================================================
-
-class RecordUtilsImpl implements RecordUtils {
-    parseRecordFullName(fullName: string): RecordIdentifier {
-        const [encodedOwner, encodedName] = fullName.split('/')
-        const owner = decodeURIComponent(encodedOwner)
-        const name = decodeURIComponent(encodedName)
-        return { owner, name }
-    }
-
-    stringifyRecordFullName(owner: string, name: string): string {
-        const encodedOwner = encodeURIComponent(owner)
-        const encodedName = encodeURIComponent(name)
-        return `${encodedOwner}/${encodedName}`
-    }
-
-    private buildRecordUrl(owner: string, name: string, suffix: string = ''): string {
-        const fullName = this.stringifyRecordFullName(owner, name)
-        return `/record/${fullName}${suffix}`
-    }
-
-    // Expose buildRecordUrl for internal use
-    getBuildRecordUrl() {
-        return this.buildRecordUrl.bind(this)
-    }
-}
-
-// ============================================================================
-// Record Service Implementation
-// ============================================================================
-
 class RecordServiceImpl implements RecordService {
-    private utils = new RecordUtilsImpl()
-    private buildRecordUrl = this.utils.getBuildRecordUrl()
-
     async createRecord(params: CreateRecordParams, signal?: AbortSignal): Promise<RecordData> {
         return client.post('/records', params, { signal }) as Promise<RecordData>
     }
 
-    async getRecord(owner: string, name: string, signal?: AbortSignal): Promise<RecordData> {
-        const url = this.buildRecordUrl(owner, name)
-        return client.get(url, undefined, { signal }) as Promise<RecordData>
+    async getRecord(id: string, signal?: AbortSignal): Promise<RecordData> {
+        return client.get(`/record/${id}`, undefined, { signal }) as Promise<RecordData>
     }
 
-    async updateRecord(
-        owner: string, 
-        name: string, 
-        params: UpdateRecordParams, 
-        signal?: AbortSignal
-    ): Promise<RecordData> {
-        const url = this.buildRecordUrl(owner, name)
-        return client.put(url, params, { signal }) as Promise<RecordData>
+    async updateRecord(id: string, params: UpdateRecordParams, signal?: AbortSignal): Promise<RecordData> {
+        return client.put(`/record/${id}`, params, { signal }) as Promise<RecordData>
     }
 
-    async deleteRecord(owner: string, name: string): Promise<void> {
-        const url = this.buildRecordUrl(owner, name)
-        return client.delete(url) as Promise<void>
+    async deleteRecord(id: string): Promise<void> {
+        return client.delete(`/record/${id}`) as Promise<void>
     }
 
     async listRecord(params?: ListRecordParams): Promise<ByPage<RecordData>> {
@@ -86,27 +39,20 @@ class RecordServiceImpl implements RecordService {
     }
 }
 
-// ============================================================================
-// Record Interaction Service Implementation
-// ============================================================================
-
 class RecordInteractionServiceImpl implements RecordInteractionService {
-    private utils = new RecordUtilsImpl()
-    private buildRecordUrl = this.utils.getBuildRecordUrl()
-
-    async recordRecordView(owner: string, name: string): Promise<void> {
-        const url = this.buildRecordUrl(owner, name, '/view')
-        return client.post(url) as Promise<void>
+    async recordRecordView(id: string): Promise<void> {
+        return client.post(`/record/${id}/view`) as Promise<void>
     }
 
-    async isLikingRecord(owner: string, name: string): Promise<boolean> {
+    async isLikingRecord(id: string): Promise<boolean> {
         try {
-            const url = this.buildRecordUrl(owner, name, '/liking')
-            await client.get(url)
+            await client.get(`/record/${id}/liking`)
             return true
         } catch (e) {
             if (e instanceof ApiException) {
+                // Not liked.
                 if (e.code === ApiExceptionCode.errorNotFound) return false
+                // Not logged in.
                 if (e.code === ApiExceptionCode.errorUnauthorized) return false
                 throw e
             }
@@ -114,88 +60,50 @@ class RecordInteractionServiceImpl implements RecordInteractionService {
         }
     }
 
-    async likeRecord(owner: string, name: string): Promise<void> {
-        const url = this.buildRecordUrl(owner, name, '/liking')
-        return client.post(url) as Promise<void>
+    async likeRecord(id: string): Promise<void> {
+        return client.post(`/record/${id}/liking`) as Promise<void>
     }
 
-    async unlikeRecord(owner: string, name: string): Promise<void> {
-        const url = this.buildRecordUrl(owner, name, '/liking')
-        return client.delete(url) as Promise<void>
+    async unlikeRecord(id: string): Promise<void> {
+        return client.delete(`/record/${id}/liking`) as Promise<void>
     }
 }
 
-// ============================================================================
-// Main Record Module Implementation
-// ============================================================================
+const recordService = new RecordServiceImpl()
+const recordInteractionService = new RecordInteractionServiceImpl()
 
-class RecordImpl implements IRecord {
-    private recordService = new RecordServiceImpl()
-    private interactionService = new RecordInteractionServiceImpl()
-    private utils = new RecordUtilsImpl()
+// Record Service functions
+export const createRecord = recordService.createRecord.bind(recordService)
+export const getRecord = recordService.getRecord.bind(recordService)
+export const updateRecord = recordService.updateRecord.bind(recordService)
+export const deleteRecord = recordService.deleteRecord.bind(recordService)
+export const listRecord = recordService.listRecord.bind(recordService)
 
-    // RecordService methods
-    createRecord = this.recordService.createRecord.bind(this.recordService)
-    getRecord = this.recordService.getRecord.bind(this.recordService)
-    updateRecord = this.recordService.updateRecord.bind(this.recordService)
-    deleteRecord = this.recordService.deleteRecord.bind(this.recordService)
-    listRecord = this.recordService.listRecord.bind(this.recordService)
-
-    // RecordInteractionService methods
-    recordRecordView = this.interactionService.recordRecordView.bind(this.interactionService)
-    isLikingRecord = this.interactionService.isLikingRecord.bind(this.interactionService)
-    likeRecord = this.interactionService.likeRecord.bind(this.interactionService)
-    unlikeRecord = this.interactionService.unlikeRecord.bind(this.interactionService)
-
-    // RecordUtils methods
-    parseRecordFullName = this.utils.parseRecordFullName.bind(this.utils)
-    stringifyRecordFullName = this.utils.stringifyRecordFullName.bind(this.utils)
-
-    // Service getters
-    getRecordService(): RecordService {
-        return this.recordService
-    }
-
-    getInteractionService(): RecordInteractionService {
-        return this.interactionService
-    }
-
-    getUtils(): RecordUtils {
-        return this.utils
-    }
-}
-
-// ============================================================================
-// Module Factory & Exports
-// ============================================================================
+// Record Interaction Service functions
+export const recordRecordView = recordInteractionService.recordRecordView.bind(recordInteractionService)
+export const isLikingRecord = recordInteractionService.isLikingRecord.bind(recordInteractionService)
+export const likeRecord = recordInteractionService.likeRecord.bind(recordInteractionService)
+export const unlikeRecord = recordInteractionService.unlikeRecord.bind(recordInteractionService)
 
 /**
- * Create a new Record module instance
+ * Get the record service instance
  */
-export function createRecordModule(): IRecord {
-    return new RecordImpl()
+export function getRecordService(): RecordService {
+    return recordService
 }
 
 /**
- * Default Record module instance
+ * Get the record interaction service instance
  */
-export const record = createRecordModule()
+export function getRecordInteractionService(): RecordInteractionService {
+    return recordInteractionService
+}
 
-// ============================================================================
-// Legacy API Exports (for backward compatibility)
-// ============================================================================
+export type {
+    RecordData,
+    CreateRecordParams,
+    UpdateRecordParams,
+    ListRecordParams
+} from './module_RecordDB'
 
-export const createRecord = record.createRecord
-export const getRecord = record.getRecord
-export const updateRecord = record.updateRecord
-export const deleteRecord = record.deleteRecord
-export const listRecord = record.listRecord
-export const recordRecordView = record.recordRecordView
-export const isLikingRecord = record.isLikingRecord
-export const likeRecord = record.likeRecord
-export const unlikeRecord = record.unlikeRecord
-export const parseRecordFullName = record.parseRecordFullName
-export const stringifyRecordFullName = record.stringifyRecordFullName
-
-// Re-exports
-export { ownerAll } from '../../../spx-gui/src/apis/common'
+export { Visibility, ownerAll }
