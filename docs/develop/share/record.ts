@@ -31,8 +31,9 @@ async function startRecording(options: RecordProps = {}): Promise<void> {
     */
 }
 
-function stopRecording(): void {
+function stopRecording(): Blob {
     // 同理，在这里更新状态
+    return handleRecordingComplete()
 }
 
 function handleRecordingComplete(): Blob {
@@ -67,10 +68,10 @@ function getRecordState(): RecordState {
 export {
     startRecording,
     stopRecording,
-    handleRecordingComplete,
+    // handleRecordingComplete, 通过stop暴露
     toggleRecording,
     resetRecording,
-    getRecordState // 变量私有性，只暴露访问方法
+    getRecordState // 闭包实现变量私有性，只暴露访问方法
 }
 
 export type { RecordProps, RecordState }
