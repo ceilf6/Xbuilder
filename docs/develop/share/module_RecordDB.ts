@@ -1,10 +1,22 @@
+/**
+ * Record Module Interface Definition
+ * 
+ * This file defines the interfaces and types for the Record module.
+ * It specifies what functionality the Record module should provide,
+ * but does not contain implementation details.
+ */
+
 import type { ByPage, PaginationParams } from '../../../spx-gui/src/apis/common'
-import { client, ownerAll, Visibility } from '../../../spx-gui/src/apis/common'
-import { ApiException, ApiExceptionCode } from '../../../spx-gui/src/apis/common/exception'
+import { Visibility } from '../../../spx-gui/src/apis/common'
 import type { ProjectData } from '../../../spx-gui/src/apis/project'
 
-export { ownerAll }
+// ============================================================================
+// Core Data Types
+// ============================================================================
 
+/**
+ * Record data structure
+ */
 export type RecordData = {
     /** Unique identifier */
     id: string
@@ -12,11 +24,11 @@ export type RecordData = {
     createdAt: string
     /** Last update timestamp */
     updatedAt: string
-    /** Unique username of the user who created the record */
+    /** Username of the user who created the record */
     owner: string
     /** ID of the associated project */
     projectId: number
-    /** Associated project data (optional, included in some contexts) */
+    /** Associated project data (optional) */
     project?: ProjectData
     /** Unique name of the record under the user */
     name: string
@@ -40,133 +52,111 @@ export type RecordData = {
     likeCount: number
 }
 
+/**
+ * Parameters for creating a new record
+ */
 export type CreateRecordParams = {
-    /** ID of the project that the record is associated with */
     projectId: number
-    /** Unique name of the record under the user */
     name: string
-    /** Display title of the record */
     title: string
-    /** Brief description of the record */
     description: string
-    /** URL of the recorded video file */
     videoUrl: string
-    /** URL of the thumbnail image */
     thumbnailUrl: string
-    /** Duration of the video in seconds */
     duration: number
-    /** Size of the video file in bytes */
     fileSize: number
 }
 
+/**
+ * Parameters for updating an existing record
+ */
 export type UpdateRecordParams = Partial<Pick<RecordData, 'title' | 'description' | 'visibility'>>
 
+/**
+ * Parameters for listing records
+ */
 export type ListRecordParams = PaginationParams & {
-    /**
-     * Filter records by the owner's username.
-     * Defaults to the authenticated user if not specified. Use * to include records from all users.
-     **/
     owner?: string
-    /** Filter records by associated project (format: owner/project) */
     projectFullName?: string
-    /** Filter records by name pattern */
     keyword?: string
-    /** Field by which to order the results */
     orderBy?: 'createdAt' | 'updatedAt' | 'duration' | 'viewCount' | 'likeCount' | 'likedAt'
-    /** Order in which to sort the results */
     sortOrder?: 'asc' | 'desc'
-    /** Filter records liked by the specified user */
     liker?: string
 }
 
-// ============================================================================
-// Helper functions: for constructing record-related URLs
-// ============================================================================
-
-export function parseRecordFullName(fullName: string) {
-    const [encodedOwner, encodedName] = fullName.split('/')
-    const owner = decodeURIComponent(encodedOwner)
-    const name = decodeURIComponent(encodedName)
-    return { owner, name }
+/**
+ * Record identifier
+ */
+export type RecordIdentifier = {
+    owner: string
+    name: string
 }
 
-export function stringifyRecordFullName(owner: string, name: string) {
-    const encodedOwner = encodeURIComponent(owner)
-    const encodedName = encodeURIComponent(name)
-    return `${encodedOwner}/${encodedName}`
+// ============================================================================
+// Core Interfaces
+// ============================================================================
+
+/**
+ * Record management interface
+ * Provides CRUD operations for records
+ */
+export interface RecordService {
+    /** Create a new record */
+    createRecord(params: CreateRecordParams, signal?: AbortSignal): Promise<RecordData>
+    
+    /** Get a specific record */
+    getRecord(owner: string, name: string, signal?: AbortSignal): Promise<RecordData>
+    
+    /** Update an existing record */
+    updateRecord(owner: string, name: string, params: UpdateRecordParams, signal?: AbortSignal): Promise<RecordData>
+    
+    /** Delete a record */
+    deleteRecord(owner: string, name: string): Promise<void>
+    
+    /** List records with filtering and pagination */
+    listRecord(params?: ListRecordParams): Promise<ByPage<RecordData>>
 }
 
 /**
- * Internal helper function: construct record API URL path
- * @param owner Record owner username
- * @param name Record name
- * @param suffix URL suffix (e.g. '/view', '/liking', etc.)
- * @returns Complete API path
+ * Record interaction interface
+ * Provides social features like views and likes
  */
-function buildRecordUrl(owner: string, name: string, suffix: string = ''): string {
-    const fullName = stringifyRecordFullName(owner, name)
-    return `/record/${fullName}${suffix}`
-}
-
-// ============================================================================
-// API Functions
-// ============================================================================
-
-export async function createRecord(params: CreateRecordParams, signal?: AbortSignal) {
-    return client.post('/records', params, { signal }) as Promise<RecordData>
-}
-
-export async function updateRecord(owner: string, name: string, params: UpdateRecordParams, signal?: AbortSignal) {
-    return client.put(buildRecordUrl(owner, name), params, {
-        signal
-    }) as Promise<RecordData>
-}
-
-export function deleteRecord(owner: string, name: string) {
-    return client.delete(buildRecordUrl(owner, name)) as Promise<void>
-}
-
-export async function listRecord(params?: ListRecordParams) {
-    return client.get('/records/list', params) as Promise<ByPage<RecordData>>
-}
-
-export async function getRecord(owner: string, name: string, signal?: AbortSignal) {
-    return client.get(buildRecordUrl(owner, name), undefined, {
-        signal
-    }) as Promise<RecordData>
-}
-
-/** Record a view for the given record */
-export async function recordRecordView(owner: string, name: string) {
-    return client.post(buildRecordUrl(owner, name, '/view')) as Promise<void>
+export interface RecordInteractionService {
+    /** Record a view for the specified record */
+    recordRecordView(owner: string, name: string): Promise<void>
+    
+    /** Check if current user has liked the record */
+    isLikingRecord(owner: string, name: string): Promise<boolean>
+    
+    /** Like the record */
+    likeRecord(owner: string, name: string): Promise<void>
+    
+    /** Unlike the record */
+    unlikeRecord(owner: string, name: string): Promise<void>
 }
 
 /**
- * Check if given record liked by current logged-in user.
- * If not logged in, `false` will be returned.
+ * Record utility interface
+ * Provides helper functions for record name handling
  */
-export async function isLikingRecord(owner: string, name: string) {
-    try {
-        await client.get(buildRecordUrl(owner, name, '/liking'))
-        return true
-    } catch (e) {
-        if (e instanceof ApiException) {
-            // Not liked.
-            if (e.code === ApiExceptionCode.errorNotFound) return false
-            // Not logged in.
-            if (e.code === ApiExceptionCode.errorUnauthorized) return false
-            throw e
-          }
-        return false
-    }
+export interface RecordUtils {
+    /** Parse full name into components */
+    parseRecordFullName(fullName: string): RecordIdentifier
+    
+    /** Convert components to full name */
+    stringifyRecordFullName(owner: string, name: string): string
 }
 
-/** Like given record as current logged-in user */
-export async function likeRecord(owner: string, name: string) {
-    return client.post(buildRecordUrl(owner, name, '/liking')) as Promise<void>
-}
-
-/** Unlike given record as current logged-in user */
-export async function unlikeRecord(owner: string, name: string) {
-    return client.delete(buildRecordUrl(owner, name, '/liking')) as Promise<void>
+/**
+ * Main Record module interface
+ * Combines all record-related functionality
+ */
+export interface Record extends RecordService, RecordInteractionService, RecordUtils {
+    /** Get the record service instance */
+    getRecordService(): RecordService
+    
+    /** Get the interaction service instance */
+    getInteractionService(): RecordInteractionService
+    
+    /** Get the utility functions */
+    getUtils(): RecordUtils
 }
