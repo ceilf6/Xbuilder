@@ -13,8 +13,6 @@
 截屏功能，用于捕获当前应用画面，结果交给 Poster 进行渲染
 ### Recording
 录屏功能，用于捕获用户操作过程并输出视频文件
-### suspend
-主要实现游戏页面的运行的暂停和运行，服务于 Screenshot、Recording
 ### StorageEngine
 负责本地或云端存储，用于保存录屏文件或临时资源
 
