@@ -9,7 +9,9 @@ interface screenShotProps {
 }
 */
 
-/*
+/* 本模块只负责UI弹窗拼接？
+下面的逻辑都应该转到project中？！
+
 window.pauseGame()
 
 const screenShotBlob = window.getScreenshot()
