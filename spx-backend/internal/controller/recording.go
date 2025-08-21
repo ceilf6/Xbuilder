@@ -50,7 +50,7 @@ func toRecordDTO(mRecord model.Record) RecordDTO {
 var recordDescriptionRE = regexp.MustCompile(`^.{0,200}$`)
 
 // 修改标题验证规则
-var recordTitleRE = regexp.MustCompile(`^.{1,20}$`)
+var recordTitleRE = regexp.MustCompile(`^.{1,200}$`)
 
 // ensureRecord ensures the record exists and the user has access to it.
 func (ctrl *Controller) ensureRecord(ctx context.Context, id string, ownedOnly bool) (*model.Record, error) {

@@ -60,16 +60,15 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-// import { useRouter } from 'vue-router'
 import { useMessageHandle } from '@/utils/exception'
 import { humanizeCount, humanizeExactCount, humanizeTime, humanizeExactTime, useAsyncComputed } from '@/utils/utils'
 import { getRecordPageRoute } from '@/router'
-import { type RecordData, deleteRecord, updateRecord } from '@/apis/recording'
+import { type RecordData } from '@/apis/recording'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
 import { getSignedInUsername } from '@/stores/user'
 import { UIImg, UIDropdown, UIIcon, UIMenu, UIMenuItem } from '@/components/ui'
 import UserAvatar from '@/components/community/user/UserAvatar.vue'
-import { useEditRecord, useRemoveRecord } from '.'  // ← 添加 useRemoveRecord
+import { useEditRecord, useRemoveRecord } from '.'
 import { getVideoDuration } from '@/utils/video'
 /**
  * Context (list) where the record item is used
@@ -94,12 +93,28 @@ const props = withDefaults(
 const videoDuration = ref<number | null>(null)
 const isDurationLoading = ref(false)
 
+const convertRecordUrl = (universalUrl: string): string => {
+  if (!universalUrl) return ''
+
+  if (universalUrl.startsWith('kodo://test-xbuilder/')) {
+    const filePath = universalUrl.replace('kodo://test-xbuilder/', '')
+    return `http://t0zmxasek.hn-bkt.clouddn.com/${filePath}`
+  }
+
+  if (universalUrl.startsWith('http://') || universalUrl.startsWith('https://')) {
+    return universalUrl
+  }
+
+  return universalUrl
+}
+
 // 获取视频时长
 const loadVideoDuration = async () => {
   if (!props.record.videoUrl) return
 
   try {
     isDurationLoading.value = true
+    props.record.videoUrl = convertRecordUrl(props.record.videoUrl)
     const duration = await getVideoDuration(props.record.videoUrl)
     videoDuration.value = duration
   } catch (error) {

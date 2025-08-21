@@ -263,9 +263,9 @@ const handleReRecord = useMessageHandle(
     // 如果已经创建了Record，需要先删除它
     if (createdRecord.value) {
       try {
-        const { owner, name } = createdRecord.value
-        await deleteRecord(owner, name)
-        console.log('已删除之前创建的Record:', createdRecord.value.name)
+        const id=  createdRecord.value.id
+        await deleteRecord(id)
+        console.log('已删除之前创建的Record:', createdRecord.value.title)
       } catch (error) {
         console.error('删除Record失败:', error)
         // 即使删除失败，也继续重置状态，让用户可以重新录制
@@ -973,17 +973,14 @@ const createRecordFromRecording = async () => {
     }
 
     // 3. 准备Record数据（使用Universal URL而不是Web URL）
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    // const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
     const recordData = {
-      projectId: parseInt(props.projectId),
-      name: `record-${timestamp.slice(0, 19)}`,
+      projectFullName: `${props.owner}/${props.projectName}`,     
       title: `${props.projectName} 录屏 - ${new Date().toLocaleString('zh-CN')}`,
       description: `这是项目 ${props.projectName} 的录屏记录`,
-      videoUrl: videoUniversalUrl, // ✅ 使用kodo://格式的Universal URL
-      thumbnailUrl: thumbnailUniversalUrl, // ✅ 使用kodo://格式的Universal URL
-      // 确保duration至少为1秒
-      duration: Math.max(1, Math.floor(recordingTime.value)),
-      fileSize: videoBlob.size
+      videoUrl: videoUniversalUrl, //  使用kodo://格式的Universal URL
+      thumbnailUrl: thumbnailUniversalUrl, //  使用kodo://格式的Universal URL
+
     }
 
     // 4. 创建Record记录
@@ -1086,7 +1083,7 @@ const handleSocialMediaShare = async (platform: any) => {
     const projectInfo = {
       projectName: props.projectName,
       // projectUrl: `${window.location.origin}/project/${props.owner}/${props.projectName}`, // 根据实际路由调整
-      projectUrl: `${window.location.origin}/record/${getSignedInUsername()}/${createdRecord.value?.name}`,
+      projectUrl: `${window.location.origin}/record/$${createdRecord.value?.id}`,
       description: `这是我在XBuilder上创作的游戏作品《${props.projectName}》！🎮 在XBuilder学编程，创造属于你的游戏世界！`,
       thumbnail: props.projectThumbnail
     }
