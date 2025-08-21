@@ -1,5 +1,4 @@
-import { SocialPlatform } from "./sharePlatform"
-import { getPlatformByName } from "./sharePlatform"
+import { Platform, SocialPlatforms } from "./sharePlatform"
 import { createPoster } from "./poster"
 /**
  * 模拟qrcode返回的DataURL
@@ -9,23 +8,29 @@ const qrcode = {
         return `data:image/png;base64,${url}`
     }
 }
+// 默认项目链接
+const projectUrl = 'https://www.qiniu.com'
+// 默认选择第一个平台
+const selectPlatform = SocialPlatforms[0]
+// 二维码地址 - 默认空字符串
+let DataURL: string = ''
 
-const selectPlatform = 'qq'
 
-const url = getPlatformByName(selectPlatform)?.url
-
-const defaultDataURL = "https://www.qiniu.com"
-// 模拟qrcode返回的DataURL
-const DataURL = qrcode.toDataURL(url || defaultDataURL)
 // 模拟poster返回的图片
 const poster = await createPoster({
     //相应参数
 })
 // 模拟平台切换
-const handPlatformChange = async (platformName: string) => {
-    const selectPlatform = getPlatformByName(platformName)
-    const url = selectPlatform?.url
-    const DataURL = qrcode.toDataURL(url || defaultDataURL)
+async function handPlatformChange(platform: Platform) {
+    if (platform.shareType.supportProject) {
+        DataURL = qrcode.toDataURL(await platform.shareFunction.shareProject(projectUrl))
+    }
+    else if (platform.shareType.supportPoster) {
+        DataURL = qrcode.toDataURL(await platform.shareFunction.sharePoster(poster, projectUrl))
+    }
+    else {
+        DataURL = ''
+    }
 }
 // 初始化时运行一次
 handPlatformChange(selectPlatform)
