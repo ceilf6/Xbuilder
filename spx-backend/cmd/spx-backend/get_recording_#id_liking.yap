@@ -5,7 +5,7 @@
 
 ctx := &Context
 
-isLiking, err := ctrl.IsLikingRecord(ctx.Context(), ${id})
+isLiking, err := ctrl.HasLikedRecord(ctx.Context(), ${id})
 if err != nil {
 	replyWithInnerError(ctx, err)
 	return
