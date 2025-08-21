@@ -1,6 +1,6 @@
 import { SocialPlatform } from "./sharePlatform"
 import { getPlatformByName } from "./sharePlatform"
-import { posterResult } from "./poster"
+import { createPoster } from "./poster"
 /**
  * 模拟qrcode返回的DataURL
  */
