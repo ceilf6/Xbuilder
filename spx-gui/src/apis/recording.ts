@@ -43,17 +43,17 @@ export type CreateRecordParams = {
 }
 
 export async function createRecord(params: CreateRecordParams, signal?: AbortSignal) {
-  return client.post('/records', params, { signal }) as Promise<RecordData>
+  return client.post('/recordings', params, { signal }) as Promise<RecordData>
 }
 
 export type UpdateRecordParams = Partial<Pick<RecordData, 'title' | 'description'>>
 
 export async function updateRecord(id: string, params: UpdateRecordParams, signal?: AbortSignal) {
-  return client.put(`/record/${id}`, params, { signal }) as Promise<RecordData>
+  return client.put(`/recording/${id}`, params, { signal }) as Promise<RecordData>
 }
 
 export function deleteRecord(id: string) {
-  return client.delete(`/record/${id}`) as Promise<void>
+  return client.delete(`/recording/${id}`) as Promise<void>
 }
 
 export type ListRecordParams = PaginationParams & {
@@ -75,16 +75,16 @@ export type ListRecordParams = PaginationParams & {
 }
 
 export async function listRecord(params?: ListRecordParams) {
-  return client.get('/records/list', params) as Promise<ByPage<RecordData>>
+  return client.get('/recordings/list', params) as Promise<ByPage<RecordData>>
 }
 
 export async function getRecord(id: string, signal?: AbortSignal) {
-  return client.get(`/record/${id}`, undefined, { signal }) as Promise<RecordData>
+  return client.get(`/recording/${id}`, undefined, { signal }) as Promise<RecordData>
 }
 
 /** Record a view for the given record */
 export async function recordRecordView(id: string) {
-  return client.post(`/record/${id}/view`) as Promise<void>
+  return client.post(`/recording/${id}/view`) as Promise<void>
 }
 
 /**
@@ -93,7 +93,7 @@ export async function recordRecordView(id: string) {
  */
 export async function isLikingRecord(id: string) {
   try {
-    await client.get(`/record/${id}/liking`)
+    await client.get(`/recording/${id}/liking`)
     return true
   } catch (e) {
     if (e instanceof ApiException) {
@@ -109,10 +109,10 @@ export async function isLikingRecord(id: string) {
 
 /** Like given record as current logged-in user */
 export async function likeRecord(id: string) {
-  return client.post(`/record/${id}/liking`) as Promise<void>
+  return client.post(`/recording/${id}/liking`) as Promise<void>
 }
 
 /** Unlike given record as current logged-in user */
 export async function unlikeRecord(id: string) {
-  return client.delete(`/record/${id}/liking`) as Promise<void>
+  return client.delete(`/recording/${id}/liking`) as Promise<void>
 }
