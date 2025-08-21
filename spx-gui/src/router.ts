@@ -20,9 +20,8 @@ export function getProjectPageRoute(owner: string, name: string) {
   return `/project/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`
 }
 
-export function getRecordPageRoute(owner: string, name: string) {
-  return `/record/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`
-}
+export function getRecordPageRoute(id: string) {
+  return `/record/${encodeURIComponent(id)}`}
 
 export type UserTab = 'overview' | 'projects' | 'records' | 'likes' | 'followers' | 'following'
 
@@ -112,11 +111,6 @@ const routes: Array<RouteRecordRaw> = [
         path: '/project/:owner/:name',
         component: () => import('@/pages/community/project.vue'),
         props: true
-      },
-      {
-        path: '/record/:owner/:name',
-        component: () => import('@/pages/community/record.vue'),
-        props: true
       }
     ]
   },
@@ -162,6 +156,17 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/docs/api/:pathMatch(.*)?',
     component: () => import('@/pages/docs/api.vue')
+  },
+  {
+    path: '/record/:id',  
+    name: 'Record',
+    component: () => import('@/pages/community/record.vue'),
+    props: route => ({
+      id: route.params.id as string 
+    }),
+    meta: { 
+      requiresSignIn: false 
+    }
   }
 ]
 

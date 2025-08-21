@@ -48,11 +48,11 @@ type delete_project_owner_name_liking struct {
 	yap.Handler
 	*AppV2
 }
-type delete_record_owner_name struct {
+type delete_record_id struct {
 	yap.Handler
 	*AppV2
 }
-type delete_record_owner_name_liking struct {
+type delete_record_id_liking struct {
 	yap.Handler
 	*AppV2
 }
@@ -104,11 +104,11 @@ type get_projects_list struct {
 	yap.Handler
 	*AppV2
 }
-type get_record_owner_name struct {
+type get_record_id struct {
 	yap.Handler
 	*AppV2
 }
-type get_record_owner_name_liking struct {
+type get_record_id_liking struct {
 	yap.Handler
 	*AppV2
 }
@@ -184,15 +184,15 @@ type post_project_owner_name_view struct {
 	yap.Handler
 	*AppV2
 }
-type post_record_owner_name_liking struct {
+type post_record struct {
 	yap.Handler
 	*AppV2
 }
-type post_record_owner_name_view struct {
+type post_record_id_liking struct {
 	yap.Handler
 	*AppV2
 }
-type post_records struct {
+type post_record_id_view struct {
 	yap.Handler
 	*AppV2
 }
@@ -224,7 +224,7 @@ type put_project_owner_name struct {
 	yap.Handler
 	*AppV2
 }
-type put_record_owner_name struct {
+type put_record_id struct {
 	yap.Handler
 	*AppV2
 }
@@ -324,8 +324,8 @@ func (this *AppV2) Main() {
 	_gop_obj2 := &delete_course_id{AppV2: this}
 	_gop_obj3 := &delete_project_owner_name{AppV2: this}
 	_gop_obj4 := &delete_project_owner_name_liking{AppV2: this}
-	_gop_obj5 := &delete_record_owner_name{AppV2: this}
-	_gop_obj6 := &delete_record_owner_name_liking{AppV2: this}
+	_gop_obj5 := &delete_record_id{AppV2: this}
+	_gop_obj6 := &delete_record_id_liking{AppV2: this}
 	_gop_obj7 := &delete_user_username_following{AppV2: this}
 	_gop_obj8 := &get_asset_id{AppV2: this}
 	_gop_obj9 := &get_assets_list{AppV2: this}
@@ -338,8 +338,8 @@ func (this *AppV2) Main() {
 	_gop_obj16 := &get_project_owner_name{AppV2: this}
 	_gop_obj17 := &get_project_owner_name_liking{AppV2: this}
 	_gop_obj18 := &get_projects_list{AppV2: this}
-	_gop_obj19 := &get_record_owner_name{AppV2: this}
-	_gop_obj20 := &get_record_owner_name_liking{AppV2: this}
+	_gop_obj19 := &get_record_id{AppV2: this}
+	_gop_obj20 := &get_record_id_liking{AppV2: this}
 	_gop_obj21 := &get_records_list{AppV2: this}
 	_gop_obj22 := &get_user{AppV2: this}
 	_gop_obj23 := &get_user_username{AppV2: this}
@@ -357,9 +357,9 @@ func (this *AppV2) Main() {
 	_gop_obj35 := &post_project{AppV2: this}
 	_gop_obj36 := &post_project_owner_name_liking{AppV2: this}
 	_gop_obj37 := &post_project_owner_name_view{AppV2: this}
-	_gop_obj38 := &post_record_owner_name_liking{AppV2: this}
-	_gop_obj39 := &post_record_owner_name_view{AppV2: this}
-	_gop_obj40 := &post_records{AppV2: this}
+	_gop_obj38 := &post_record{AppV2: this}
+	_gop_obj39 := &post_record_id_liking{AppV2: this}
+	_gop_obj40 := &post_record_id_view{AppV2: this}
 	_gop_obj41 := &post_user_username_following{AppV2: this}
 	_gop_obj42 := &post_util_fileurls{AppV2: this}
 	_gop_obj43 := &post_workflow_stream_message{AppV2: this}
@@ -367,7 +367,7 @@ func (this *AppV2) Main() {
 	_gop_obj45 := &put_course_series_id{AppV2: this}
 	_gop_obj46 := &put_course_id{AppV2: this}
 	_gop_obj47 := &put_project_owner_name{AppV2: this}
-	_gop_obj48 := &put_record_owner_name{AppV2: this}
+	_gop_obj48 := &put_record_id{AppV2: this}
 	_gop_obj49 := &put_user{AppV2: this}
 	yap.Gopt_AppV2_Main(this, _gop_obj0, _gop_obj1, _gop_obj2, _gop_obj3, _gop_obj4, _gop_obj5, _gop_obj6, _gop_obj7, _gop_obj8, _gop_obj9, _gop_obj10, _gop_obj11, _gop_obj12, _gop_obj13, _gop_obj14, _gop_obj15, _gop_obj16, _gop_obj17, _gop_obj18, _gop_obj19, _gop_obj20, _gop_obj21, _gop_obj22, _gop_obj23, _gop_obj24, _gop_obj25, _gop_obj26, _gop_obj27, _gop_obj28, _gop_obj29, _gop_obj30, _gop_obj31, _gop_obj32, _gop_obj33, _gop_obj34, _gop_obj35, _gop_obj36, _gop_obj37, _gop_obj38, _gop_obj39, _gop_obj40, _gop_obj41, _gop_obj42, _gop_obj43, _gop_obj44, _gop_obj45, _gop_obj46, _gop_obj47, _gop_obj48, _gop_obj49)
 }
@@ -544,73 +544,65 @@ func (this *delete_project_owner_name_liking) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
-//line cmd/spx-backend/delete_record_#owner_#name.yap:10
-func (this *delete_record_owner_name) Main(_gop_arg0 *yap.Context) {
+//line cmd/spx-backend/delete_record_#id.yap:6
+func (this *delete_record_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/delete_record_#owner_#name.yap:10:1
+//line cmd/spx-backend/delete_record_#id.yap:6:1
 	ctx := &this.Context
-//line cmd/spx-backend/delete_record_#owner_#name.yap:11:1
+//line cmd/spx-backend/delete_record_#id.yap:7:1
 	if
-//line cmd/spx-backend/delete_record_#owner_#name.yap:11:1
+//line cmd/spx-backend/delete_record_#id.yap:7:1
 	_, ok := ensureAuthenticatedUser(ctx); !ok {
-//line cmd/spx-backend/delete_record_#owner_#name.yap:12:1
+//line cmd/spx-backend/delete_record_#id.yap:8:1
 		return
 	}
-//line cmd/spx-backend/delete_record_#owner_#name.yap:15:1
-	owner := this.Gop_Env("owner")
-//line cmd/spx-backend/delete_record_#owner_#name.yap:16:1
-	name := this.Gop_Env("name")
-//line cmd/spx-backend/delete_record_#owner_#name.yap:18:1
-	err := this.ctrl.DeleteRecord(ctx.Context(), owner, name)
-//line cmd/spx-backend/delete_record_#owner_#name.yap:19:1
-	if err != nil {
-//line cmd/spx-backend/delete_record_#owner_#name.yap:20:1
+//line cmd/spx-backend/delete_record_#id.yap:11:1
+	if
+//line cmd/spx-backend/delete_record_#id.yap:11:1
+	err := this.ctrl.DeleteRecord(ctx.Context(), this.Gop_Env("id")); err != nil {
+//line cmd/spx-backend/delete_record_#id.yap:12:1
 		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/delete_record_#owner_#name.yap:21:1
+//line cmd/spx-backend/delete_record_#id.yap:13:1
 		return
 	}
-//line cmd/spx-backend/delete_record_#owner_#name.yap:23:1
+//line cmd/spx-backend/delete_record_#id.yap:15:1
 	this.Text__0(204, "", "")
 }
-func (this *delete_record_owner_name) Classfname() string {
-	return "delete_record_#owner_#name"
+func (this *delete_record_id) Classfname() string {
+	return "delete_record_#id"
 }
-func (this *delete_record_owner_name) Classclone() yap.HandlerProto {
+func (this *delete_record_id) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:10
-func (this *delete_record_owner_name_liking) Main(_gop_arg0 *yap.Context) {
+//line cmd/spx-backend/delete_record_#id_liking.yap:6
+func (this *delete_record_id_liking) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:10:1
+//line cmd/spx-backend/delete_record_#id_liking.yap:6:1
 	ctx := &this.Context
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:11:1
+//line cmd/spx-backend/delete_record_#id_liking.yap:7:1
 	if
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:11:1
+//line cmd/spx-backend/delete_record_#id_liking.yap:7:1
 	_, ok := ensureAuthenticatedUser(ctx); !ok {
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:12:1
+//line cmd/spx-backend/delete_record_#id_liking.yap:8:1
 		return
 	}
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:15:1
-	owner := this.Gop_Env("owner")
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:16:1
-	name := this.Gop_Env("name")
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:18:1
-	err := this.ctrl.UnlikeRecord(ctx.Context(), owner, name)
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:19:1
-	if err != nil {
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:20:1
+//line cmd/spx-backend/delete_record_#id_liking.yap:11:1
+	if
+//line cmd/spx-backend/delete_record_#id_liking.yap:11:1
+	err := this.ctrl.UnlikeRecord(ctx.Context(), this.Gop_Env("id")); err != nil {
+//line cmd/spx-backend/delete_record_#id_liking.yap:12:1
 		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:21:1
+//line cmd/spx-backend/delete_record_#id_liking.yap:13:1
 		return
 	}
-//line cmd/spx-backend/delete_record_#owner_#name_liking.yap:23:1
+//line cmd/spx-backend/delete_record_#id_liking.yap:15:1
 	this.Text__0(204, "", "")
 }
-func (this *delete_record_owner_name_liking) Classfname() string {
-	return "delete_record_#owner_#name_liking"
+func (this *delete_record_id_liking) Classfname() string {
+	return "delete_record_#id_liking"
 }
-func (this *delete_record_owner_name_liking) Classclone() yap.HandlerProto {
+func (this *delete_record_id_liking) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
@@ -1357,66 +1349,59 @@ func (this *get_projects_list) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
-//line cmd/spx-backend/get_record_#owner_#name.yap:10
-func (this *get_record_owner_name) Main(_gop_arg0 *yap.Context) {
+//line cmd/spx-backend/get_record_#id.yap:6
+func (this *get_record_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/get_record_#owner_#name.yap:10:1
+//line cmd/spx-backend/get_record_#id.yap:6:1
 	ctx := &this.Context
-//line cmd/spx-backend/get_record_#owner_#name.yap:13:1
-	owner := this.Gop_Env("owner")
-//line cmd/spx-backend/get_record_#owner_#name.yap:14:1
-	name := this.Gop_Env("name")
-//line cmd/spx-backend/get_record_#owner_#name.yap:17:1
-	record, err := this.ctrl.GetRecord(ctx.Context(), owner, name)
-//line cmd/spx-backend/get_record_#owner_#name.yap:18:1
+//line cmd/spx-backend/get_record_#id.yap:8:1
+	record, err := this.ctrl.GetRecord(ctx.Context(), this.Gop_Env("id"))
+//line cmd/spx-backend/get_record_#id.yap:9:1
 	if err != nil {
-//line cmd/spx-backend/get_record_#owner_#name.yap:19:1
+//line cmd/spx-backend/get_record_#id.yap:10:1
 		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/get_record_#owner_#name.yap:20:1
+//line cmd/spx-backend/get_record_#id.yap:11:1
 		return
 	}
-//line cmd/spx-backend/get_record_#owner_#name.yap:23:1
+//line cmd/spx-backend/get_record_#id.yap:13:1
 	this.Json__1(record)
 }
-func (this *get_record_owner_name) Classfname() string {
-	return "get_record_#owner_#name"
+func (this *get_record_id) Classfname() string {
+	return "get_record_#id"
 }
-func (this *get_record_owner_name) Classclone() yap.HandlerProto {
+func (this *get_record_id) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:10
-func (this *get_record_owner_name_liking) Main(_gop_arg0 *yap.Context) {
+//line cmd/spx-backend/get_record_#id_liking.yap:6
+func (this *get_record_id_liking) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:10:1
+//line cmd/spx-backend/get_record_#id_liking.yap:6:1
 	ctx := &this.Context
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:12:1
-	owner := this.Gop_Env("owner")
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:13:1
-	name := this.Gop_Env("name")
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:15:1
-	isLiking, err := this.ctrl.IsLikingRecord(ctx.Context(), owner, name)
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:16:1
+//line cmd/spx-backend/get_record_#id_liking.yap:8:1
+	isLiking, err := this.ctrl.HasLikedRecord(ctx.Context(), this.Gop_Env("id"))
+//line cmd/spx-backend/get_record_#id_liking.yap:9:1
 	if err != nil {
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:17:1
+//line cmd/spx-backend/get_record_#id_liking.yap:10:1
 		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:18:1
+//line cmd/spx-backend/get_record_#id_liking.yap:11:1
 		return
 	}
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:21:1
-	if !isLiking {
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:22:1
-		this.Text__0(404, "", "")
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:23:1
+//line cmd/spx-backend/get_record_#id_liking.yap:14:1
+	if isLiking {
+//line cmd/spx-backend/get_record_#id_liking.yap:15:1
+		ctx.Text__0(204, "", "")
+//line cmd/spx-backend/get_record_#id_liking.yap:16:1
 		return
+	} else {
+//line cmd/spx-backend/get_record_#id_liking.yap:18:1
+		replyWithCode(ctx, errorNotFound)
 	}
-//line cmd/spx-backend/get_record_#owner_#name_liking.yap:26:1
-	this.Text__0(204, "", "")
 }
-func (this *get_record_owner_name_liking) Classfname() string {
-	return "get_record_#owner_#name_liking"
+func (this *get_record_id_liking) Classfname() string {
+	return "get_record_#id_liking"
 }
-func (this *get_record_owner_name_liking) Classclone() yap.HandlerProto {
+func (this *get_record_id_liking) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
@@ -2273,120 +2258,112 @@ func (this *post_project_owner_name_view) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:10
-func (this *post_record_owner_name_liking) Main(_gop_arg0 *yap.Context) {
+//line cmd/spx-backend/post_record.yap:10
+func (this *post_record) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:10:1
+//line cmd/spx-backend/post_record.yap:10:1
 	ctx := &this.Context
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:11:1
+//line cmd/spx-backend/post_record.yap:11:1
 	if
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:11:1
+//line cmd/spx-backend/post_record.yap:11:1
 	_, ok := ensureAuthenticatedUser(ctx); !ok {
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:12:1
+//line cmd/spx-backend/post_record.yap:12:1
 		return
 	}
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:15:1
-	owner := this.Gop_Env("owner")
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:16:1
-	name := this.Gop_Env("name")
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:18:1
-	err := this.ctrl.LikeRecord(ctx.Context(), owner, name)
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:19:1
-	if err != nil {
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:20:1
-		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:21:1
-		return
-	}
-//line cmd/spx-backend/post_record_#owner_#name_liking.yap:23:1
-	this.Text__0(204, "", "")
-}
-func (this *post_record_owner_name_liking) Classfname() string {
-	return "post_record_#owner_#name_liking"
-}
-func (this *post_record_owner_name_liking) Classclone() yap.HandlerProto {
-	_gop_ret := *this
-	return &_gop_ret
-}
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:10
-func (this *post_record_owner_name_view) Main(_gop_arg0 *yap.Context) {
-	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:10:1
-	ctx := &this.Context
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:11:1
-	if
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:11:1
-	_, ok := ensureAuthenticatedUser(ctx); !ok {
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:12:1
-		return
-	}
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:15:1
-	owner := this.Gop_Env("owner")
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:16:1
-	name := this.Gop_Env("name")
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:18:1
-	err := this.ctrl.RecordRecordView(ctx.Context(), owner, name)
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:19:1
-	if err != nil {
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:20:1
-		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:21:1
-		return
-	}
-//line cmd/spx-backend/post_record_#owner_#name_view.yap:23:1
-	this.Text__0(204, "", "")
-}
-func (this *post_record_owner_name_view) Classfname() string {
-	return "post_record_#owner_#name_view"
-}
-func (this *post_record_owner_name_view) Classclone() yap.HandlerProto {
-	_gop_ret := *this
-	return &_gop_ret
-}
-//line cmd/spx-backend/post_records.yap:10
-func (this *post_records) Main(_gop_arg0 *yap.Context) {
-	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/post_records.yap:10:1
-	ctx := &this.Context
-//line cmd/spx-backend/post_records.yap:11:1
-	if
-//line cmd/spx-backend/post_records.yap:11:1
-	_, ok := ensureAuthenticatedUser(ctx); !ok {
-//line cmd/spx-backend/post_records.yap:12:1
-		return
-	}
-//line cmd/spx-backend/post_records.yap:15:1
+//line cmd/spx-backend/post_record.yap:15:1
 	params := &controller.CreateRecordParams{}
-//line cmd/spx-backend/post_records.yap:16:1
+//line cmd/spx-backend/post_record.yap:16:1
 	if !parseJSON(ctx, params) {
-//line cmd/spx-backend/post_records.yap:17:1
+//line cmd/spx-backend/post_record.yap:17:1
 		return
 	}
-//line cmd/spx-backend/post_records.yap:19:1
+//line cmd/spx-backend/post_record.yap:19:1
 	if
-//line cmd/spx-backend/post_records.yap:19:1
+//line cmd/spx-backend/post_record.yap:19:1
 	ok, msg := params.Validate(); !ok {
-//line cmd/spx-backend/post_records.yap:20:1
+//line cmd/spx-backend/post_record.yap:20:1
 		replyWithCodeMsg(ctx, errorInvalidArgs, msg)
-//line cmd/spx-backend/post_records.yap:21:1
+//line cmd/spx-backend/post_record.yap:21:1
 		return
 	}
-//line cmd/spx-backend/post_records.yap:24:1
+//line cmd/spx-backend/post_record.yap:24:1
 	record, err := this.ctrl.CreateRecord(ctx.Context(), params)
-//line cmd/spx-backend/post_records.yap:25:1
+//line cmd/spx-backend/post_record.yap:25:1
 	if err != nil {
-//line cmd/spx-backend/post_records.yap:26:1
+//line cmd/spx-backend/post_record.yap:26:1
 		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/post_records.yap:27:1
+//line cmd/spx-backend/post_record.yap:27:1
 		return
 	}
-//line cmd/spx-backend/post_records.yap:29:1
+//line cmd/spx-backend/post_record.yap:29:1
 	this.Json__0(201, record)
 }
-func (this *post_records) Classfname() string {
-	return "post_records"
+func (this *post_record) Classfname() string {
+	return "post_record"
 }
-func (this *post_records) Classclone() yap.HandlerProto {
+func (this *post_record) Classclone() yap.HandlerProto {
+	_gop_ret := *this
+	return &_gop_ret
+}
+//line cmd/spx-backend/post_record_#id_liking.yap:6
+func (this *post_record_id_liking) Main(_gop_arg0 *yap.Context) {
+	this.Handler.Main(_gop_arg0)
+//line cmd/spx-backend/post_record_#id_liking.yap:6:1
+	ctx := &this.Context
+//line cmd/spx-backend/post_record_#id_liking.yap:7:1
+	if
+//line cmd/spx-backend/post_record_#id_liking.yap:7:1
+	_, ok := ensureAuthenticatedUser(ctx); !ok {
+//line cmd/spx-backend/post_record_#id_liking.yap:8:1
+		return
+	}
+//line cmd/spx-backend/post_record_#id_liking.yap:11:1
+	if
+//line cmd/spx-backend/post_record_#id_liking.yap:11:1
+	err := this.ctrl.LikeRecord(ctx.Context(), this.Gop_Env("id")); err != nil {
+//line cmd/spx-backend/post_record_#id_liking.yap:12:1
+		replyWithInnerError(ctx, err)
+//line cmd/spx-backend/post_record_#id_liking.yap:13:1
+		return
+	}
+//line cmd/spx-backend/post_record_#id_liking.yap:15:1
+	this.Text__0(204, "", "")
+}
+func (this *post_record_id_liking) Classfname() string {
+	return "post_record_#id_liking"
+}
+func (this *post_record_id_liking) Classclone() yap.HandlerProto {
+	_gop_ret := *this
+	return &_gop_ret
+}
+//line cmd/spx-backend/post_record_#id_view.yap:6
+func (this *post_record_id_view) Main(_gop_arg0 *yap.Context) {
+	this.Handler.Main(_gop_arg0)
+//line cmd/spx-backend/post_record_#id_view.yap:6:1
+	ctx := &this.Context
+//line cmd/spx-backend/post_record_#id_view.yap:7:1
+	if
+//line cmd/spx-backend/post_record_#id_view.yap:7:1
+	_, ok := ensureAuthenticatedUser(ctx); !ok {
+//line cmd/spx-backend/post_record_#id_view.yap:8:1
+		return
+	}
+//line cmd/spx-backend/post_record_#id_view.yap:11:1
+	if
+//line cmd/spx-backend/post_record_#id_view.yap:11:1
+	err := this.ctrl.RecordRecordView(ctx.Context(), this.Gop_Env("id")); err != nil {
+//line cmd/spx-backend/post_record_#id_view.yap:12:1
+		replyWithInnerError(ctx, err)
+//line cmd/spx-backend/post_record_#id_view.yap:13:1
+		return
+	}
+//line cmd/spx-backend/post_record_#id_view.yap:15:1
+	this.Text__0(204, "", "")
+}
+func (this *post_record_id_view) Classfname() string {
+	return "post_record_#id_view"
+}
+func (this *post_record_id_view) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
@@ -2749,54 +2726,50 @@ func (this *put_project_owner_name) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }
-//line cmd/spx-backend/put_record_#owner_#name.yap:10
-func (this *put_record_owner_name) Main(_gop_arg0 *yap.Context) {
+//line cmd/spx-backend/put_record_#id.yap:10
+func (this *put_record_id) Main(_gop_arg0 *yap.Context) {
 	this.Handler.Main(_gop_arg0)
-//line cmd/spx-backend/put_record_#owner_#name.yap:10:1
+//line cmd/spx-backend/put_record_#id.yap:10:1
 	ctx := &this.Context
-//line cmd/spx-backend/put_record_#owner_#name.yap:11:1
+//line cmd/spx-backend/put_record_#id.yap:11:1
 	if
-//line cmd/spx-backend/put_record_#owner_#name.yap:11:1
+//line cmd/spx-backend/put_record_#id.yap:11:1
 	_, ok := ensureAuthenticatedUser(ctx); !ok {
-//line cmd/spx-backend/put_record_#owner_#name.yap:12:1
+//line cmd/spx-backend/put_record_#id.yap:12:1
 		return
 	}
-//line cmd/spx-backend/put_record_#owner_#name.yap:15:1
+//line cmd/spx-backend/put_record_#id.yap:15:1
 	params := &controller.UpdateRecordParams{}
-//line cmd/spx-backend/put_record_#owner_#name.yap:16:1
+//line cmd/spx-backend/put_record_#id.yap:16:1
 	if !parseJSON(ctx, params) {
-//line cmd/spx-backend/put_record_#owner_#name.yap:17:1
+//line cmd/spx-backend/put_record_#id.yap:17:1
 		return
 	}
-//line cmd/spx-backend/put_record_#owner_#name.yap:19:1
+//line cmd/spx-backend/put_record_#id.yap:19:1
 	if
-//line cmd/spx-backend/put_record_#owner_#name.yap:19:1
+//line cmd/spx-backend/put_record_#id.yap:19:1
 	ok, msg := params.Validate(); !ok {
-//line cmd/spx-backend/put_record_#owner_#name.yap:20:1
+//line cmd/spx-backend/put_record_#id.yap:20:1
 		replyWithCodeMsg(ctx, errorInvalidArgs, msg)
-//line cmd/spx-backend/put_record_#owner_#name.yap:21:1
+//line cmd/spx-backend/put_record_#id.yap:21:1
 		return
 	}
-//line cmd/spx-backend/put_record_#owner_#name.yap:24:1
-	owner := this.Gop_Env("owner")
-//line cmd/spx-backend/put_record_#owner_#name.yap:25:1
-	name := this.Gop_Env("name")
-//line cmd/spx-backend/put_record_#owner_#name.yap:26:1
-	record, err := this.ctrl.UpdateRecord(ctx.Context(), owner, name, params)
-//line cmd/spx-backend/put_record_#owner_#name.yap:27:1
+//line cmd/spx-backend/put_record_#id.yap:24:1
+	record, err := this.ctrl.UpdateRecord(ctx.Context(), this.Gop_Env("id"), params)
+//line cmd/spx-backend/put_record_#id.yap:25:1
 	if err != nil {
-//line cmd/spx-backend/put_record_#owner_#name.yap:28:1
+//line cmd/spx-backend/put_record_#id.yap:26:1
 		replyWithInnerError(ctx, err)
-//line cmd/spx-backend/put_record_#owner_#name.yap:29:1
+//line cmd/spx-backend/put_record_#id.yap:27:1
 		return
 	}
-//line cmd/spx-backend/put_record_#owner_#name.yap:31:1
+//line cmd/spx-backend/put_record_#id.yap:29:1
 	this.Json__1(record)
 }
-func (this *put_record_owner_name) Classfname() string {
-	return "put_record_#owner_#name"
+func (this *put_record_id) Classfname() string {
+	return "put_record_#id"
 }
-func (this *put_record_owner_name) Classclone() yap.HandlerProto {
+func (this *put_record_id) Classclone() yap.HandlerProto {
 	_gop_ret := *this
 	return &_gop_ret
 }

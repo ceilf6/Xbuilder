@@ -12,9 +12,6 @@ type Record struct {
 	ProjectID int64   `gorm:"column:project_id;index"`
 	Project   Project `gorm:"foreignKey:ProjectID"`
 
-	// Name is the unique name of the record under the user.
-	Name string `gorm:"column:name;index:,class:FULLTEXT;index:,composite:user_id_name,unique"`
-
 	// Title is the display title of the record.
 	Title string `gorm:"column:title"`
 
@@ -26,15 +23,6 @@ type Record struct {
 
 	// ThumbnailURL is the URL of the thumbnail image.
 	ThumbnailURL string `gorm:"column:thumbnail_url"`
-
-	// Duration is the duration of the video in seconds.
-	Duration int64 `gorm:"column:duration"`
-
-	// FileSize is the size of the video file in bytes.
-	FileSize int64 `gorm:"column:file_size"`
-
-	// Visibility is the visibility of the record.
-	Visibility Visibility `gorm:"column:visibility;index;default:1"` // default public
 
 	// ViewCount is the number of times the record has been viewed.
 	ViewCount int64 `gorm:"column:view_count;index"`

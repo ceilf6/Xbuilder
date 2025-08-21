@@ -4,7 +4,7 @@ import { useRouteQueryParamInt } from '@/utils/route'
 import { useQuery } from '@/utils/query'
 import { usePageTitle } from '@/utils/utils'
 import { Visibility, listProject, ownerAll } from '@/apis/project'
-import { listRecord } from '@/apis/record' // 添加导入
+import { listRecord } from '@/apis/recording' // 添加导入
 import { useUser } from '@/stores/user'
 import { UIPagination, useResponsive } from '@/components/ui'
 import ListResultWrapper from '@/components/common/ListResultWrapper.vue'
@@ -53,7 +53,7 @@ const projectsQueryRet = useQuery(
   }
 )
 
-// 录屏查询（新增）
+// 录屏查询
 const recordsQueryRet = useQuery(
   () =>
     listRecord({
@@ -76,7 +76,7 @@ const recordsQueryRet = useQuery(
     <template #title>
       {{ $t({ en: 'What I like', zh: '我喜欢的内容' }) }}
     </template>
-    
+
     <!-- 我喜欢的项目 -->
     <div class="section">
       <h3 class="section-title">
@@ -88,7 +88,8 @@ const recordsQueryRet = useQuery(
             <ProjectItem v-for="project in slotProps.data.data" :key="project.id" :project="project" />
           </ul>
         </ListResultWrapper>
-        <UIPagination v-show="projectsPageTotal > 1" v-model:current="page" class="pagination" :total="projectsPageTotal" />
+        <UIPagination v-show="projectsPageTotal > 1" v-model:current="page" class="pagination"
+          :total="projectsPageTotal" />
       </div>
     </div>
 
@@ -138,7 +139,7 @@ const recordsQueryRet = useQuery(
   display: grid;
   grid-template-columns: repeat(var(--project-num-in-row), 1fr);
   gap: var(--ui-gap-middle);
-  
+
   @include responsive(mobile) {
     gap: 16px;
   }
@@ -147,7 +148,7 @@ const recordsQueryRet = useQuery(
 .pagination {
   margin: 36px 0 20px;
   justify-content: center;
-  
+
   @include responsive(mobile) {
     margin: 24px 0 16px;
   }

@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-// import { useRouter } from 'vue-router'
 import { useRouteQueryParamInt, useRouteQueryParamStrEnum } from '@/utils/route'
-// import { useMessageHandle } from '@/utils/exception/index'
 import { useQuery } from '@/utils/query'
 import { usePageTitle } from '@/utils/utils'
-// import { useEnsureSignedIn } from '@/utils/user'
-import { listRecord, type ListRecordParams, type RecordData } from '@/apis/record'
-// import { getOwnProjectEditorRoute } from '@/router'
-import { getSignedInUsername, useUser } from '@/stores/user'
-import { UISelect, UISelectOption, UIPagination, UIButton, useResponsive } from '@/components/ui'
-// import { useCreateProject } from '@/components/project'
+import { listRecord, type ListRecordParams, type RecordData } from '@/apis/recording'
+import { useUser } from '@/stores/user'
+import { UISelect, UISelectOption, UIPagination, useResponsive } from '@/components/ui'
 import ListResultWrapper from '@/components/common/ListResultWrapper.vue'
 import UserContent from '@/components/community/user/content/UserContent.vue'
 import RecordItem from '@/components/record/RecordItem.vue'
@@ -18,8 +13,6 @@ import RecordItem from '@/components/record/RecordItem.vue'
 const props = defineProps<{
   name: string
 }>()
-
-// const isSignedInUser = computed(() => props.name === getSignedInUsername())
 
 const { data: user } = useUser(() => props.name)
 usePageTitle(() => {
@@ -43,7 +36,7 @@ const page = useRouteQueryParamInt('p', 1)
 enum Order {
   RecentlyUpdated = 'update',
   MostLikes = 'likes',
-  ByDuration = 'duration'
+  MostViews = 'views'
 }
 const order = useRouteQueryParamStrEnum('o', Order, Order.RecentlyUpdated, (kvs) => ({
   ...kvs,
@@ -57,9 +50,6 @@ const listParams = computed<ListRecordParams>(() => {
     pageIndex: page.value
   }
 
-  // 注意：Records 不像 Projects 那样有 visibility 参数
-  // 因为我们的后端 API 已经在 ListRecords 中处理了权限逻辑
-
   switch (order.value) {
     case Order.RecentlyUpdated:
       p.orderBy = 'updatedAt'
@@ -69,8 +59,8 @@ const listParams = computed<ListRecordParams>(() => {
       p.orderBy = 'likeCount'
       p.sortOrder = 'desc'
       break
-    case Order.ByDuration:
-      p.orderBy = 'duration'
+    case Order.MostViews:  // TODO:
+      p.orderBy = 'viewCount'
       p.sortOrder = 'desc'
       break
   }
@@ -85,7 +75,7 @@ const queryRet = useQuery(() => listRecord(listParams.value), {
 const handleRecordUpdated = (updatedRecord: RecordData) => {
   // 方法1：重新获取数据（简单但可能影响性能）
   queryRet.refetch()
-  
+
   // 方法2：精确更新本地数据（推荐）
   // if (queryRet.data.value?.data) {
   //   const index = queryRet.data.value.data.findIndex(r => r.id === updatedRecord.id)
@@ -134,12 +124,9 @@ const handleRecordUpdated = (updatedRecord: RecordData) => {
               zh: '最受喜欢'
             })
           }}</UISelectOption>
-          <UISelectOption :value="Order.ByDuration">{{
-            $t({
-              en: 'By duration',
-              zh: '按时长'
-            })
-          }}</UISelectOption>
+          <UISelectOption :value="Order.MostViews">
+            {{ $t({ en: 'Most views', zh: '最多观看' }) }}
+          </UISelectOption>
         </UISelect>
       </label>
       <!-- <UIButton
@@ -155,14 +142,8 @@ const handleRecordUpdated = (updatedRecord: RecordData) => {
     <div class="records-wrapper">
       <ListResultWrapper v-slot="slotProps" content-type="record" :query-ret="queryRet" :height="524">
         <ul class="records">
-          <RecordItem
-            v-for="record in slotProps.data.data"
-            :key="record.id"
-            context="mine"
-            :record="record"
-            @removed="queryRet.refetch()"
-            @updated="handleRecordUpdated"
-          />
+          <RecordItem v-for="record in slotProps.data.data" :key="record.id" context="mine" :record="record"
+            @removed="queryRet.refetch()" @updated="handleRecordUpdated" />
         </ul>
       </ListResultWrapper>
       <UIPagination v-show="pageTotal > 1" v-model:current="page" class="pagination" :total="pageTotal" />
@@ -177,7 +158,7 @@ const handleRecordUpdated = (updatedRecord: RecordData) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  
+
   @include responsive(mobile) {
     flex-direction: column;
     align-items: flex-start;
@@ -187,7 +168,7 @@ const handleRecordUpdated = (updatedRecord: RecordData) => {
 
 .records-wrapper {
   margin-top: 8px;
-  
+
   @include responsive(mobile) {
     margin-top: 12px;
   }
@@ -197,7 +178,7 @@ const handleRecordUpdated = (updatedRecord: RecordData) => {
   display: grid;
   grid-template-columns: repeat(var(--project-num-in-row), 1fr);
   gap: var(--ui-gap-middle);
-  
+
   @include responsive(mobile) {
     gap: 16px;
   }
@@ -206,7 +187,7 @@ const handleRecordUpdated = (updatedRecord: RecordData) => {
 .pagination {
   margin: 36px 0 20px;
   justify-content: center;
-  
+
   @include responsive(mobile) {
     margin: 24px 0 16px;
   }

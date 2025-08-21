@@ -16,7 +16,7 @@ import { recordingStore } from '@/stores/recording'
 import { getOwnProjectEditorRoute, getProjectEditorRoute, getUserPageRoute } from '@/router'
 import RecordingShareModal from '@/components/project/RecordingShareModal.vue'
 import { useFileUrl } from '@/utils/file'
-import { listRecord } from '@/apis/record'
+import { listRecord } from '@/apis/recording'
 import {
   UIIcon,
   UILoading,
@@ -1113,7 +1113,8 @@ const recordsRet = useQuery(
               <UIButton v-else v-radar="{ name: 'Publish button', desc: 'Click to publish the project' }" type="boring"
                 size="large" icon="share" :loading="handlePublish.isLoading.value" @click="handlePublish.fn">{{ $t({
                   en:
-                    'Publish', zh: '发布' }) }}</UIButton>
+                    'Publish', zh: '发布'
+                }) }}</UIButton>
               <UIDropdown placement="bottom-end" trigger="click">
                 <template #trigger>
                   <UIButton v-radar="{ name: 'More options button', desc: 'Click to see more project options' }"
@@ -1123,7 +1124,8 @@ const recordsRet = useQuery(
                   <UIMenuItem v-if="project.visibility === Visibility.Public"
                     v-radar="{ name: 'Unpublish option', desc: 'Click to unpublish the project' }"
                     @click="handleUnpublish.fn">{{ $t({
-                      en: 'Unpublish', zh: '取消发布' }) }}</UIMenuItem>
+                      en: 'Unpublish', zh: '取消发布'
+                    }) }}</UIMenuItem>
                   <UIMenuItem v-radar="{ name: 'Remove option', desc: 'Click to remove the project' }"
                     @click="handleRemove.fn">{{
                       $t({ en: 'Remove', zh: '删除' }) }}</UIMenuItem>
@@ -1135,7 +1137,8 @@ const recordsRet = useQuery(
                 v-radar="{ name: 'Remix button', desc: 'Click to remix this project' }" type="primary" size="large"
                 icon="remix" :loading="handleRemix.isLoading.value" @click="handleRemix.fn">{{ $t({
                   en: 'Remix', zh:
-                '改编' }) }}</UIButton>
+                    '改编'
+                }) }}</UIButton>
               <UIButton v-radar="{ name: 'Like button', desc: 'Click to like or unlike the project' }"
                 :class="{ liking }" type="boring" size="large" :title="$t(likeCount!.title)"
                 :icon="liking ? 'heart' : 'heartHollow'" :loading="isTogglingLike" @click="handleToggleLike">

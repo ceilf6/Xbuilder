@@ -61,7 +61,7 @@
     useForm,
     type FormValidationResult
   } from '@/components/ui'
-  import { updateRecord, type RecordData } from '@/apis/record'
+  import { updateRecord, type RecordData } from '@/apis/recording'
   import { useI18n } from '@/utils/i18n'
   import { useMessageHandle } from '@/utils/exception'
   
@@ -93,8 +93,7 @@
   async () => {    
     try {
       const updatedRecord = await updateRecord(
-        props.record.owner,
-        props.record.name,
+        props.record.id,
         {
           title: form.value.title.trim(),
           description: form.value.description.trim()

@@ -1,7 +1,7 @@
-// Update a record.
+// Update record by ID.
 //
 // Request:
-//   PUT /record/:owner/:name
+//   PUT /record/:id
 
 import (
 	"github.com/goplus/builder/spx-backend/internal/controller"
@@ -21,9 +21,7 @@ if ok, msg := params.Validate(); !ok {
 	return
 }
 
-owner := ${owner}
-name := ${name}
-record, err := ctrl.UpdateRecord(ctx.Context(), owner, name, params)
+record, err := ctrl.UpdateRecord(ctx.Context(), ${id}, params)
 if err != nil {
 	replyWithInnerError(ctx, err)
 	return

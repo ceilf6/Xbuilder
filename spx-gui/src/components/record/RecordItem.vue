@@ -2,44 +2,39 @@
   <li class="record-item" :class="{ [context]: true }">
     <!-- 右上角操作按钮 -->
     <UIDropdown v-if="context !== 'public' && isOwner && operatable" trigger="click" placement="bottom-end">
-  <template #trigger>
-    <div
-      v-radar="{
-        name: 'Record item operations',
-        desc: 'More operations (edit, remove) for record item, click to open the menu'
-      }"
-      class="options"
-      @click.stop.prevent
-    >
-      <UIIcon class="icon" type="more" />
-    </div>
-  </template>
-  <UIMenu>
-    <UIMenuItem v-radar="{ name: 'Edit option', desc: 'Click to edit the record' }" @click="handleEdit.fn">
-      {{ $t({ en: 'Edit', zh: '编辑' }) }}
-    </UIMenuItem>
-    <UIMenuItem v-radar="{ name: 'Remove option', desc: 'Click to remove the record' }" @click="handleRemove">
-      {{ $t({ en: 'Remove', zh: '删除' }) }}
-    </UIMenuItem>
-  </UIMenu>
-</UIDropdown>    <RouterLink :to="to" class="link" @click="$emit('selected')">
+      <template #trigger>
+        <div v-radar="{
+          name: 'Record item operations',
+          desc: 'More operations (edit, remove) for record item, click to open the menu'
+        }" class="options" @click.stop.prevent>
+          <UIIcon class="icon" type="more" />
+        </div>
+      </template>
+      <UIMenu>
+        <UIMenuItem v-radar="{ name: 'Edit option', desc: 'Click to edit the record' }" @click="handleEdit.fn">
+          {{ $t({ en: 'Edit', zh: '编辑' }) }}
+        </UIMenuItem>
+        <UIMenuItem v-radar="{ name: 'Remove option', desc: 'Click to remove the record' }" @click="handleRemove">
+          {{ $t({ en: 'Remove', zh: '删除' }) }}
+        </UIMenuItem>
+      </UIMenu>
+    </UIDropdown>
+    <RouterLink :to="to" class="link" @click="$emit('selected')">
       <div class="media">
         <div class="thumbnail">
           <UIImg :src="thumbnailUrl" :alt="record.title" />
-          <div class="duration-badge">
-            {{ formatDuration(record.duration) }}
+          <div v-if="videoDuration !== null" class="duration-badge">
+            {{ formatDuration(videoDuration) }}
           </div>
         </div>
         <div v-if="shouldShowAvatar" class="owner-avatar-wrapper">
-          <svg
-class="avatar-bg" xmlns="http://www.w3.org/2000/svg" width="67" height="31" viewBox="0 0 67 31"
+          <svg class="avatar-bg" xmlns="http://www.w3.org/2000/svg" width="67" height="31" viewBox="0 0 67 31"
             fill="none">
             <path
               d="M48.67 11.94C43.36 6.71 39.42 0 29.3 0H28.7C18.58 0 14.64 6.71 9.33 11.94C5.47 16.76 -2.39 17.81 -9 18V31H67V18C60.39 17.81 52.53 16.76 48.67 11.94Z"
               fill="white" />
           </svg>
-          <UserAvatar
-v-radar="{ name: 'Record owner avatar', desc: 'Click to view profile of record owner' }"
+          <UserAvatar v-radar="{ name: 'Record owner avatar', desc: 'Click to view profile of record owner' }"
             class="owner-avatar" size="small" :user="record.owner" />
         </div>
       </div>
@@ -64,17 +59,18 @@ v-radar="{ name: 'Record owner avatar', desc: 'Click to view profile of record o
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 // import { useRouter } from 'vue-router'
 import { useMessageHandle } from '@/utils/exception'
 import { humanizeCount, humanizeExactCount, humanizeTime, humanizeExactTime, useAsyncComputed } from '@/utils/utils'
 import { getRecordPageRoute } from '@/router'
-import { Visibility, type RecordData, deleteRecord, updateRecord } from '@/apis/record'
+import { type RecordData, deleteRecord, updateRecord } from '@/apis/recording'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
 import { getSignedInUsername } from '@/stores/user'
 import { UIImg, UIDropdown, UIIcon, UIMenu, UIMenuItem } from '@/components/ui'
 import UserAvatar from '@/components/community/user/UserAvatar.vue'
 import { useEditRecord, useRemoveRecord } from '.'  // ← 添加 useRemoveRecord
+import { getVideoDuration } from '@/utils/video'
 /**
  * Context (list) where the record item is used
  * - `public`: List of public records from all users
@@ -93,6 +89,28 @@ const props = withDefaults(
     context: 'public'
   }
 )
+
+// 视频时长相关状态
+const videoDuration = ref<number | null>(null)
+const isDurationLoading = ref(false)
+
+// 获取视频时长
+const loadVideoDuration = async () => {
+  if (!props.record.videoUrl) return
+
+  try {
+    isDurationLoading.value = true
+    const duration = await getVideoDuration(props.record.videoUrl)
+    videoDuration.value = duration
+  } catch (error) {
+    console.warn('Failed to get video duration:', error)
+    videoDuration.value = null
+  } finally {
+    isDurationLoading.value = false
+  }
+}
+
+loadVideoDuration()
 
 const emit = defineEmits<{
   selected: []
@@ -117,12 +135,8 @@ const shouldShowAvatar = computed(() => {
   return false
 })
 
-// const router = useRouter()
-
 const to = computed(() => {
-  const { owner, name } = props.record
-  // 使用实际的录屏详情页面路由
-  return getRecordPageRoute(owner, name)
+  return getRecordPageRoute(props.record.id)
 })
 
 const thumbnailUrl = useAsyncComputed(async (onCleanup) => {
@@ -174,8 +188,7 @@ const handleEdit = useMessageHandle(
 const removeRecord = useRemoveRecord()
 const handleRemove = useMessageHandle(
   async () => {
-    const { owner, name } = props.record
-    await removeRecord(owner, name)
+    await removeRecord(props.record.id, props.record.title)
     emit('removed')
   },
   { en: 'Failed to remove record', zh: '删除录屏失败' },
@@ -228,7 +241,7 @@ const handleRemove = useMessageHandle(
   cursor: pointer;
   transition: 0.1s;
   z-index: 10;
-  
+
   // 移动端调整操作按钮大小
   @include responsive(mobile) {
     width: 28px;
@@ -245,7 +258,7 @@ const handleRemove = useMessageHandle(
   .icon {
     width: 21px;
     height: 21px;
-    
+
     // 移动端调整图标大小
     @include responsive(mobile) {
       width: 18px;
@@ -300,6 +313,11 @@ const handleRemove = useMessageHandle(
     @include responsive(mobile) {
       font-size: 0.86em;
       padding: 0.14em 0.43em;
+    }
+
+    // 加载状态样式
+    &.loading {
+      opacity: 0.6;
     }
   }
 
@@ -385,8 +403,8 @@ const handleRemove = useMessageHandle(
     align-items: center;
     gap: 12px;
     margin-top: auto;
-    font-size: 13px;  // ← 改为与 ProjectItem 相同
-  line-height: 20px;  // ← 添加行高设置
+    font-size: 13px; // ← 改为与 ProjectItem 相同
+    line-height: 20px; // ← 添加行高设置
     color: var(--ui-color-grey-700);
 
     @include responsive(mobile) {

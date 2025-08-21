@@ -11,7 +11,7 @@ import ProjectsSection from '@/components/community/ProjectsSection.vue'
 import ProjectItem from '@/components/project/ProjectItem.vue'
 import MyProjectsEmpty from '@/components/community/MyProjectsEmpty.vue'
 import MyRecordsEmpty from '@/components/community/MyRecordsEmpty.vue'
-import { listRecord } from '@/apis/record'
+import { listRecord } from '@/apis/recording'
 import RecordItem from '@/components/record/RecordItem.vue'
 
 const props = defineProps<{
@@ -118,8 +118,7 @@ const likedRecordsRet = useQuery(
 <template>
   <div class="user-overview">
     <CommunityCard class="card">
-      <ProjectsSection
-v-radar="{ name: 'User projects', desc: 'Section showing user\'s projects' }" context="user"
+      <ProjectsSection v-radar="{ name: 'User projects', desc: 'Section showing user\'s projects' }" context="user"
         :num-in-row="numInRow" :query-ret="projectsRet" :link-to="projectsRoute">
         <template #title>
           {{
@@ -140,14 +139,12 @@ v-radar="{ name: 'User projects', desc: 'Section showing user\'s projects' }" co
         <template v-if="isSignedInUser" #empty="emptyProps">
           <MyProjectsEmpty :style="emptyProps.style" />
         </template>
-        <ProjectItem
-v-for="project in projectsRet.data.value" :key="project.id" context="mine" :project="project"
+        <ProjectItem v-for="project in projectsRet.data.value" :key="project.id" context="mine" :project="project"
           @removed="projectsRet.refetch()" />
       </ProjectsSection>
     </CommunityCard>
     <CommunityCard class="card">
-      <ProjectsSection
-v-radar="{ name: 'User records', desc: 'Section showing user\'s records' }" context="user"
+      <ProjectsSection v-radar="{ name: 'User records', desc: 'Section showing user\'s records' }" context="user"
         :num-in-row="numInRow" :query-ret="recordsRet" :link-to="recordsRoute" content-type="record">
         <template #title>
           {{
@@ -169,14 +166,12 @@ v-radar="{ name: 'User records', desc: 'Section showing user\'s records' }" cont
           <MyRecordsEmpty :style="emptyProps.style" />
         </template>
         <!-- 改为使用 RecordItem -->
-        <RecordItem
-v-for="record in recordsRet.data.value" :key="record.id" context="mine" :record="record"
+        <RecordItem v-for="record in recordsRet.data.value" :key="record.id" context="mine" :record="record"
           @removed="recordsRet.refetch()" />
       </ProjectsSection>
     </CommunityCard>
     <CommunityCard class="card">
-      <ProjectsSection
-v-radar="{ name: 'User liked projects', desc: 'Section showing projects liked by this user' }"
+      <ProjectsSection v-radar="{ name: 'User liked projects', desc: 'Section showing projects liked by this user' }"
         context="user" :num-in-row="numInRow" :query-ret="likesRet" :link-to="likesRoute">
         <template #title>
           {{
@@ -198,8 +193,7 @@ v-radar="{ name: 'User liked projects', desc: 'Section showing projects liked by
       </ProjectsSection>
     </CommunityCard>
     <CommunityCard class="card">
-      <ProjectsSection
-v-radar="{ name: 'User liked records', desc: 'Section showing records liked by this user' }"
+      <ProjectsSection v-radar="{ name: 'User liked records', desc: 'Section showing records liked by this user' }"
         context="user" :num-in-row="numInRow" :query-ret="likedRecordsRet" :link-to="likesRoute" content-type="record">
         <template #title>
           {{

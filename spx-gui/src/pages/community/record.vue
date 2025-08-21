@@ -11,16 +11,8 @@
           <!-- Left Side - Video Player -->
           <div ref="videoSideRef" class="video-side">
             <div class="video-container">
-              <video
-                ref="videoRef" 
-                :src="videoUrl" 
-                :poster="thumbnailUrl || ''" 
-                controls 
-                preload="metadata"
-                crossorigin="anonymous" 
-                @loadedmetadata="handleVideoLoaded" 
-                @play="handleVideoPlay"
-              >
+              <video ref="videoRef" :src="videoUrl" :poster="thumbnailUrl || ''" controls preload="metadata"
+                crossorigin="anonymous" @loadedmetadata="handleVideoLoaded" @play="handleVideoPlay">
                 {{ $t({ en: 'Your browser does not support video playback.', zh: '您的浏览器不支持视频播放。' }) }}
               </video>
             </div>
@@ -45,24 +37,14 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-              <UIButton
-                v-if="record.project" 
-                type="primary" 
-                size="large" 
-                :loading="handlePlayProject.isLoading.value"
-                @click="handlePlayProject.fn"
-              >
+              <UIButton v-if="record.projectFullName" type="primary" size="large"
+                :loading="handlePlayProject.isLoading.value" @click="handlePlayProject.fn">
                 <UIIcon type="play" />
                 {{ $t({ en: 'Play Game', zh: '一键开玩' }) }}
               </UIButton>
               <div class="button-row">
-                <UIButton
-                  type="secondary" 
-                  size="medium" 
-                  :class="{ liking }" 
-                  :loading="isTogglingLike"
-                  @click="handleToggleLike"
-                >
+                <UIButton type="secondary" size="medium" :class="{ liking }" :loading="isTogglingLike"
+                  @click="handleToggleLike">
                   <UIIcon type="heart" />
                   {{ record.likeCount }}
                 </UIButton>
@@ -87,13 +69,13 @@
             </div>
 
             <!-- Project Description -->
-            <div v-if="record.project" class="description-section">
+            <div v-if="projectQuery.data.value" class="description-section">
               <h3>{{ $t({ en: 'Game Description', zh: '游戏描述' }) }}</h3>
               <p class="description-text">
-                {{ record.project.description || $t({ en: 'No description available', zh: '暂无描述' }) }}
+                {{ projectQuery.data.value.description || $t({ en: 'No description available', zh: '暂无描述' }) }}
               </p>
-              <div class="project-link">
-                <RouterUILink :to="getProjectPageRoute(record.project.owner, record.project.name)">
+              <div v-if="projectPageLink" class="project-link">
+                <RouterUILink :to="projectPageLink">
                   {{ $t({ en: 'View Project', zh: '查看项目' }) }} →
                 </RouterUILink>
               </div>
@@ -109,24 +91,17 @@
       </div>
 
       <!-- Related Records Frame - 下方框：相关录屏 -->
-      <div v-if="record.project" class="related-content-frame">
-        <ProjectsSection
-          context="project" 
-          :num-in-row="numInRow" 
-          :query-ret="relatedRecordsQuery"
-          :link-to="allRecordsLink"
-        >
+      <div v-if="record.projectFullName" class="related-content-frame">
+        <ProjectsSection context="project" :num-in-row="numInRow" :query-ret="relatedRecordsQuery"
+          :link-to="allRecordsLink">
           <template #title>
             {{ $t({ en: 'More recordings of this project', zh: '该项目的其他录屏' }) }}
           </template>
           <template #link>
             {{ $t({ en: 'View all', zh: '查看所有' }) }}
           </template>
-          <RecordItem
-            v-for="relatedRecord in relatedRecordsQuery.data.value" 
-            :key="relatedRecord.id"
-            :record="relatedRecord" 
-          />
+          <RecordItem v-for="relatedRecord in relatedRecordsQuery.data.value" :key="relatedRecord.id"
+            :record="relatedRecord" />
         </ProjectsSection>
       </div>
     </CenteredWrapper>
@@ -141,7 +116,7 @@ import { useQuery } from '@/utils/query'
 import { humanizeTime, useAsyncComputed } from '@/utils/utils'
 import { getProjectPageRoute, getUserPageRoute } from '@/router'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
-import { getRecord, recordRecordView, listRecord, likeRecord, unlikeRecord, isLikingRecord } from '@/apis/record'
+import { getRecord, recordRecordView, listRecord, likeRecord, unlikeRecord, isLikingRecord } from '@/apis/recording'
 import { UILoading, UIError, UIButton, UIIcon, useResponsive } from '@/components/ui'
 import UserAvatar from '@/components/community/user/UserAvatar.vue'
 import CenteredWrapper from '@/components/community/CenteredWrapper.vue'
@@ -151,13 +126,12 @@ import RouterUILink from '@/components/common/RouterUILink.vue'
 import { watchEffect } from 'vue'
 import { useMessageHandle } from '@/utils/exception'
 import { useEnsureSignedIn } from '@/utils/user'
-import { Visibility } from '@/apis/project'
+import { parseProjectFullName, getProject, Visibility } from '@/apis/project'
 import { useMessage } from '@/components/ui'
 import { useI18n } from '@/utils/i18n'
 
 const props = defineProps<{
-  owner: string
-  name: string
+  id: string
 }>()
 
 const router = useRouter()
@@ -194,19 +168,37 @@ const adjustInfoSideHeight = () => {
 const checkLikingStatus = async () => {
   if (!record.value) return
   try {
-    liking.value = await isLikingRecord(props.owner, props.name)
+    liking.value = await isLikingRecord(props.id)
   } catch (error) {
     console.warn('Failed to check liking status:', error)
     liking.value = false
   }
 }
 
+const projectPageLink = computed(() => {
+  if (!record.value?.projectFullName) return null
+  const { owner, project } = parseProjectFullName(record.value.projectFullName)
+  return getProjectPageRoute(owner, project)
+})
+
+const projectQuery = useQuery(
+  async () => {
+    if (!record.value?.projectFullName) return null
+    const { owner, project } = parseProjectFullName(record.value.projectFullName)
+    return await getProject(owner, project)
+  },
+  {
+    en: 'Failed to load project',
+    zh: '加载项目失败'
+  }
+)
+
 const ensureSignedIn = useEnsureSignedIn()
 
 const handleLike = useMessageHandle(
   async () => {
     await ensureSignedIn()
-    await likeRecord(props.owner, props.name)
+    await likeRecord(props.id)
     liking.value = true
     // 更新本地计数
     if (record.value) {
@@ -219,7 +211,7 @@ const handleLike = useMessageHandle(
 const handleUnlike = useMessageHandle(
   async () => {
     await ensureSignedIn()
-    await unlikeRecord(props.owner, props.name)
+    await unlikeRecord(props.id)
     liking.value = false
     // 更新本地计数
     if (record.value) {
@@ -245,7 +237,7 @@ const {
   refetch
 } = useQuery(
   async (ctx) => {
-    const recordData = await getRecord(props.owner, props.name, ctx.signal)
+    const recordData = await getRecord(props.id, ctx.signal)
     return recordData
   },
   {
@@ -295,12 +287,11 @@ const videoUrl = computed(() => {
 // 相关录屏查询
 const relatedRecordsQuery = useQuery(
   async () => {
-    if (!record.value?.project) return []
+    if (!record.value?.projectFullName) return []
 
-    const projectFullName = `${record.value.project.owner}/${record.value.project.name}`
     const { data: records } = await listRecord({
-      owner: '*',  // 关键！传入 '*' 表示查询所有用户
-      projectFullName: projectFullName,
+      owner: '*',  // 传入 '*' 表示查询所有用户
+      projectFullName: record.value.projectFullName,
       pageIndex: 1,
       pageSize: numInRow.value,
       orderBy: 'createdAt',
@@ -318,8 +309,8 @@ const relatedRecordsQuery = useQuery(
 
 // 查看所有相关录屏的链接
 const allRecordsLink = computed(() => {
-  if (!record.value?.project) return null
-  return getUserPageRoute(record.value.project.owner, 'records')
+  if (!record.value?.projectFullName) return null
+  return getUserPageRoute(record.value.projectFullName, 'records')
 })
 
 // 事件处理
@@ -333,7 +324,7 @@ const handleVideoLoaded = () => {
 const handleVideoPlay = async () => {
   // 记录观看次数
   try {
-    await recordRecordView(props.owner, props.name)
+    await recordRecordView(props.id)
   } catch (error) {
     console.warn('Failed to record view:', error)
   }
@@ -344,13 +335,12 @@ const { t } = useI18n()
 
 const handlePlayProject = useMessageHandle(
   async () => {
-    if (!record.value?.project) return
+    if (!record.value?.projectFullName) return
 
-    const project = record.value.project
+    const project = projectQuery.data.value
 
     // 检查项目可见性
-    if (project.visibility === Visibility.Private) {
-      // 项目已设置为不可见，显示提示
+    if (project != null && (project.visibility === Visibility.Private)) {
       message.warning(
         t({
           en: 'This project has been set to private and is no longer accessible.',
@@ -360,9 +350,9 @@ const handlePlayProject = useMessageHandle(
       return
     }
 
-    // 项目可见，正常跳转
-    const projectPath = getProjectPageRoute(project.owner, project.name)
-    await router.push(projectPath)
+    if (projectPageLink.value) {
+      await router.push(projectPageLink.value)
+    }
   },
   {
     en: 'Failed to access project',
@@ -383,7 +373,7 @@ onMounted(() => {
   nextTick(() => {
     adjustInfoSideHeight()
   })
-  
+
   window.addEventListener('resize', adjustInfoSideHeight)
 })
 
@@ -396,11 +386,11 @@ watchEffect(async () => {
   if (record.value && !isLoading.value) {
     try {
       // 记录观看
-      await recordRecordView(props.owner, props.name)
-      
+      await recordRecordView(props.id)
+
       // 检查点赞状态
       await checkLikingStatus()
-      
+
       // 数据加载完成后调整高度
       nextTick(() => {
         adjustInfoSideHeight()
@@ -437,12 +427,13 @@ watchEffect(async () => {
 
 .content-layout {
   display: flex;
-  align-items: flex-start; /* 顶部对齐，不拉伸高度 */
+  align-items: flex-start;
+  /* 顶部对齐，不拉伸高度 */
 
   @include responsive(tablet) {
     flex-direction: column;
   }
-  
+
   @include responsive(mobile) {
     flex-direction: column;
     gap: 0;
@@ -454,7 +445,7 @@ watchEffect(async () => {
   flex: 1;
   min-width: 0;
   padding: 24px;
-  
+
   @include responsive(mobile) {
     padding: 16px;
   }
@@ -463,10 +454,12 @@ watchEffect(async () => {
 .video-container {
   position: relative;
   background: var(--ui-color-grey-900);
-  aspect-ratio: 16 / 9; /* 固定16:9比例 */
+  aspect-ratio: 16 / 9;
+  /* 固定16:9比例 */
   border-radius: var(--ui-border-radius-2);
   overflow: hidden;
-  width: 100%; /* 固定宽度 */
+  width: 100%;
+  /* 固定宽度 */
 
   video {
     width: 100%;
@@ -479,12 +472,14 @@ watchEffect(async () => {
 
 /* 右侧信息面板 - 高度由JavaScript动态控制 */
 .info-side {
-  flex: 0 0 400px; /* 固定宽度400px */
+  flex: 0 0 400px;
+  /* 固定宽度400px */
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow-y: auto; /* 允许滚动 */
+  overflow-y: auto;
+  /* 允许滚动 */
 
   /* 自定义滚动条样式 */
   &::-webkit-scrollbar {
@@ -499,7 +494,7 @@ watchEffect(async () => {
   &::-webkit-scrollbar-thumb {
     background: var(--ui-color-grey-400);
     border-radius: 3px;
-    
+
     &:hover {
       background: var(--ui-color-grey-500);
     }
@@ -511,7 +506,7 @@ watchEffect(async () => {
     max-height: none;
     overflow-y: visible;
   }
-  
+
   @include responsive(mobile) {
     flex: none;
     padding: 16px;
@@ -581,7 +576,7 @@ watchEffect(async () => {
       color: var(--ui-color-red-main);
     }
   }
-  
+
   @include responsive(mobile) {
     .ui-button {
       height: 48px;
@@ -624,12 +619,15 @@ watchEffect(async () => {
 }
 
 .description-section {
-  flex-shrink: 0; /* 改为 0，不允许收缩 */
+  flex-shrink: 0;
+  /* 改为 0，不允许收缩 */
   min-height: 0;
-  margin-bottom: 20px; /* 添加底部间距 */
+  margin-bottom: 20px;
+  /* 添加底部间距 */
 
   &:last-child {
-    margin-bottom: 0; /* 最后一个元素不需要底部间距 */
+    margin-bottom: 0;
+    /* 最后一个元素不需要底部间距 */
   }
 
   h3 {
@@ -638,7 +636,7 @@ watchEffect(async () => {
     color: var(--ui-color-title);
     margin: 0 0 12px 0;
     flex-shrink: 0;
-    
+
     @include responsive(mobile) {
       font-size: 15px;
       margin: 0 0 10px 0;
@@ -651,8 +649,9 @@ watchEffect(async () => {
   line-height: 1.6;
   color: var(--ui-color-text);
   margin: 0 0 12px 0;
-  word-wrap: break-word; /* 长单词换行 */
-  
+  word-wrap: break-word;
+  /* 长单词换行 */
+
   @include responsive(mobile) {
     font-size: 13px;
     line-height: 1.5;
@@ -712,7 +711,7 @@ watchEffect(async () => {
       padding: 12px 16px;
     }
   }
-  
+
   .related-content-frame {
     padding: 16px;
   }
