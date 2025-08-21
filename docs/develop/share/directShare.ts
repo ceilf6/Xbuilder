@@ -18,7 +18,7 @@ const defaultDataURL = "https://www.qiniu.com"
 // 模拟qrcode返回的DataURL
 const DataURL = qrcode.toDataURL(url || defaultDataURL)
 // 模拟poster返回的图片
-const poster = await posterResult({
+const poster = await createPoster({
     //相应参数
 })
 // 模拟平台切换

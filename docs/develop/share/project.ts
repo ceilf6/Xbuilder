@@ -1,2 +1,3 @@
 import { Project } from '@/models/project'
-import { screenShotProps }from './screenShot'
+
+// 截屏弹窗逻辑在screenShot中自实现
