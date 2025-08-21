@@ -13,8 +13,9 @@
 截屏功能，用于捕获当前应用画面，结果交给 Poster 进行渲染
 ### Recording
 录屏功能，用于捕获用户操作过程并输出视频文件
-### StorageEngine
-负责本地或云端存储，用于保存录屏文件或临时资源
+### Recording APIs
+spx-backend 提供的用于对 Recording 管理的 APIs。
+详情见 [`Recording APIs`](./module_RecordingApis.ts).
 
 ## 主要功能实现
 这里我们描述如何通过组合上述模块来实现关键功能。
@@ -23,9 +24,9 @@ Share模块实现了share功能，借助直接directShare、screenshotShare 、r
 ### directShare
 直接分享模块，通过集成 Poster、QRCode 和 Third-partyPlatform，将生成的海报或二维码直接分享到第三方平台
 ### screenshotShare
-屏分享模块。通过 Suspend 暂停游戏画面，使用 Screenshot 捕获当前场景，并结合 Poster 与 QRCode 生成分享内容，最后调用 Third-partyPlatform 完成分享
+截屏分享模块。通过 Suspend 暂停游戏画面，使用 Screenshot 捕获当前场景，并结合 Poster 与 QRCode 生成分享内容，最后调用 Third-partyPlatform 完成分享
 ### recordShare
-屏分享模块。通过 Suspend 控制录制时机，利用 Recording 捕获用户操作生成视频，并结合 QRCode 与 StorageEngine 存储或生成链接，最终通过 Third-partyPlatform 分享至目标平台
+录屏分享模块。通过 Suspend 控制录制时机，利用 Recording 捕获用户操作生成视频，并结合 QRCode 与 StorageEngine 存储或生成链接，最终通过 Third-partyPlatform 分享至目标平台
 ## 模块关系
 下图说明了系统中各个模块之间的关系：
 
@@ -50,8 +51,8 @@ graph TB
     Suspend["`**Suspend**
     游戏暂停/恢复`"]
 
-    Storage["`**StorageEngine**
-    存储录屏/临时资源`"]
+    Recording APIs["`**Recording APIs**
+    录屏数据管理`"]
 
     %% 组件模块
     Share["`**Share**
