@@ -17,7 +17,8 @@ if click record:
         window.startRecording()
     else:
         window.stopRecording()
-        window.getRecord()
+        window.pauseGame()
+        const recordFile = window.getRecord()
         
         传入 record 视频文件，亮出弹窗
 
