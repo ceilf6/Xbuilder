@@ -1,42 +1,22 @@
-import { posterResult } from "./poster"
-import { ref, watch, onMounted, nextTick, computed } from 'vue' // 通过父组件（在本项目中是project.vue）传入参数
-import { generateProjectQRCode } from './module_QRCode'
-import html2canvas from 'html2canvas'
-import { getCanvasElement } from "./getCanvas"
+import { Project } from '@/models/project'
+import { createPoster, downloadPoster, posterProps } from "./poster"
+import { getPlatformByName } from './sharePlatform'
 
-interface screenShotParams {
-    canvasElement?: HTMLCanvasElement // 直接传入 canavs 元素
-    canvasSelector?: string // 在本项目中为'game-canvas'
-    
-    info:{
-        width?: number
-        height?: number
-        title?: string
-        owner?: string
-        description?: string
-        stats?: {
-            viewCnt?: number
-            likeCnt?: number
-            starCnt?: number
-            remixCnt?: number
-        }
-        jumpToUrl?: string
-    }
+/* 直接复用 posterProps
+interface screenShotProps {
+    img: File,
+    project: Project
 }
+*/
 
+/*
+window.pauseGame()
 
-async function screenShotResult(params: screenShotParams): Promise<string> {
-    const canvas = await getCanvasElement(params)
-    const imgSrc = canvas.toDataURL('image/png')
+const screenShotBlob = window.getScreenshot()
 
-    const posterProps = {
-        ...params.info, // 展开拼接
-        imgSrc: imgSrc
-    }
-    return posterResult(posterProps)
-}
+const sreenShotFile = createPoster(...)
 
-export { screenShotResult }
+<div 调用二维码第三方库，嵌入分享平台模块，组成弹窗>
 
-export type { screenShotParams }
-
+window.resumeGame()
+*/

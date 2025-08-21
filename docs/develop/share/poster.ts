@@ -6,7 +6,7 @@ interface posterProps {
     project?: Project
 }
 
-async function posterResult(props: posterProps): Promise<File | null> {
+async function createPoster(props: posterProps): Promise<File> {
     const posterElement = document.createElement('div')
     // 在这里通过调用处理这个DOM节点 posterElement.className = 'poster-container'、填入props信息、二维码等等
     const canvas = await html2canvas(posterElement,{
@@ -14,13 +14,22 @@ async function posterResult(props: posterProps): Promise<File | null> {
         height: 800
     })
     const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob((b) => resolve(b),'image/png') // 返回转换后的二进制
+        canvas.toBlob((b: Blob | null) => resolve(b),'image/png') // 返回转换后的二进制
     )
+    
+    if (!blob || !props.project) {
+        throw new Error('Failed to generate poster or project is undefined')
+    }
+    
     const posterFile = new File([blob], `${props.project.name}-poster.png`, { type: 'image/png'})
     return posterFile
 }
 
-export { posterResult }
+function downloadPoster(poster: File,filename?: string): void {
+    // 实现下载逻辑
+}
+
+export { createPoster, downloadPoster }
 
 export type { posterProps }
 
