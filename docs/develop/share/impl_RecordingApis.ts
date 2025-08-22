@@ -15,7 +15,7 @@ import type {
     ListRecordParams,
     RecordService,
     RecordInteractionService
-} from './module_RecordDB'
+} from './module_RecordingApis'
 
 class RecordServiceImpl implements RecordService {
     async createRecord(params: CreateRecordParams, signal?: AbortSignal): Promise<RecordData> {
@@ -104,6 +104,6 @@ export type {
     CreateRecordParams,
     UpdateRecordParams,
     ListRecordParams
-} from './module_RecordDB'
+} from './module_RecordingApis'
 
 export { Visibility, ownerAll }
