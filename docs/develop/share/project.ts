@@ -53,7 +53,7 @@ import ProjectRecordingSharing from './ProjectRecordingSharing.vue'
 
 const isRecording = ref(false)
 const showRecording = ref(false)
-const recordID = ref<string | null>(null)
+const recordURL = ref<string | null>(null)
 function onClickRecord() {
     isRecording.value = !isRecording.value
     
@@ -66,8 +66,8 @@ function onClickRecord() {
 
         // 调用 RecordingAPIs 存储到后端
         const gotRecordID = // 调用 RecordingAPIs 获取视频存储ID
-        // 拼接ID 获得录屏展示页面的 URL 传给录屏展示模块
-        recordID.value = gotRecordID
+        const RecordURL = `{}` // 拼接ID 获得录屏展示页面的 URL 传给录屏展示模块
+        recordURL.value = RecordURL
 
         showRecording.value = true
     }
