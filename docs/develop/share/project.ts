@@ -63,7 +63,7 @@ function onClickRecord() {
     } else {
         window.stopRecording()
         window.pauseGame()
-        const recordFile = window.getRecord()
+        const recordFile = window.getRecordedVideo()
 
         // 调用 RecordingAPIs 存储到后端
         const gotRecordID = // 调用 RecordingAPIs 获取视频存储ID
