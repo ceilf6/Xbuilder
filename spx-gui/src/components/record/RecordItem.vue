@@ -168,8 +168,9 @@ function formatDuration(seconds: number): string {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-// TODO: 需要实现录屏点赞状态查询
-const liking = computed(() => false) // 临时固定为false
+const liking = computed(() => {
+  return props.record.likeCount > 0
+})
 
 const likesTitle = computed(() => {
   const count = humanizeExactCount(props.record.likeCount)
@@ -447,7 +448,11 @@ const handleRemove = useMessageHandle(
       }
 
       &.liking {
-        color: var(--ui-color-primary-600);
+        color: var(--ui-color-red-main);
+
+        .icon {
+          color: var(--ui-color-red-main); 
+        }
       }
 
       &.time {

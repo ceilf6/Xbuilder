@@ -38,9 +38,10 @@
             <!-- Action Buttons -->
             <div class="action-buttons">
               <UIButton v-if="record.projectFullName" type="primary" size="large"
-                :loading="handlePlayProject.isLoading.value" @click="handlePlayProject.fn">
+                :loading="isLoading || projectQuery.isLoading.value" :disabled="!!playButtonStatus"
+                @click="handlePlayProject.fn">
                 <UIIcon type="play" />
-                {{ $t({ en: 'Play Game', zh: '一键开玩' }) }}
+                {{ playButtonStatus ? $t(playButtonStatus) : $t({ en: 'Play Game', zh: '一键开玩' }) }}
               </UIButton>
               <div class="button-row">
                 <UIButton type="secondary" size="medium" :class="{ liking }" :loading="isTogglingLike"
@@ -164,6 +165,24 @@ const adjustInfoSideHeight = () => {
   }
 }
 
+const playButtonStatus = computed(() => {
+  if (!record.value?.projectFullName) return null
+
+  // 只要有任何数据还在加载，就显示"加载视频中"
+  if (isLoading.value || projectQuery.isLoading.value || !projectQuery.data.value) {
+    return { en: 'Loading video...', zh: '加载视频中...' }
+  }
+
+  // 如果项目是私有的，显示对应状态
+  const project = projectQuery.data.value
+  if (project.visibility === Visibility.Private) {
+    return { en: 'Project is private', zh: '项目已私有' }
+  }
+
+  // 其他情况都准备就绪，返回 null 显示正常的"Play Game"
+  return null
+})
+
 // 查询点赞状态
 const checkLikingStatus = async () => {
   if (!record.value) return
@@ -177,14 +196,21 @@ const checkLikingStatus = async () => {
 
 const projectPageLink = computed(() => {
   if (!record.value?.projectFullName) return null
-  const { owner, project } = parseProjectFullName(record.value.projectFullName)
-  return getProjectPageRoute(owner, project)
+
+  // 添加项目可见性检查
+  const project = projectQuery.data.value
+  if (project != null && project.visibility === Visibility.Private) {
+    return null  // 私有项目不显示链接
+  }
+
+  const { owner, project: projectName } = parseProjectFullName(record.value.projectFullName)
+  return getProjectPageRoute(owner, projectName)
 })
 
 const projectQuery = useQuery(
   async (ctx) => {
     if (!record.value?.projectFullName) return null
-    
+
     const { owner, project } = parseProjectFullName(record.value.projectFullName)
     return await getProject(owner, project, ctx.signal)
   },
@@ -212,11 +238,12 @@ const handleLike = useMessageHandle(
 const handleUnlike = useMessageHandle(
   async () => {
     await ensureSignedIn()
-    if (record.value && record.value.likeCount <= 0) return
-    
+
     await unlikeRecord(props.id)
     liking.value = false
-    await refetch() // 重新获取数据，而不是手动 --
+    if (record.value) {
+      record.value.likeCount = Math.max(0, record.value.likeCount - 1)
+    }
   },
   { en: 'Failed to unlike', zh: '取消点赞失败' }
 )
@@ -331,7 +358,7 @@ const handleVideoLoaded = () => {
 const handleVideoPlay = async () => {
   // 记录观看次数
   try {
-    await recordRecordView(props.id)
+    // await recordRecordView(props.id)
   } catch (error) {
     console.warn('Failed to record view:', error)
   }
@@ -343,6 +370,15 @@ const { t } = useI18n()
 const handlePlayProject = useMessageHandle(
   async () => {
     if (!record.value?.projectFullName) return
+    if (projectQuery.isLoading.value) {
+      message.info(
+        t({
+          en: 'Loading project information, please wait...',
+          zh: '正在加载项目信息，请稍候...'
+        })
+      )
+      return
+    }
 
     const project = projectQuery.data.value
 
@@ -389,8 +425,11 @@ onUnmounted(() => {
 })
 
 // 记录页面访问
-watchEffect(() => {
+watchEffect(async () => {
   if (record.value?.projectFullName && projectQuery.refetch) {
+    await recordRecordView(props.id)
+    await checkLikingStatus()
+
     projectQuery.refetch()
   }
 })
