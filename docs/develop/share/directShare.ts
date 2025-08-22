@@ -1,4 +1,4 @@
-import { Platform, SocialPlatforms } from "./sharePlatform"
+import { PlatformShare, SocialPlatforms } from "./sharePlatform"
 import { createPoster } from "./poster"
 /**
  * 模拟qrcode返回的DataURL
@@ -21,11 +21,11 @@ const poster = await createPoster({
     //相应参数
 })
 // 模拟平台切换
-async function handPlatformChange(platform: Platform) {
-    if (platform.shareType.supportProject) {
+async function handPlatformChange(platform: PlatformShare) {
+    if (platform.shareType.supportProject && platform.shareFunction.shareProject) {
         DataURL = qrcode.toDataURL(await platform.shareFunction.shareProject(projectUrl))
     }
-    else if (platform.shareType.supportPoster) {
+    else if (platform.shareType.supportPoster && platform.shareFunction.sharePoster) {
         DataURL = qrcode.toDataURL(await platform.shareFunction.sharePoster(poster, projectUrl))
     }
     else {
