@@ -114,7 +114,7 @@ import { useRouter } from 'vue-router'
 import { usePageTitle } from '@/utils/utils'
 import { useQuery } from '@/utils/query'
 import { humanizeTime, useAsyncComputed } from '@/utils/utils'
-import { getProjectPageRoute, getUserPageRoute } from '@/router'
+import { getProjectPageRoute, getProjectRecordsRoute, getUserPageRoute } from '@/router'
 import { createFileWithUniversalUrl } from '@/models/common/cloud'
 import { getRecord, recordRecordView, listRecord, likeRecord, unlikeRecord, isLikingRecord } from '@/apis/recording'
 import { UILoading, UIError, UIButton, UIIcon, useResponsive } from '@/components/ui'
@@ -182,10 +182,11 @@ const projectPageLink = computed(() => {
 })
 
 const projectQuery = useQuery(
-  async () => {
+  async (ctx) => {
     if (!record.value?.projectFullName) return null
+    
     const { owner, project } = parseProjectFullName(record.value.projectFullName)
-    return await getProject(owner, project)
+    return await getProject(owner, project, ctx.signal)
   },
   {
     en: 'Failed to load project',
@@ -211,22 +212,27 @@ const handleLike = useMessageHandle(
 const handleUnlike = useMessageHandle(
   async () => {
     await ensureSignedIn()
+    if (record.value && record.value.likeCount <= 0) return
+    
     await unlikeRecord(props.id)
     liking.value = false
-    // 更新本地计数
-    if (record.value) {
-      record.value.likeCount--
-    }
+    await refetch() // 重新获取数据，而不是手动 --
   },
   { en: 'Failed to unlike', zh: '取消点赞失败' }
 )
 
-const handleToggleLike = () => {
+
+const handleToggleLike = async () => {
+  if (isTogglingLike.value) return
+
   isTogglingLike.value = true
-  const action = liking.value ? handleUnlike.fn : handleLike.fn
-  action().finally(() => {
+  try {
+    const actionFn = liking.value ? handleUnlike.fn : handleLike.fn
+    await actionFn()
+  } finally {
     isTogglingLike.value = false
-  })
+    await checkLikingStatus()
+  }
 }
 
 // 获取record数据
@@ -310,7 +316,8 @@ const relatedRecordsQuery = useQuery(
 // 查看所有相关录屏的链接
 const allRecordsLink = computed(() => {
   if (!record.value?.projectFullName) return null
-  return getUserPageRoute(record.value.projectFullName, 'records')
+  const projectInfo = parseProjectFullName(record.value.projectFullName)
+  return getProjectRecordsRoute(projectInfo.owner, projectInfo.project)
 })
 
 // 事件处理
@@ -382,22 +389,9 @@ onUnmounted(() => {
 })
 
 // 记录页面访问
-watchEffect(async () => {
-  if (record.value && !isLoading.value) {
-    try {
-      // 记录观看
-      await recordRecordView(props.id)
-
-      // 检查点赞状态
-      await checkLikingStatus()
-
-      // 数据加载完成后调整高度
-      nextTick(() => {
-        adjustInfoSideHeight()
-      })
-    } catch (error) {
-      console.warn('Failed to record view or check liking status:', error)
-    }
+watchEffect(() => {
+  if (record.value?.projectFullName && projectQuery.refetch) {
+    projectQuery.refetch()
   }
 })
 </script>

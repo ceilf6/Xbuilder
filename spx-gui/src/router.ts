@@ -111,6 +111,26 @@ const routes: Array<RouteRecordRaw> = [
         path: '/project/:owner/:name',
         component: () => import('@/pages/community/project.vue'),
         props: true
+      },
+      {
+        path: '/record/:id',  
+        name: 'Record',
+        component: () => import('@/pages/community/record.vue'),
+        props: route => ({
+          id: route.params.id as string 
+        }),
+        meta: { 
+          requiresSignIn: false 
+        }
+      },
+      {
+        path: '/project/:projectFullName/records',
+        name: 'ProjectRecords',
+        component: () => import('@/pages/community/projectRecords.vue'),
+        props: route => ({
+          projectFullName: route.params.projectFullName as string
+        }),
+        meta: { requiresSignIn: false }
       }
     ]
   },
@@ -156,19 +176,13 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/docs/api/:pathMatch(.*)?',
     component: () => import('@/pages/docs/api.vue')
-  },
-  {
-    path: '/record/:id',  
-    name: 'Record',
-    component: () => import('@/pages/community/record.vue'),
-    props: route => ({
-      id: route.params.id as string 
-    }),
-    meta: { 
-      requiresSignIn: false 
-    }
   }
 ]
+  
+  // 添加路由生成函数
+  export function getProjectRecordsRoute(owner: string, projectName: string): string {
+    return `/project/${encodeURIComponent(owner)}%2F${encodeURIComponent(projectName)}/records`
+  }
 
 const router = createRouter({
   history: createWebHistory(''),

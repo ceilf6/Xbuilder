@@ -5,7 +5,7 @@ type Record struct {
 	Model
 
 	// UserID is the ID of the user who created the record.
-	UserID int64 `gorm:"column:user_id;index;index:,composite:user_id_name,unique"`
+	UserID int64 `gorm:"column:user_id;index"`
 	User   User  `gorm:"foreignKey:UserID"`
 
 	// ProjectID is the ID of the project that the record is associated with.
@@ -29,9 +29,6 @@ type Record struct {
 
 	// LikeCount is the number of times the record has been liked.
 	LikeCount int64 `gorm:"column:like_count;index"`
-
-	// Migration only fields. Do not use in application code.
-	MO__deleted_at_is_null _deleted_at_is_null `gorm:"->:false;<-:false;column:_deleted_at_is_null;index:,composite:user_id_name,unique"`
 }
 
 // TableName implements [gorm.io/gorm/schema.Tabler].
