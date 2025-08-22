@@ -4,8 +4,12 @@ defineProps<{
     poster: File
 }>()
 
-传给分享平台模块的是截屏海报
+从 platfromSelect 得到当前点击的平台名称
+从 platfromShare 拿到输出跳转 URL 的方法
+import { shareIMG } from './sharePlatform'
 
-import from './sharePlatform'
+
+将跳转URL转为二维码
+import QRCode
 
 */
