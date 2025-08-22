@@ -4,7 +4,7 @@ defineProps<{
     poster: File
 }>()
 
-本模块只负责将截屏海报和分享平台模块进行拼接
+传给分享平台模块的是截屏海报
 
 import from './sharePlatform'
 

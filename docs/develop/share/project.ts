@@ -53,7 +53,7 @@ import ProjectRecordingSharing from './ProjectRecordingSharing.vue'
 
 const isRecording = ref(false)
 const showRecording = ref(false)
-const video = ref<File | null>(null)
+const recordID = ref<string | null>(null)
 function onClickRecord() {
     isRecording.value = !isRecording.value
     
@@ -63,13 +63,18 @@ function onClickRecord() {
         window.stopRecording()
         window.pauseGame()
         const recordFile = window.getRecord()
-        
-        video.value = recordFile // 传入视频文件
+
+        // 调用 RecordingAPIs 存储到后端
+        const gotRecordID = // 调用 RecordingAPIs 获取视频存储ID
+        // 拼接ID 获得录屏展示页面的 URL 传给录屏展示模块
+        recordID.value = gotRecordID
+
         showRecording.value = true
     }
 }
 
 function reRecord() {
+    // 调用 RecordingAPIs 在后端软删除最近一条视频记录
     isRecording.value = true
     window.startRecording()
     showRecording.value = false
@@ -79,12 +84,4 @@ function closeRecording() {
     showRecording.value = false
     window.resumeGame()
     saveRecording()
-}
-
-async function saveRecording() {
-    try {
-        // 调用 RecordingAPIs 存储到后端
-        showRecording.value = false
-    } catch (error) {
-    }
 }
