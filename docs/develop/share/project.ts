@@ -1,34 +1,90 @@
 
-/* if click screenShot 那么在project中就生成了截屏海报？
+import { createPoster } from './poster'
+import { ref } from 'vue'
+import ScreenShotSharing from './ScreenShotSharing.vue'
+import { useQuery } from '@/composables/useQuery'
+import { getProject } from '@/apis/project'
+import type { ProjectData } from '@/apis/project'
 
-window.pauseGame()
+const screenShotPoster = ref<File | null>(null)
+const showSharing = ref(false)
 
-window.take
+const {
+  data: projectData,
+  isLoading,
+  error,
+  refetch: reloadProject
+} = useQuery(
+  async (ctx) => {
+    return await getProject(props.owner, props.name, ctx.signal)
+  },
+  {
+    en: 'Failed to load project',
+    zh: '加载项目失败'
+  }
+)
 
-*/
+const poster = ref<File | null>(null)
+
+async function onClickScreenShot() {
+    window.pauseGame()
+    const screenShotFile = window.takeScreenShot()
+    try {
+        const screenShotPoster = await createPoster({ 
+            img: screenShotFile, 
+            projectData: projectData.value 
+        })
+        poster.value = screenShotPoster // 传入截屏海报文件
+        showSharing.value = true
+    } catch (error) {
+    }
+}
+
+function closeSharing() {
+    showSharing.value = false
+    window.resumeGame()
+}
 
 
+//=========================================================
 
-// var isRecording = false
-/* 
-if click record:
-    window.isRecording = !window.isRecording
-    if !window.isRecording:
+
+import ProjectRecordingSharing from './ProjectRecordingSharing.vue'
+
+const isRecording = ref(false)
+const showRecording = ref(false)
+const video = ref<File | null>(null)
+function onClickRecord() {
+    isRecording.value = !isRecording.value
+    
+    if (!isRecording.value) {
         window.startRecording()
-    else:
+    } else {
         window.stopRecording()
         window.pauseGame()
         const recordFile = window.getRecord()
         
-        传入 record 视频文件，亮出弹窗
+        video.value = recordFile // 传入视频文件
+        showRecording.value = true
+    }
+}
 
-        if click re-record:
-            window.isRecording = true
-            window.startRecording()
-        elif 关闭:
-            存储视频文件到后端
-        elif 分享:
-            调用分享平台模块
-        
-        跳出弹窗
-*/
+function reRecord() {
+    isRecording.value = true
+    window.startRecording()
+    showRecording.value = false
+}
+
+function closeRecording() {
+    showRecording.value = false
+    window.resumeGame()
+    saveRecording()
+}
+
+async function saveRecording() {
+    try {
+        // 调用 RecordingAPIs 存储到后端
+        showRecording.value = false
+    } catch (error) {
+    }
+}

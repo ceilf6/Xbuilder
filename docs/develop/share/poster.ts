@@ -1,5 +1,6 @@
-import type { ProjectData } from '../apis/project'
+import type { ProjectData } from '@/apis/project'
 import html2canvas from 'html2canvas'
+
 interface posterProps {
     img: File
     projectData: ProjectData
