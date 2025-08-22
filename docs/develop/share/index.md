@@ -2,19 +2,23 @@
 ## 挑战
 * 提供丝滑的分享方式以满足用户的需求
     我们将尽可能的将Share与XBuilder的耦合度降低，让Share可以作为一块独立的功能，提供相应的分享方式，以及后续如果需要对分享方式进行修改的话，可以很方便的进行操作
+
 ## 模块
-### Third-partyPlatform
+### sharePlatform
 负责与外部平台的集成。目前支持：QQ、微信、抖音、小红书、B站。为三种分享方式提供第三方平台的接口支持
-详情见 [`Third-partyPlatform`](./sharePlatform.ts)
+详情见 [`sharePlatform`](./sharePlatform.ts)
 ### Poster
-生成分享海报，包含图片、二维码和项目信息
+用于生成海报，包含图片、二维码和项目信息
 详情见 [`Poster`](./poster.ts)
-### Screenshot
-截屏功能，用于捕获当前应用画面，结果交给 Poster 进行渲染
-详情见 [`Screenshot`](./screenshot.ts)
-### Recording
-录屏功能，用于捕获用户操作过程并输出视频文件
-详情见 [`Recording`](./record.ts)
+### DirectSharing
+直接分享弹窗
+详情见 [`DirectSharing`](./DirectSharing)
+### ScreenShotSharing
+截屏分享弹窗
+详情见 [`ScreenShotSharing`](./ScreenShotSharing)
+### ProjectRecordingSharing
+录屏分享弹窗
+详情见 [`ProjectRecordingSharing`](./ProjectRecordingShare.ts)
 ### Recording APIs
 spx-backend 提供的用于对 Recording 管理的 APIs
 详情见 [`Recording APIs`](./module_RecordingApis.ts)
