@@ -23,9 +23,9 @@
       <div class="media">
         <div class="thumbnail">
           <UIImg :src="thumbnailUrl" :alt="record.title" />
-          <div v-if="videoDuration !== null" class="duration-badge">
+          <!-- <div v-if="videoDuration !== null" class="duration-badge">
             {{ formatDuration(videoDuration) }}
-          </div>
+          </div> -->
         </div>
         <div v-if="shouldShowAvatar" class="owner-avatar-wrapper">
           <svg class="avatar-bg" xmlns="http://www.w3.org/2000/svg" width="67" height="31" viewBox="0 0 67 31"
