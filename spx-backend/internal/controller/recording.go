@@ -186,11 +186,16 @@ func (ctrl *Controller) DeleteRecord(ctx context.Context, id string) error {
 		return authn.ErrUnauthorized
 	}
 
-	if err := ctrl.db.WithContext(ctx).Delete(record).Error; err != nil {
-		return fmt.Errorf("failed to delete record: %w", err)
-	}
+	return ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+        if err := tx.Delete(record).Error; err != nil {
+			return fmt.Errorf("failed to delete record: %w", err)
+        }
 
-	return nil
+        if err := tx.Where("record_id = ?", record.ID).Delete(&model.UserRecordRelationship{}).Error; err != nil {
+			return fmt.Errorf("failed to delete user_record_relationship: %w", err)
+        }
+        return nil
+    })
 }
 
 // RecordRecordView records a view for the specified record as the authenticated user.
