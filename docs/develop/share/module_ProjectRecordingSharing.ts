@@ -13,6 +13,7 @@ import { directShare } from './platformShare'
 // 导入qrcode第三方库
 import QRCode from 'qrcode'
 
+/*
 // 定义要发射的事件
 const emit = defineEmits<{
     'update:isRecording': [value: boolean]
@@ -21,6 +22,17 @@ const emit = defineEmits<{
     'platformSelected': [platform: PlatformShare]
     'qrCodeGenerated': [qrCodeDataURL: string]
 }>()
+*/
+const props = defineProps<{
+    visible: boolean
+}>()
+  
+const emit = defineEmits<{
+    cancelled: []
+    resolved: [name: string]
+}>()
+
+
 
 // 导入平台选择器组件
 import platformSelector from './platformSelector.vue'
