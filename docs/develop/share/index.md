@@ -6,22 +6,18 @@
 ## 模块
 ### sharePlatform
 负责与外部平台的集成。目前支持：QQ、微信、抖音、小红书、B站。为三种分享方式提供第三方平台的接口支持
-详情见 [`sharePlatform`](./sharePlatform.ts)
 ### Poster
 用于生成海报，包含图片、二维码和项目信息
-详情见 [`Poster`](./poster.ts)
+### ProjectRunner
+通过ProjectRunner获取runner游戏引擎上暴露的方法
 ### DirectSharing
 直接分享弹窗
-详情见 [`DirectSharing`](./DirectSharing)
 ### ScreenShotSharing
 截屏分享弹窗
-详情见 [`ScreenShotSharing`](./ScreenShotSharing)
 ### ProjectRecordingSharing
 录屏分享弹窗
-详情见 [`ProjectRecordingSharing`](./ProjectRecordingShare.ts)
 ### Recording APIs
 spx-backend 提供的用于对 Recording 管理的 APIs
-详情见 [`Recording APIs`](./module_RecordingApis.ts)
 
 
 ## UI 层（分享方式）
