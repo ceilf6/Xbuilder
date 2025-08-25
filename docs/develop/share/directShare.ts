@@ -22,11 +22,11 @@ const poster = await createPoster({
 })
 // 模拟平台切换
 async function handPlatformChange(platform: PlatformShare) {
-    if (platform.shareType.supportProject && platform.shareFunction.shareProject) {
-        DataURL = qrcode.toDataURL(await platform.shareFunction.shareProject(projectUrl))
+    if (platform.shareType.supportProject && platform.shareFunction.shareURL) {
+        DataURL = qrcode.toDataURL(await platform.shareFunction.shareURL(projectUrl))
     }
-    else if (platform.shareType.supportPoster && platform.shareFunction.sharePoster) {
-        DataURL = qrcode.toDataURL(await platform.shareFunction.sharePoster(poster, projectUrl))
+    else if (platform.shareType.supportPoster && platform.shareFunction.shareImage) {
+        DataURL = qrcode.toDataURL(await platform.shareFunction.shareImage(poster))
     }
     else {
         DataURL = ''
