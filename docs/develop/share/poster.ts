@@ -1,9 +1,9 @@
-import { Project } from '@/models/project'
+import type { ProjectData } from '@/apis/project'
 import html2canvas from 'html2canvas'
 
 interface posterProps {
-    img?: File
-    project?: Project
+    img: File
+    projectData: ProjectData
 }
 
 async function createPoster(props: posterProps): Promise<File> {
@@ -17,19 +17,15 @@ async function createPoster(props: posterProps): Promise<File> {
         canvas.toBlob((b: Blob | null) => resolve(b),'image/png') // 返回转换后的二进制
     )
     
-    if (!blob || !props.project) {
+    if (!blob || !props.projectData) {
         throw new Error('Failed to generate poster or project is undefined')
     }
     
-    const posterFile = new File([blob], `${props.project.name}-poster.png`, { type: 'image/png'})
+    const posterFile = new File([blob], `${props.projectData.name}-poster.png`, { type: 'image/png'})
     return posterFile
 }
 
-function downloadPoster(poster: File,filename?: string): void {
-    // 实现下载逻辑
-}
-
-export { createPoster, downloadPoster }
+export { createPoster }
 
 export type { posterProps }
 
