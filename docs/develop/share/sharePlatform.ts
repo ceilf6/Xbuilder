@@ -8,8 +8,6 @@ export type BasicInfo = {
     label: { en: string; zh: string }
     /** 平台品牌颜色 */
     color: string
-    /** 平台跳转链接 */
-    platformUrl: string
 }
 
 /**
@@ -29,11 +27,11 @@ export type ShareType = {
  */
 export interface ShareFunction {
     /** 分享项目页面方法 */
-    shareProject?: (projectUrl: string) => Promise<string>
+    shareURL?: (url: string) => Promise<string>
     /** 分享海报方法 */
-    sharePoster?: (image: File, projectUrl: string) => Promise<string>
+    shareImage?: (image: File) => Promise<string>
     /** 分享视频方法 */
-    shareVideo?: (video: File, projectUrl: string) => Promise<string>
+    shareVideo?: (video: File) => Promise<string>
 }
 
 /**
@@ -65,14 +63,14 @@ class QQPlatform implements PlatformConfig {
     }
     
     shareFunction = {
-        shareProject: async (projectUrl: string) => {
-            return `projectUrl:${projectUrl}`
+        shareURL: async (url: string) => {
+            return `url:${url}`
         },
-        sharePoster: async (image: File, projectUrl: string) => {
-            return `platformUrl:${this.platformUrl},image:${image},projectUrl:${projectUrl}`
+        shareImage: async (image: File) => {
+            return `platformUrl:${this.platformUrl},image:${image}`
         },
-        shareVideo: async (video: File, projectUrl: string) => {
-            return `platformUrl:${this.platformUrl},video:${video},projectUrl:${projectUrl}`
+        shareVideo: async (video: File) => {
+            return `platformUrl:${this.platformUrl},video:${video}`
         }
     }
 }
@@ -93,11 +91,11 @@ class WeChatPlatform implements PlatformConfig {
     }
     
     shareFunction = {
-        shareProject: async (projectUrl: string) => {
-            return `projectUrl:${projectUrl}`
+        shareURL: async (url: string) => {
+            return `url:${url}`
         },
-        sharePoster: async (image: File, projectUrl: string) => {
-            return `platformUrl:${this.platformUrl},image:${image},projectUrl:${projectUrl}`
+        shareImage: async (image: File) => {
+            return `platformUrl:${this.platformUrl},image:${image}`
         }
         // 不实现 shareVideo，因为不支持
     }
@@ -106,25 +104,6 @@ class WeChatPlatform implements PlatformConfig {
 //class WeChatPlatform implements Platform { ... }
 //class DouyinPlatform implements Platform { ... }
 
-/**
- * 社交平台组件属性
- */
-export type Props = {
-    /** 当前选中的平台 (v-model) */
-    modelValue?: string
-    /** 是否显示分组标签 */
-    showLabel?: boolean
-}
-
-/**
- * 社交平台组件事件
- */
-export type SharePlatformEmits = {
-    /** 平台选择变化 (v-model) */
-    'update:modelValue': [value: string]
-    /** 平台选择变化事件 */
-    'change': [platform: PlatformShare]
-}
 
 // 导出平台配置数组 - 包含完整的平台信息
 export const SocialPlatformConfigs: PlatformConfig[] = [
@@ -139,30 +118,6 @@ export const SocialPlatforms: PlatformShare[] = SocialPlatformConfigs.map(config
     shareFunction: config.shareFunction
 }))
 
-// // 获取平台基本信息的工具函数
-// export function getPlatformBasicInfo(platformName: string): BasicInfo | undefined {
-//     return SocialPlatformConfigs.find(p => p.name === platformName)
-// }
-
-// // 获取平台分享功能的工具函数
-// export function getPlatformShareFunction(platformName: string): Platform | undefined {
-//     const config = SocialPlatformConfigs.find(p => p.name === platformName)
-//     if (!config) return undefined
-    
-//     return {
-//         shareType: config.shareType,
-//         shareFunction: config.shareFunction
-//     }
-// }
-
-// 依赖 Platform Service 的外部代码示例
-// function SomeComponent() {
-//     // 现在只需要分享功能，不需要关心平台的基本信息
-//     const platforms = SocialPlatforms
-//     return platforms.map(p => (
-//         // <li key={p.name} onClick={() => p.shareFunction.shareProject?.(project)}>{p.label.zh}</li>
-//     ))
-// }
 
 /**
  * 直接分享
@@ -171,8 +126,8 @@ export const SocialPlatforms: PlatformShare[] = SocialPlatformConfigs.map(config
  * @returns 分享数据
  */
 export async function directShare(platform: PlatformShare, projectUrl: string) {
-    if (platform.shareType.supportProject && platform.shareFunction.shareProject) {
-        const data = await platform.shareFunction.shareProject(projectUrl)
+    if (platform.shareType.supportProject && platform.shareFunction.shareURL) {
+        const data = await platform.shareFunction.shareURL(projectUrl)
         return data
     }
     throw new Error('Platform does not support project sharing')
@@ -186,8 +141,8 @@ export async function directShare(platform: PlatformShare, projectUrl: string) {
  * @returns 分享数据
  */
 export async function sharePoster(platform: PlatformShare, image: File, projectUrl: string) {
-    if (platform.shareType.supportPoster && platform.shareFunction.sharePoster) {
-        const data = await platform.shareFunction.sharePoster(image, projectUrl)
+    if (platform.shareType.supportPoster && platform.shareFunction.shareImage) {
+        const data = await platform.shareFunction.shareImage(image)
         return data
     }
     throw new Error('Platform does not support poster sharing')
@@ -200,9 +155,9 @@ export async function sharePoster(platform: PlatformShare, image: File, projectU
  * @param projectUrl 项目链接
  * @returns 分享数据
  */
-export async function shareVideo(platform: PlatformShare, video: File, projectUrl: string) {
+export async function shareVideo(platform: PlatformShare, video: File) {
     if (platform.shareType.supportVideo && platform.shareFunction.shareVideo) {
-        const data = await platform.shareFunction.shareVideo(video, projectUrl)
+        const data = await platform.shareFunction.shareVideo(video)
         return data
     }
     throw new Error('Platform does not support video sharing')
