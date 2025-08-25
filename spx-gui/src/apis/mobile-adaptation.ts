@@ -42,7 +42,7 @@ export type LayoutPayload = {
  */
 export function createMobileAdaptation(
   owner: string, 
-  name: string, // 改为 name 以匹配后端路由
+  name: string, 
   params: CreateMobileAdaptationParams,
   signal?: AbortSignal
 ) {
@@ -58,7 +58,7 @@ export function createMobileAdaptation(
  */
 export function getMobileAdaptation(
   owner: string, 
-  name: string, // 改为 name 以匹配后端路由
+  name: string, 
   signal?: AbortSignal
 ) {
   return client.get(
@@ -73,7 +73,7 @@ export function getMobileAdaptation(
  */
 export function updateMobileAdaptation(
   owner: string, 
-  name: string, // 改为 name 以匹配后端路由
+  name: string, 
   params: UpdateMobileAdaptationParams,
   signal?: AbortSignal
 ) {
@@ -89,7 +89,7 @@ export function updateMobileAdaptation(
  */
 export function deleteMobileAdaptation(
   owner: string, 
-  name: string, // 改为 name 以匹配后端路由
+  name: string,
   signal?: AbortSignal
 ) {
   return client.delete(
@@ -118,19 +118,19 @@ export function getVirtualKeyboardLayout(
  * Parse project full name from string
  */
 export function parseProjectFullName(fullName: string) {
-  const [encodedOwner, encodedName] = fullName.split('/') // 改为 name
+  const [encodedOwner, encodedName] = fullName.split('/')  
   const owner = decodeURIComponent(encodedOwner)
-  const name = decodeURIComponent(encodedName) // 改为 name
-  return { owner, name } // 改为 name
+  const name = decodeURIComponent(encodedName)  
+  return { owner, name }  
 }
 
 /**
  * Stringify project full name
  */
-export function stringifyProjectFullName(owner: string, name: string) { // 改为 name
+export function stringifyProjectFullName(owner: string, name: string) {  
   const encodedOwner = encodeURIComponent(owner)
-  const encodedName = encodeURIComponent(name) // 改为 name
-  return `${encodedOwner}/${encodedName}` // 改为 name
+  const encodedName = encodeURIComponent(name)  
+  return `${encodedOwner}/${encodedName}`  
 }
 
 /**

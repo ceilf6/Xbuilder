@@ -136,3 +136,164 @@ func (ctrl *Controller) CreateMobileAdaptation(ctx context.Context, params *Crea
 	mobileAdaptationDTO := toMobileAdaptationDTO(mMobileAdaptation)
 	return &mobileAdaptationDTO, nil
 }
+
+// UpdateMobileAdaptationParams holds the parameters for updating mobile adaptation.
+type UpdateMobileAdaptationParams struct {
+	AdaptationType int                    `json:"adaptationType"`
+	ZoneToKey      map[string]*string     `json:"zoneToKey,omitempty"`
+}
+
+// Validate validates the UpdateMobileAdaptationParams.
+func (p *UpdateMobileAdaptationParams) Validate() (ok bool, msg string) {
+	if p.AdaptationType < 1 || p.AdaptationType > 2 {
+		return false, "invalid adaptationType, must be 1 (no keyboard) or 2 (custom keyboard)"
+	}
+	if p.AdaptationType == 2 && len(p.ZoneToKey) == 0 {
+		return false, "zoneToKey is required when adaptationType is 2 (custom keyboard)"
+	}
+	if p.AdaptationType == 1 && len(p.ZoneToKey) > 0 {
+		return false, "zoneToKey must be empty when adaptationType is 1 (no keyboard)"
+	}
+
+	// 验证 zone ID 是否有效
+	if p.AdaptationType == 2 && p.ZoneToKey != nil {
+		for zoneStr := range p.ZoneToKey {
+			zone := model.ZoneId(zoneStr)
+			if !zone.IsValid() {
+				return false, fmt.Sprintf("invalid zone ID: %s", zoneStr)
+			}
+		}
+	}
+
+	return true, ""
+}
+
+// UpdateMobileAdaptation updates mobile adaptation for a project.
+func (ctrl *Controller) UpdateMobileAdaptation(ctx context.Context, projectFullName ProjectFullName, params *UpdateMobileAdaptationParams) (*MobileAdaptationDTO, error) {
+	// 检查用户权限
+	_, ok := authn.UserFromContext(ctx)
+	if !ok {
+		return nil, authn.ErrUnauthorized
+	}
+
+	// 验证参数
+	if ok, msg := params.Validate(); !ok {
+		return nil, fmt.Errorf("validation failed: %s", msg)
+	}
+
+	// 查找项目并检查权限
+	mProject, err := ctrl.ensureProject(ctx, projectFullName, true)
+	if err != nil {
+		return nil, err
+	}
+
+	// 查找现有的移动端适配配置
+	var mMobileAdaptation model.MobileAdaptation
+	if err := ctrl.db.WithContext(ctx).Where("project_id = ?", mProject.ID).First(&mMobileAdaptation).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("mobile adaptation not found for project %q", projectFullName)
+		}
+		return nil, fmt.Errorf("failed to find mobile adaptation: %w", err)
+	}
+
+	// 转换 ZoneToKey 映射
+	zoneToKey := make(model.ZoneToKeyMapping)
+	if params.AdaptationType == 2 && params.ZoneToKey != nil {
+		for zoneStr, key := range params.ZoneToKey {
+			zone := model.ZoneId(zoneStr)
+			zoneToKey[zone] = key
+		}
+	}
+
+	// 更新配置
+	mMobileAdaptation.AdaptationType = params.AdaptationType
+	mMobileAdaptation.ZoneToKey = zoneToKey
+
+	if err := ctrl.db.WithContext(ctx).Save(&mMobileAdaptation).Error; err != nil {
+		return nil, fmt.Errorf("failed to update mobile adaptation: %w", err)
+	}
+
+	// 重新查询以获取完整的关联数据
+	if err := ctrl.db.WithContext(ctx).
+		Preload("Project.Owner").
+		First(&mMobileAdaptation, mMobileAdaptation.ID).Error; err != nil {
+		return nil, fmt.Errorf("failed to load mobile adaptation: %w", err)
+	}
+
+	mobileAdaptationDTO := toMobileAdaptationDTO(mMobileAdaptation)
+	return &mobileAdaptationDTO, nil
+}
+
+// GetMobileAdaptation gets mobile adaptation for a project.
+func (ctrl *Controller) GetMobileAdaptation(ctx context.Context, projectFullName ProjectFullName) (*MobileAdaptationDTO, error) {
+	// 查找项目
+	mProject, err := ctrl.ensureProject(ctx, projectFullName, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// 查找移动端适配配置
+	var mMobileAdaptation model.MobileAdaptation
+	if err := ctrl.db.WithContext(ctx).
+		Where("project_id = ?", mProject.ID).
+		Preload("Project.Owner").
+		First(&mMobileAdaptation).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("mobile adaptation not found for project %q", projectFullName)
+		}
+		return nil, fmt.Errorf("failed to get mobile adaptation: %w", err)
+	}
+
+	mobileAdaptationDTO := toMobileAdaptationDTO(mMobileAdaptation)
+	return &mobileAdaptationDTO, nil
+}
+
+// GetVirtualKeyboardLayout gets virtual keyboard layout for frontend virtual keyboard component.
+func (ctrl *Controller) GetVirtualKeyboardLayout(ctx context.Context, projectID string) (*LayoutPayload, error) {
+	// 查找项目
+	var mProject model.Project
+	if err := ctrl.db.WithContext(ctx).Where("id = ?", projectID).First(&mProject).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("project with id %q not found", projectID)
+		}
+		return nil, fmt.Errorf("failed to find project: %w", err)
+	}
+
+	// 查找该项目的移动端适配配置
+	var mMobileAdaptation model.MobileAdaptation
+	if err := ctrl.db.WithContext(ctx).Where("project_id = ?", mProject.ID).First(&mMobileAdaptation).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 没有配置，返回默认不适配
+			return &LayoutPayload{
+				ProjectID: projectID,
+				IsMobile:  false,
+				ZoneToKey: make(map[string]*string),
+			}, nil
+		}
+		return nil, fmt.Errorf("failed to get mobile adaptation: %w", err)
+	}
+
+	// 构造返回的布局配置
+	layout := &LayoutPayload{
+		ProjectID: projectID,
+		IsMobile:  mMobileAdaptation.IsCustomKeyboard(), // 只有自定义键盘才需要显示
+		ZoneToKey: make(map[string]*string),
+	}
+
+	// 如果需要键盘，转换按键映射
+	if mMobileAdaptation.IsCustomKeyboard() && mMobileAdaptation.ZoneToKey != nil {
+		for zone, key := range mMobileAdaptation.ZoneToKey {
+			layout.ZoneToKey[string(zone)] = key
+		}
+	}
+
+	return layout, nil
+}
+
+// LayoutPayload represents the virtual keyboard layout payload for frontend.
+type LayoutPayload struct {
+	ProjectID string                 `json:"projectId"`
+	IsMobile  bool                   `json:"isMobile"`
+	ZoneToKey map[string]*string     `json:"zoneToKey"`
+}
+

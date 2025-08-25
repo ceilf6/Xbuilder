@@ -299,10 +299,10 @@ const thumbnailUrl = useAsyncComputed(async (onCleanup) => {
 const convertRecordUrl = (universalUrl: string): string => {
   if (!universalUrl) return ''
 
-  if (universalUrl.startsWith('kodo://test-xbuilder/')) {
-    const filePath = universalUrl.replace('kodo://test-xbuilder/', '')
-    return `http://t0zmxasek.hn-bkt.clouddn.com/${filePath}`
-  }
+  // if (universalUrl.startsWith('kodo://test-xbuilder/')) {
+  //   const filePath = universalUrl.replace('kodo://test-xbuilder/', '')
+  //   return `http://t0zmxasek.hn-bkt.clouddn.com/${filePath}`
+  // }
 
   if (universalUrl.startsWith('http://') || universalUrl.startsWith('https://')) {
     return universalUrl
