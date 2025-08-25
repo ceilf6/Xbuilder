@@ -21,8 +21,8 @@ export type MobileKeyboard = {
 export interface MobileKeyboardSevervice {
   MobileKeyboardEdit(
     owner: string,
-    projectionId: string,
+    name: string,
     description: MobileKeyboard
   ): Promise<MobileKeyboard>;
-  MobileKeyboardView(projectionId: string): Promise<MobileKeyboard>;
+  MobileKeyboardView(owner: string, name: string): Promise<MobileKeyboard>;
 }
