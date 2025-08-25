@@ -1,6 +1,5 @@
-
-import { createPoster } from './poster'
 import { ref } from 'vue'
+import { createPoster } from './poster'
 import ScreenShotSharing from './ScreenShotSharing.vue'
 import { useQuery } from '@/composables/useQuery'
 import { getProject } from '@/apis/project'
@@ -28,7 +27,7 @@ const poster = ref<File | null>(null)
 
 async function onClickScreenShot() {
     window.pauseGame()
-    const screenShotFile = window.takeScreenShot()
+    const screenShotFile = window.getScreenshot()
     try {
         const screenShotPoster = await createPoster({ 
             img: screenShotFile, 
@@ -82,12 +81,27 @@ async function onClickRecord() {
         const gotRecordID = created.id// 2.调用 RecordingAPIs 获取视频存储ID
         const gotshowRecordingURL = `{created}` // 3.拼接ID 获得录屏展示页面的 URL 传给录屏展示模块
         setRecordingURL.value = gotshowRecordingURL
-        showRecordSharing.value = true // 4.唤起录屏分享弹窗
-        recording.value = recordFile // 同时异步传入视频文件
+        recording.value = recordFile
+        showRecordSharing.value = true // 唤起录屏分享弹窗
     }
 }
 
 function closeRecordSharing() {
-    showRecording.value = false
+    showRecordSharing.value = false
     window.resumeGame()
+}
+
+
+// 处理子组件ProjectRecordingSharing中点击ReRecord后上传的事件
+function handleUpdateIsRecording(value: boolean) {
+    isRecording.value = value
+}
+
+function handleUpdateShowRecording(value: boolean) {
+    showRecordSharing.value = value
+}
+
+function handleReRecord() {
+    // 处理重新录制逻辑
+    window.startRecording()
 }
