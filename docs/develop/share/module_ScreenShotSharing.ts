@@ -1,9 +1,19 @@
-import { ref, props } from 'vue'
+import { ref, watch, defineProps, defineEmits } from 'vue'
+import { createPoster } from './module_poster'
+import type { ProjectData } from '@/apis/project'
 
-//传入截屏海报图片文件
-defineProps<{
-    poster: File
+const props = defineProps<{
+    ScreenShot: File | null
+    projectData: ProjectData
+    showScreenShotSharing: boolean
 }>()
+
+const emit = defineEmits<{
+    cancelled: [] // 正常关闭
+    resolved: [] // 分享成功（后面可能需要统计点击后分享成功率）
+}>()
+
+const poster = createPoster({ img: props.ScreenShot, projectData: props.projectData })
 
 
 //从 platfromSelect 得到当前点击的平台名称
@@ -11,16 +21,12 @@ defineProps<{
 
 // 导入必要的类型和函数
 import type { PlatformShare } from './platformShare'
-import { sharePoster, directShare } from './platformShare'
+
+import { sharePoster } from './platformShare'
+
 
 // 导入qrcode第三方库
 import QRCode from 'qrcode'
-
-// 定义要接收的事件
-const emit = defineEmits<{
-    'platformSelected': [platform: PlatformShare]
-    'qrCodeGenerated': [qrCodeDataURL: string]
-}>()
 
 // 导入平台选择器组件
 import platformSelector from './platformSelector.vue'

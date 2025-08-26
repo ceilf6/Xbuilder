@@ -1,10 +1,15 @@
-import { ref, props } from 'vue'
+import { ref, computed, defineProps, defineEmits } from 'vue'
 
 //传入视频文件（方便复用在项目页面和录屏页面）
-defineProps<{
+const props = defineProps<{
     Recording: RecordData,
     video?: File // 传的话就更快显示，内存上没有、不传的话就去URL上下后再显示
+    showRecordSharing: boolean
 }>()
+
+const recordPageUrl = computed(() => {
+    return props.Recording ? `/record/$(props.Recording.id)` : ''
+})
 
 // 导入必要的类型和函数
 import type { PlatformShare } from './platformShare'
@@ -23,14 +28,12 @@ const emit = defineEmits<{
     'qrCodeGenerated': [qrCodeDataURL: string]
 }>()
 */
-const props = defineProps<{
-    visible: boolean
-}>()
-  
+
+// 将逻辑处理统一移到父组件
 const emit = defineEmits<{
-    cancelled: []
-    resolved: [name: string]
-}>()
+    cancelled: [] // 正常关闭
+    resolved: [] // 分享成功（后面可能需要统计点击后分享成功率）
+    rerecord: [] // 需要软删除
 
 
 

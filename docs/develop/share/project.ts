@@ -5,7 +5,7 @@ import { useQuery } from '@/composables/useQuery'
 import { getProject } from '@/apis/project'
 import type { ProjectData } from '@/apis/project'
 
-const screenShotPoster = ref<File | null>(null)
+const ScreenShotImg = ref<File | null>(null)
 const showScreenShotSharing = ref(false)
 
 const {
@@ -23,20 +23,11 @@ const {
   }
 )
 
-const poster = ref<File | null>(null)
-
 async function onClickScreenShot() {
     window.pauseGame()
-    const screenShotFile = window.getScreenshot()
-    try {
-        const screenShotPoster = await createPoster({ 
-            img: screenShotFile, 
-            projectData: projectData.value 
-        })
-        poster.value = screenShotPoster // 传入截屏海报文件
-        showScreenShotSharing.value = true
-    } catch (error) {
-    }
+    const ScreenShotFile = window.getScreenshot()
+    ScreenShotImg.value = ScreenShotFile
+    showScreenShotSharing.value = true
 }
 
 function closeScreenShotSharing() {
@@ -49,7 +40,7 @@ function closeScreenShotSharing() {
 
 
 import ProjectRecordingSharing from './ProjectRecordingSharing.vue'
-import type { CreateRecordParams } from './module_RecordingApis'
+import type { RecordData, CreateRecordParams } from './module_RecordingApis'
 import { RecordService } from './module_RecordingApis'
 import { saveFile } from '@/models/common/cloud'
 
@@ -57,6 +48,7 @@ const isRecording = ref(false)
 const showRecordSharing = ref(false)
 const setRecordingURL = ref<string | null>(null)
 const recording = ref<File | null>(null)
+const recordData = ref<RecordData | null>(null)
 
 async function onClickRecord() {
     isRecording.value = !isRecording.value
@@ -77,13 +69,15 @@ async function onClickRecord() {
             thumbnailUrl: projectData.value.thumbnail || ''
         }
 
-        const created = await RecordingURL.createRecord(params) // 1.调用 RecordingAPIs 存储到后端
-        // 应该是传入 RecordData 而不只是一个 URL
+        const created: RecordData = await RecordingURL.createRecord(params) // 1.调用 RecordingAPIs 存储到后端
+        recordData.value = created
+
         /*
         const gotRecordID = created.id// 2.调用 RecordingAPIs 获取视频存储ID
         const gotshowRecordingURL = `{created}` // 3.拼接ID 获得录屏展示页面的 URL 传给录屏展示模块
         */
         setRecordingURL.value = gotshowRecordingURL
+        */
         recording.value = recordFile
         showRecordSharing.value = true // 唤起录屏分享弹窗
     }

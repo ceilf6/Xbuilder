@@ -1,5 +1,6 @@
 import type { ProjectData } from '@/apis/project'
 import html2canvas from 'html2canvas'
+import { defineComponent, h } from 'vue'
 
 interface posterProps {
     img: File
@@ -25,7 +26,17 @@ async function createPoster(props: posterProps): Promise<File> {
     return posterFile
 }
 
-export { createPoster }
+const Poster = defineComponent({
+    name: 'Poster',
+    props: {
+        img: { type: Object as () => File, required: true },
+        projectData: { type: Object as () => ProjectData, required: true }
+    },
+    setup(props) {
+        return () => h('div', { class: 'poster-container' })
+    }
+})
+
+export { createPoster, Poster }
 
 export type { posterProps }
-
