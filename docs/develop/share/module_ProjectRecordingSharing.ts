@@ -17,6 +17,7 @@ import { directShare } from './platformShare'
 // 导入qrcode第三方库
 import QRCode from 'qrcode'
 
+
 type SharingResult = {
     type: 'shared'
     platform: string
@@ -27,6 +28,7 @@ const emit = defineEmits<{
     cancelled: []
     resolved: [result: SharingResult]
 }>()
+
 
 
 

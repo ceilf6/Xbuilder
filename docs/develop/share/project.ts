@@ -88,6 +88,7 @@ async function handleRecordingSharing() {
 
         const created: RecordData = await RecordingURL.createRecord(params) // 1.调用 RecordingAPIs 存储到后端
         recordData.value = created
+
         showRecordSharing.value = true // 唤起录屏分享弹窗
 
         try{
