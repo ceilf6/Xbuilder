@@ -3,10 +3,10 @@ import { ref, shallowRef, watch, type CSSProperties } from 'vue'
 import { timeout, untilNotNull } from '@/utils/utils'
 import { useMessageHandle } from '@/utils/exception'
 import { Project } from '@/models/project'
-import { UIButton, UIModalClose } from '@/components/ui'
+import { UIButton, UIModalClose, useResponsive } from '@/components/ui'
 import ProjectRunner from '@/components/project/runner/ProjectRunner.vue'
 import { useLastClickEvent } from '@/utils/dom'
-
+import MobileKeyboardView from '../keyboard-mobile/MobileKeyboardView.vue'
 const props = defineProps<{
   project: Project
   visible: boolean
@@ -56,6 +56,7 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   en: 'Failed to rerun project',
   zh: '重新运行项目失败'
 })
+const isMobile = useResponsive('mobile')
 </script>
 
 <template>
@@ -64,13 +65,9 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
     Although naive-ui modal supports `display-directive: show`, it does not initialize the component until it is shown for the first time.
     TODO: Update `UIModal` to support this requirement.
   -->
-  <div
-    ref="wrapperRef"
+  <div ref="wrapperRef"
     v-radar="{ name: 'Full screen project runner', desc: 'Full screen modal for running project', visible }"
-    class="full-screen-project-runner"
-    :class="{ visible }"
-    :style="modalTransformStyle"
-  >
+    class="full-screen-project-runner" :class="{ visible }" :style="modalTransformStyle">
     <div class="container">
       <div class="header">
         <div class="header-left"></div>
@@ -78,26 +75,22 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
           {{ project.name }}
         </div>
         <div class="header-right">
-          <UIButton
-            v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }"
-            class="button"
-            icon="rotate"
-            :disabled="initialLoading"
-            :loading="handleRerun.isLoading.value"
-            @click="handleRerun.fn"
-          >
+          <UIButton v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }" class="button"
+            icon="rotate" :disabled="initialLoading" :loading="handleRerun.isLoading.value" @click="handleRerun.fn">
             {{ $t({ en: 'Rerun', zh: '重新运行' }) }}
           </UIButton>
           <!-- TODO: support "stop", which preserves the last frame -->
-          <UIModalClose
-            v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
-            class="close"
-            @click="emit('close')"
-          />
+          <UIModalClose v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
+            class="close" @click="emit('close')" />
         </div>
       </div>
       <div class="main">
-        <ProjectRunner ref="projectRunnerRef" class="runner" :project="project" />
+        <MobileKeyboardView v-if="isMobile">
+          <template #gameView>
+            <ProjectRunner ref="projectRunnerRef" class="runner" :project="project" />
+          </template>
+        </MobileKeyboardView>
+        <ProjectRunner v-else ref="projectRunnerRef" class="runner" :project="project" />
       </div>
     </div>
   </div>
@@ -105,6 +98,7 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
 
 <style lang="scss" scoped>
 @import '@/components/ui/responsive.scss';
+
 .full-screen-project-runner {
   position: fixed;
   z-index: 100;
@@ -118,19 +112,20 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   transition:
     transform 0.4s ease-in-out,
     opacity 0.2s ease-in-out 0.1s;
- 
+
   &.visible {
     display: block;
     transform: scale(1);
     opacity: 1;
   }
+
   // @include responsive(mobile) {
   //   &.visible {
   //     transform:  rotate(90deg);
   //   }
   // }
-  
- 
+
+
 }
 
 .container {
@@ -138,13 +133,14 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-   @include responsive(mobile) {
+
+  @include responsive(mobile) {
     width: 100vh;
     height: 100vw;
     // transform:  rotate(90deg);
-     transform-origin: top left; // 设置旋转基点
+    transform-origin: top left; // 设置旋转基点
     transform: rotate(90deg) translateY(-100%); // 旋转并调整位置
-   
+
   }
 
 }
@@ -157,7 +153,7 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   border-bottom: 1px solid var(--ui-color-grey-400);
   height: 56px;
   color: var(--ui-color-title);
-  
+
 }
 
 .header-left {
@@ -183,11 +179,11 @@ const handleRerun = useMessageHandle(() => projectRunnerRef.value?.rerun(), {
   justify-content: flex-end;
   align-items: center;
   padding-right: 20px;
-  
+
   @include responsive(mobile) {
     margin-right: 100px;
   }
- 
+
 
 }
 

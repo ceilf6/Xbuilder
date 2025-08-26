@@ -7,8 +7,11 @@ import { Visibility } from '@/apis/common'
 import { createRelease } from '@/apis/project-release'
 import { saveFile } from '@/models/common/cloud'
 import type { Project } from '@/models/project'
-import { UIImg, UIFormModal, UIForm, UIFormItem, UITextInput, UIButton, useForm } from '@/components/ui'
+import { UIImg, UIFormModal, UIForm, UIFormItem, UITextInput, UIButton, useForm, useModal } from '@/components/ui'
 import { stringifyProjectFullName } from '@/apis/project'
+import { ref } from 'vue'
+import MobileKeyboardEdit from '@/components/project/keyboard-mobile/MobileKeyboardEdit.vue'
+type KeyboardLayoutConfig = { zones: Record<string, string | null> }
 
 const props = defineProps<{
   project: Project
@@ -77,71 +80,125 @@ const handleSubmit = useMessageHandle(
       description: form.value.releaseDescription,
       thumbnail: thumbnailUniversalUrl,
       mobileKeyboardType: 2,
-      mobileKeyboardZoneToKey: {"lt":"s"}
+      mobileKeyboardZoneToKey: { "lt": "s" }
     })
     emit('resolved')
   },
   { en: 'Failed to publish project', zh: '项目发布失败' }
 )
+// mobile
+const keyboardMode = ref<'none' | 'custom'>('none')
+const keyboardConfig = ref<KeyboardLayoutConfig | null>(null)
+const openKeyboardEditor = useModal(MobileKeyboardEdit)
+async function handleEidtKeyboard() {
+  const result = await openKeyboardEditor({ initial: keyboardConfig.value })
+  keyboardConfig.value = result
+}
 </script>
 
 <template>
   <UIFormModal :radar="{ name: 'Project publish modal', desc: 'Modal for publishing projects' }"
     :title="$t({ en: `Publish ${project.name}`, zh: `发布 ${project.name}` })" :style="{ width: '560px' }"
     :visible="props.visible" @update:visible="handleCancel">
-    <UIForm :form="form" has-success-feedback @submit="handleSubmit.fn">
-      <p v-if="project.visibility === Visibility.Private" class="tip">
-        {{
-          $t({
-            en: 'Published projects will be visible to all XBuilder users.',
-            zh: '发布后的项目将对所有 XBuilder 用户可见。'
-          })
-        }}
-      </p>
-      <div class="thumbnail-wrapper">
-        <UIImg class="thumbnail" :src="thumbnailUrl" :loading="thumbnailUrlLoading" size="contain" />
-      </div>
-      <UIFormItem :label="$t({ en: 'Release description', zh: '发布内容' })" path="releaseDescription">
-        <UITextInput v-model:value="form.value.releaseDescription"
-          v-radar="{ name: 'Release description input', desc: 'Input field for release description' }" type="textarea"
-          :placeholder="$t({ en: 'What is new in this release?', zh: '这次发布有什么新内容？' })" />
-      </UIFormItem>
-      <UIFormItem :label="$t({ en: 'Project description', zh: '项目描述' })" path="projectDescription">
-        <UITextInput ref="aboutProjectInput" v-model:value="form.value.projectDescription"
-          v-radar="{ name: 'Project description input', desc: 'Input field for project description' }" type="textarea"
-          :placeholder="$t({
-            en: 'What is this project about? How did you make it?',
-            zh: '这个项目是关于什么的？你是如何创作的？'
-          })
-            " />
-      </UIFormItem>
-      <UIFormItem :label="$t({ en: 'Play instructions', zh: '操作说明' })" path="projectInstructions">
-        <UITextInput v-model:value="form.value.projectInstructions"
-          v-radar="{ name: 'Play instructions input', desc: 'Input field for project play instructions' }"
+    <UIFormModal :radar="{ name: 'Project publish modal', desc: 'Modal for publishing projects' }"
+      :title="$t({ en: `Publish ${project.name}`, zh: `发布 ${project.name}` })" :style="{ width: '560px' }"
+      :visible="props.visible" @update:visible="handleCancel">
+      <UIForm :form="form" has-success-feedback @submit="handleSubmit.fn">
+        <p v-if="project.visibility === Visibility.Private" class="tip">
+          {{
+            $t({
+              en: 'Published projects will be visible to all XBuilder users.',
+              zh: '发布后的项目将对所有 XBuilder 用户可见。'
+            })
+          }}
+        </p>
+        <div class="thumbnail-wrapper">
+          <UIImg class="thumbnail" :src="thumbnailUrl" :loading="thumbnailUrlLoading" size="contain" />
+        </div>
+        <UIFormItem :label="$t({ en: 'Release description', zh: '发布内容' })" path="releaseDescription">
+          <UITextInput v-model:value="form.value.releaseDescription"
+            v-radar="{ name: 'Release description input', desc: 'Input field for release description' }" type="textarea"
+            :placeholder="$t({ en: 'What is new in this release?', zh: '这次发布有什么新内容？' })" />
+        </UIFormItem>
+        <!-- mobile -->
+        <UIFormItem :label="$t({ en: 'Mobile keyboard', zh: '移动端键盘' })">
+          <div class="kb-cards">
+            <div class="kb-card" :class="{ active: keyboardMode === 'none' }" @click="keyboardMode = 'none'">
+              <div class="kb-card-title">{{ $t({ en: 'Disabled', zh: '不启动' }) }}</div>
+              <div class="kb-card-desc">
+                {{ $t({ en: 'Do not show on-screen keyboard on mobile.', zh: '在移动端不显示屏幕按键' }) }}
+              </div>
+            </div>
+            <div class="kb-card" :class="{ active: keyboardMode === 'custom' }" @click="keyboardMode = 'custom'">
+              <div class="kb-card-title">{{ $t({ en: 'Curstom keyboard', zh: '自定义键盘' }) }}</div>
+              <div class="kb-card-desc">
+                {{ $t({ en: 'Design your own on-screen buttons for mobile.', zh: '为移动端自定义屏幕按键布局' }) }}
+              </div>
+              <div v-if="keyboardMode === 'custom'" class="kb-actions">
+                <UIButton size="small" type="primary" @click="handleEidtKeyboard">
+                  {{ $t({ en: 'Edit keyboard', zh: '编辑键盘' }) }}
+                </UIButton>
+                <span v-if="keyboardConfig != null" class="kb-hint">
+                  {{ $t({ en: 'Configured', zh: '已配置' }) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </UIFormItem>
+        <UIFormItem :label="$t({ en: 'Project description', zh: '项目描述' })" path="projectDescription">
+          <UITextInput ref="aboutProjectInput" v-model:value="form.value.projectDescription"
+            v-radar="{ name: 'Project description input', desc: 'Input field for project description' }" type="textarea"
+            :placeholder="$t({
+              en: 'What is this project about? How did you make it?',
+              zh: '这个项目是关于什么的？你是如何创作的？'
+            })
+              " />
+          <UITextInput ref="aboutProjectInput" v-model:value="form.value.projectDescription"
+            v-radar="{ name: 'Project description input', desc: 'Input field for project description' }" type="textarea"
+            :placeholder="$t({
+              en: 'What is this project about? How did you make it?',
+              zh: '这个项目是关于什么的？你是如何创作的？'
+            })
+              " />
+        </UIFormItem>
+        <UIFormItem :label="$t({ en: 'Play instructions', zh: '操作说明' })" path="projectInstructions">
+          <UITextInput v-model:value="form.value.projectInstructions" <UITextInput
+            v-model:value="form.value.projectInstructions"
+            v-radar="{ name: 'Play instructions input', desc: 'Input field for project play instructions' }"
+            type="textarea" :placeholder="$t({
+              en: 'Tell others how to play in your project',
+              zh: '告诉其他用户在项目中如何操作'
+            })
+              " />
           type="textarea" :placeholder="$t({
-            en: 'Tell others how to play in your project',
-            zh: '告诉其他用户在项目中如何操作'
+          en: 'Tell others how to play in your project',
+          zh: '告诉其他用户在项目中如何操作'
           })
-            " />
-      </UIFormItem>
-      <footer class="footer">
-        <UIButton v-radar="{ name: 'Cancel button', desc: 'Click to cancel project publishing' }" type="boring"
-          @click="handleCancel">
-          {{ $t({ en: 'Cancel', zh: '取消' }) }}
-        </UIButton>
-        <UIButton v-radar="{ name: 'Publish button', desc: 'Click to publish project' }" type="primary"
-          html-type="submit" :loading="handleSubmit.isLoading.value">
-          {{ $t({ en: 'Publish', zh: '发布' }) }}
-        </UIButton>
-      </footer>
-    </UIForm>
-  </UIFormModal>
+          " />
+        </UIFormItem>
+        <footer class="footer">
+          <UIButton v-radar="{ name: 'Cancel button', desc: 'Click to cancel project publishing' }" type="boring"
+            @click="handleCancel">
+            <UIButton v-radar="{ name: 'Cancel button', desc: 'Click to cancel project publishing' }" type="boring"
+              @click="handleCancel">
+              {{ $t({ en: 'Cancel', zh: '取消' }) }}
+            </UIButton>
+            <UIButton v-radar="{ name: 'Publish button', desc: 'Click to publish project' }" type="primary"
+              html-type="submit" :loading="handleSubmit.isLoading.value">
+              <UIButton v-radar="{ name: 'Publish button', desc: 'Click to publish project' }" type="primary"
+                html-type="submit" :loading="handleSubmit.isLoading.value">
+                {{ $t({ en: 'Publish', zh: '发布' }) }}
+              </UIButton>
+        </footer>
+      </UIForm>
+    </UIFormModal>
 </template>
 
 <style lang="scss" scoped>
 .tip {
   margin-bottom: 24px;
 }
+
 
 .thumbnail-wrapper {
   margin-bottom: 24px;
@@ -157,10 +214,51 @@ const handleSubmit = useMessageHandle(
   }
 }
 
+
 .footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 20px;
+}
+
+// mobile
+.kb-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.kb-card {
+  border: 1px solid var(--ui-color-dividing-line-2);
+  border-radius: var(--ui-border-radius-1);
+  padding: 12px;
+  cursor: pointer;
+  background: var(--ui-color-grey-100);
+}
+
+.kb-card.active {
+  border-color: var(--ui-color-primary-main);
+  box-shadow: 0 0 0 2px rgba(11, 192, 207, 0.15);
+}
+
+.kb-card-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.kb-card-desc {
+  color: var(--ui-color-grey-800);
+}
+
+.kb-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kb-hint {
+  color: var(--ui-color-grey-800);
 }
 </style>

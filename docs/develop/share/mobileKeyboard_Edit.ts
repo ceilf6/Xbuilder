@@ -1,5 +1,8 @@
-import { UI } from "./base";
-
+import { UI, useModal } from "./base";
+import {
+  UpdateMobileAdaptationParams,
+  MobileAdaptationService,
+} from "./module_Keyboard";
 /**
  * ## Features
  * - expand phone Layout
@@ -26,7 +29,18 @@ export interface KeyboardEditorModalProps {
   initial?: KeyboardLayoutConfig | null;
 }
 
-export interface KeyboardEditorModalEmits {
-  (e: "resolved", config: KeyboardLayoutConfig): void;
-  (e: "cancelled"): void;
+const openKeyboardEditor = useModal(KeyboardEditorModal);
+const result = await openKeyboardEditor({
+  initial: null,
+} as KeyboardEditorModalProps);
+
+if (result) {
+  const mobileService: MobileAdaptationService = {} as any;
+  await mobileService.updateMobileAdaptation("owner", "projectName", {
+    adaptationType: 2,
+    zoneToKey: result,
+  });
+  console.log("键盘配置已保存到后端:", result);
+} else {
+  console.log("用户取消了");
 }
