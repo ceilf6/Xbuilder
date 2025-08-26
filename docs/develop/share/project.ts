@@ -71,9 +71,11 @@ async function onClickRecord() {
 
         const created: RecordData = await RecordingURL.createRecord(params) // 1.调用 RecordingAPIs 存储到后端
         recordData.value = created
+
         /*
         const gotRecordID = created.id// 2.调用 RecordingAPIs 获取视频存储ID
         const gotshowRecordingURL = `{created}` // 3.拼接ID 获得录屏展示页面的 URL 传给录屏展示模块
+        */
         setRecordingURL.value = gotshowRecordingURL
         */
         recording.value = recordFile

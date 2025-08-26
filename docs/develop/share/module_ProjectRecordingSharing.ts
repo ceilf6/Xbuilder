@@ -28,12 +28,12 @@ const emit = defineEmits<{
     'qrCodeGenerated': [qrCodeDataURL: string]
 }>()
 */
+
 // 将逻辑处理统一移到父组件
 const emit = defineEmits<{
     cancelled: [] // 正常关闭
     resolved: [] // 分享成功（后面可能需要统计点击后分享成功率）
     rerecord: [] // 需要软删除
-}>()
 
 
 
