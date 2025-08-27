@@ -15,9 +15,9 @@ export type BasicInfo = {
  */
 export type ShareType = {
     /** 分享项目页面 */
-    supportProject: boolean
+    supportURL: boolean
     /** 分享海报 */
-    supportPoster: boolean
+    supportImage: boolean
     /** 分享视频 */
     supportVideo: boolean
 }
@@ -57,9 +57,9 @@ class QQPlatform implements PlatformConfig {
     }
 
     shareType = {
-        supportProject: true,
-        supportPoster: true,
-        supportVideo: true
+        supportURL: true,
+        supportImage: true,
+        supportVideo: false
     }
     
     shareFunction = {
@@ -86,8 +86,8 @@ class WeChatPlatform implements PlatformConfig {
     }
 
     shareType = {
-        supportProject: true,
-        supportPoster: true,
+        supportURL: true,
+        supportImage: true,
         supportVideo: false
     }
     
@@ -115,7 +115,7 @@ export const SocialPlatformConfigs: PlatformConfig[] = [
  * @returns 分享数据
  */
 export async function directShare(platform: PlatformConfig, projectUrl: string) {
-    if (platform.shareType.supportProject && platform.shareFunction.shareURL) {
+    if (platform.shareType.supportURL && platform.shareFunction.shareURL) {
         const data = await platform.shareFunction.shareURL(projectUrl)
         return data
     }
@@ -130,7 +130,7 @@ export async function directShare(platform: PlatformConfig, projectUrl: string) 
  * @returns 分享数据
  */
 export async function sharePoster(platform: PlatformConfig, image: File, projectUrl: string) {
-    if (platform.shareType.supportPoster && platform.shareFunction.shareImage) {
+    if (platform.shareType.supportImage && platform.shareFunction.shareImage) {
         const data = await platform.shareFunction.shareImage(image)
         return data
     }

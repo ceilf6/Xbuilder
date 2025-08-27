@@ -44,10 +44,10 @@ async function handPlatformChange(platform: PlatformConfig) {
     
     selectPlatform.value =  platform
     
-    if (platform.shareType.supportProject && platform.shareFunction.shareURL) {
+    if (platform.shareType.supportURL && platform.shareFunction.shareURL) {
         DataURL.value = qrcode.toDataURL(await platform.shareFunction.shareURL(getProjectPageRoute(props.projectData.owner, props.projectData.name)))
     }
-    else if (platform.shareType.supportPoster && platform.shareFunction.shareImage) {
+    else if (platform.shareType.supportImage && platform.shareFunction.shareImage) {
         DataURL.value = qrcode.toDataURL(await platform.shareFunction.shareImage(posterData))
     }
     else {
