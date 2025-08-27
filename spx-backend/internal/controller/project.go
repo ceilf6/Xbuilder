@@ -653,37 +653,37 @@ type UpdateProjectParams struct {
 	Description             string               `json:"description"`
 	Instructions            string               `json:"instructions"`
 	Thumbnail               string               `json:"thumbnail"`
-	// MobileKeyboardType      int                  `json:"mobileKeyboardType"`
-	// MobileKeyboardZoneToKey map[string]*string   `json:"mobileKeyboardZoneToKey,omitempty"`
+	MobileKeyboardType      int                  `json:"mobileKeyboardType"`
+	MobileKeyboardZoneToKey map[string]*string   `json:"mobileKeyboardZoneToKey,omitempty"`
 }
 
 // Validate validates the parameters.
-// func (p *UpdateProjectParams) Validate() (ok bool, msg string) {
-// 	// 验证移动端键盘类型
-// 	if p.MobileKeyboardType < 1 || p.MobileKeyboardType > 2 {
-// 		return false, "invalid mobileKeyboardType, must be 1 (no keyboard) or 2 (custom keyboard)"
-// 	}
+func (p *UpdateProjectParams) Validate() (ok bool, msg string) {
+	// 验证移动端键盘类型
+	if p.MobileKeyboardType < 1 || p.MobileKeyboardType > 2 {
+		return false, "invalid mobileKeyboardType, must be 1 (no keyboard) or 2 (custom keyboard)"
+	}
 
-// 	// 验证键盘类型与区域映射的一致性
-// 	if p.MobileKeyboardType == 2 && len(p.MobileKeyboardZoneToKey) == 0 {
-// 		return false, "mobileKeyboardZoneToKey is required when mobileKeyboardType is 2 (custom keyboard)"
-// 	}
-// 	if p.MobileKeyboardType == 1 && len(p.MobileKeyboardZoneToKey) > 0 {
-// 		return false, "mobileKeyboardZoneToKey must be empty when mobileKeyboardType is 1 (no keyboard)"
-// 	}
+	// 验证键盘类型与区域映射的一致性
+	if p.MobileKeyboardType == 2 && len(p.MobileKeyboardZoneToKey) == 0 {
+		return false, "mobileKeyboardZoneToKey is required when mobileKeyboardType is 2 (custom keyboard)"
+	}
+	if p.MobileKeyboardType == 1 && len(p.MobileKeyboardZoneToKey) > 0 {
+		return false, "mobileKeyboardZoneToKey must be empty when mobileKeyboardType is 1 (no keyboard)"
+	}
 
-// 	// 验证区域 ID 是否有效
-// 	if p.MobileKeyboardType == 2 && p.MobileKeyboardZoneToKey != nil {
-// 		for zoneStr := range p.MobileKeyboardZoneToKey {
-// 			zone := model.MobileKeyboardZoneId(zoneStr)
-// 			if !zone.IsValid() {
-// 				return false, fmt.Sprintf("invalid zone ID: %s", zoneStr)
-// 			}
-// 		}
-// 	}
+	// 验证区域 ID 是否有效
+	if p.MobileKeyboardType == 2 && p.MobileKeyboardZoneToKey != nil {
+		for zoneStr := range p.MobileKeyboardZoneToKey {
+			zone := model.MobileKeyboardZoneId(zoneStr)
+			if !zone.IsValid() {
+				return false, fmt.Sprintf("invalid zone ID: %s", zoneStr)
+			}
+		}
+	}
 
-// 	return true, ""
-// }
+	return true, ""
+}
 
 // Diff returns the updates between the parameters and the model project.
 func (p *UpdateProjectParams) Diff(mProject *model.Project) map[string]any {
