@@ -19,4 +19,4 @@ export type ZoneId =
   | "rbB"
   | "rbX"
   | "rbY";
-export type ZoneMapping = Record<ZoneId, string | null>;
+export type zoneToKey = Record<ZoneId, string | null>;
