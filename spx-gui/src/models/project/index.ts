@@ -197,7 +197,20 @@ export class Project extends Disposable {
         throw new Error(`unsupported resource type: ${id.type}`)
     }
   }
+  mobileKeyboardType = 1  // 默认无需键盘
+  mobileKeyboardZoneToKey: { [zone: string]: string | null } = {}
 
+  // 新增设置方法
+  setMobileKeyboardType(type: number) {
+    this.mobileKeyboardType = type
+    if (type === 1) {
+      this.mobileKeyboardZoneToKey = {}
+    }
+  }
+
+  setMobileKeyboardZoneToKey(mapping: { [zone: string]: string | null }) {
+    this.mobileKeyboardZoneToKey = mapping
+  }
   setVisibility(visibility: Visibility) {
     this.visibility = visibility
   }
@@ -277,6 +290,12 @@ export class Project extends Disposable {
 
   private loadMetadata(metadata: Metadata) {
     assign<Project>(this, metadata)
+    if (metadata.mobileKeyboardType !== undefined) {
+      this.mobileKeyboardType = metadata.mobileKeyboardType
+    }
+    if (metadata.mobileKeyboardZoneToKey !== undefined) {
+      this.mobileKeyboardZoneToKey = metadata.mobileKeyboardZoneToKey
+    }
   }
 
   private exportMetadata(): Metadata {
@@ -290,7 +309,9 @@ export class Project extends Disposable {
       visibility: this.visibility,
       description: this.description,
       instructions: this.instructions,
-      thumbnail: this.thumbnail
+      thumbnail: this.thumbnail,
+      mobileKeyboardType: this.mobileKeyboardType,
+      mobileKeyboardZoneToKey: this.mobileKeyboardZoneToKey
     }
   }
 

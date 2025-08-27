@@ -92,7 +92,8 @@ const handleSubmit = useMessageHandle(
       await addProject({
         name: projectName,
         visibility: Visibility.Private,
-        remixSource: props.remixSource
+        remixSource: props.remixSource,
+        mobileKeyboardType: 1
       })
     } else {
       const username = await untilNotNull(signedInUsername)
@@ -100,6 +101,7 @@ const handleSubmit = useMessageHandle(
       const project = new Project(username, projectName)
       await project.loadXbpFile(defaultProjectFile)
       project.setVisibility(Visibility.Private)
+      project.mobileKeyboardType = 1
       await project.saveToCloud()
     }
     emit('resolved', projectName)
