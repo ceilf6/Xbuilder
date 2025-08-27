@@ -114,10 +114,12 @@ func (prfn ProjectReleaseFullName) IsValid() bool {
 
 // CreateProjectReleaseParams holds the parameters for creating a project release.
 type CreateProjectReleaseParams struct {
-	ProjectFullName ProjectFullName `json:"projectFullName"`
-	Name            string          `json:"name"`
-	Description     string          `json:"description"`
-	Thumbnail       string          `json:"thumbnail"`
+	ProjectFullName         ProjectFullName    `json:"projectFullName"`
+	Name                    string             `json:"name"`
+	Description             string             `json:"description"`
+	Thumbnail               string             `json:"thumbnail"`
+	MobileKeyboardType      int                `json:"mobileKeyboardType"`
+	MobileKeyboardZoneToKey map[string]*string `json:"mobileKeyboardZoneToKey,omitempty"`
 }
 
 // Validate validates the parameters.
@@ -130,6 +132,26 @@ func (p *CreateProjectReleaseParams) Validate() (ok bool, msg string) {
 	}
 	if p.Description == "" {
 		return false, "missing description"
+	}
+	// 验证移动端键盘类型
+	if p.MobileKeyboardType < 1 || p.MobileKeyboardType > 2 {
+		return false, "invalid mobileKeyboardType, must be 1 (no keyboard) or 2 (custom keyboard)"
+	}
+	// 验证键盘类型与区域映射的一致性
+	if p.MobileKeyboardType == 2 && len(p.MobileKeyboardZoneToKey) == 0 {
+		return false, "mobileKeyboardZoneToKey is required when mobileKeyboardType is 2 (custom keyboard)"
+	}
+	if p.MobileKeyboardType == 1 && len(p.MobileKeyboardZoneToKey) > 0 {
+		return false, "mobileKeyboardZoneToKey must be empty when mobileKeyboardType is 1 (no keyboard)"
+	}
+	// 验证区域 ID 是否有效
+	if p.MobileKeyboardType == 2 && p.MobileKeyboardZoneToKey != nil {
+		for zoneStr := range p.MobileKeyboardZoneToKey {
+			zone := model.MobileKeyboardZoneId(zoneStr)
+			if !zone.IsValid() {
+				return false, fmt.Sprintf("invalid zone ID: %s", zoneStr)
+			}
+		}
 	}
 	return true, ""
 }
@@ -151,22 +173,31 @@ func (ctrl *Controller) CreateProjectRelease(ctx context.Context, params *Create
 		Files:       mProject.Files,
 		Thumbnail:   params.Thumbnail,
 	}
+
 	if err := ctrl.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(mProject).Error; err != nil {
 			return err
 		}
 
+		// 创建 release 记录
 		if err := tx.Create(&mProjectRelease).Error; err != nil {
 			return err
 		}
 
+		// 更新项目的 release 统计信息
+		projectUpdates := map[string]any{
+			"latest_release_id": sql.NullInt64{Int64: mProjectRelease.ID, Valid: true},
+			"release_count":     gorm.Expr("release_count + 1"),
+		}
+
+		// 同时更新项目的虚拟键盘配置
+		projectUpdates["mobile_keyboard_type"] = params.MobileKeyboardType
+		projectUpdates["mobile_keyboard_zone_to_key"] = convertToModelZoneToKeyMapping(params.MobileKeyboardZoneToKey)
+
 		if err := tx.
 			Model(&mProject).
 			Omit("Owner", "RemixedFromRelease", "LatestRelease").
-			Updates(map[string]any{
-				"latest_release_id": sql.NullInt64{Int64: mProjectRelease.ID, Valid: true},
-				"release_count":     gorm.Expr("release_count + 1"),
-			}).
+			Updates(projectUpdates).
 			Error; err != nil {
 			return err
 		}
@@ -175,6 +206,7 @@ func (ctrl *Controller) CreateProjectRelease(ctx context.Context, params *Create
 	}); err != nil {
 		return nil, fmt.Errorf("failed to create project release: %w", err)
 	}
+
 	if err := ctrl.db.WithContext(ctx).
 		Preload("Project.Owner").
 		First(&mProjectRelease).
