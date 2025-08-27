@@ -31,39 +31,39 @@ onMounted(() => {
         <div class="stage-vTZqo">
             <!-- 左上角-->
             <div class="zone lt">
-                <UIKeyBtn v-if="zoneToKey.lt" :value="zoneToKey.lt!" />
+                <UIKeyBtn v-if="zoneToKey.lt" :value="zoneToKey.lt!" :active="true" />
             </div>
             <!-- 右上角 -->
             <div class="zone rt">
-                <UIKeyBtn v-if="zoneToKey.rt" :value="zoneToKey.rt!" />
+                <UIKeyBtn v-if="zoneToKey.rt" :value="zoneToKey.rt!" :active="true" />
             </div>
 
             <!-- 左下角 4 -->
             <div class="zone lb-up">
-                <UIKeyBtn v-if="zoneToKey.lbUp" :value="zoneToKey.lbUp!" />
+                <UIKeyBtn v-if="zoneToKey.lbUp" :value="zoneToKey.lbUp!" :active="true" />
             </div>
             <div class="zone lb-left">
-                <UIKeyBtn v-if="zoneToKey.lbLeft" :value="zoneToKey.lbLeft!" />
+                <UIKeyBtn v-if="zoneToKey.lbLeft" :value="zoneToKey.lbLeft!" :active="true" />
             </div>
             <div class="zone lb-right">
-                <UIKeyBtn v-if="zoneToKey.lbRight" :value="zoneToKey.lbRight!" />
+                <UIKeyBtn v-if="zoneToKey.lbRight" :value="zoneToKey.lbRight!" :active="true" />
             </div>
             <div class="zone lb-down">
-                <UIKeyBtn v-if="zoneToKey.lbDown" :value="zoneToKey.lbDown!" />
+                <UIKeyBtn v-if="zoneToKey.lbDown" :value="zoneToKey.lbDown!" :active="true" />
             </div>
 
             <!-- 右下角 4 -->
             <div class="zone rb-a">
-                <UIKeyBtn v-if="zoneToKey.rbA" :value="zoneToKey.rbA!" />
+                <UIKeyBtn v-if="zoneToKey.rbA" :value="zoneToKey.rbA!" :active="true" />
             </div>
             <div class="zone rb-b">
-                <UIKeyBtn v-if="zoneToKey.rbB" :value="zoneToKey.rbB!" />
+                <UIKeyBtn v-if="zoneToKey.rbB" :value="zoneToKey.rbB!" :active="true" />
             </div>
             <div class="zone rb-x">
-                <UIKeyBtn v-if="zoneToKey.rbX" :value="zoneToKey.rbX!" />
+                <UIKeyBtn v-if="zoneToKey.rbX" :value="zoneToKey.rbX!" :active="true" />
             </div>
             <div class="zone rb-y">
-                <UIKeyBtn v-if="zoneToKey.rbY" :value="zoneToKey.rbY!" />
+                <UIKeyBtn v-if="zoneToKey.rbY" :value="zoneToKey.rbY!" :active="true" />
             </div>
         </div>
     </div>
