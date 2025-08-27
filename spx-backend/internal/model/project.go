@@ -5,7 +5,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"fmt"
 )
 
 // Project is the model for projects.
@@ -158,24 +157,4 @@ func (ztkm MobileKeyboardZoneToKeyMapping) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.Marshal(ztkm)
-}
-
-// GetKey returns the key mapped to the given zone and whether the key exists.
-func (ztkm MobileKeyboardZoneToKeyMapping) GetKey(zone MobileKeyboardZoneId) (*string, bool) {
-	key, exists := ztkm[zone]
-	return key, exists
-}
-
-// SetKey sets the key for the given zone.
-func (ztkm MobileKeyboardZoneToKeyMapping) SetKey(zone MobileKeyboardZoneId, key *string) error {
-	if !zone.IsValid() {
-		return fmt.Errorf("invalid zone ID: %s", zone)
-	}
-	ztkm[zone] = key
-	return nil
-}
-
-// RemoveKey removes the key mapping for the given zone.
-func (ztkm MobileKeyboardZoneToKeyMapping) RemoveKey(zone MobileKeyboardZoneId) {
-	delete(ztkm, zone)
 }
