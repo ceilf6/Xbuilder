@@ -80,7 +80,22 @@ const handleSubmit = useMessageHandle(
       description: form.value.releaseDescription,
       thumbnail: thumbnailUniversalUrl,
       mobileKeyboardType: 2,
+<<<<<<< HEAD
       mobileKeyboardZoneToKey: { "lt": "s" }
+=======
+      mobileKeyboardZoneToKey: {
+        "lt": null,
+        "rt": 'A',
+        "lbUp": 'B',
+        "lbLeft": 'X',
+        "lbRight": 'Y',
+        "lbDown": null,
+        "rbA": null,
+        "rbB": null,
+        "rbX": null,
+        "rbY": null,
+      }
+>>>>>>> 3f06c567 ( feat: merge backend and keyBtn map and 10% doc)
     })
     emit('resolved')
   },
