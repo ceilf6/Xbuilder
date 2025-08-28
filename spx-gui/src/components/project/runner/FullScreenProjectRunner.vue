@@ -85,7 +85,8 @@ const isMobile = useResponsive('mobile')
         </div>
       </div>
       <div class="main">
-        <MobileKeyboardView v-if="isMobile">
+        <MobileKeyboardView v-if="isMobile && project.mobileKeyboardType === 2"
+          :initial="project.mobileKeyboardZoneToKey || {}">
           <template #gameView>
             <ProjectRunner ref="projectRunnerRef" class="runner" :project="project" />
           </template>

@@ -43,8 +43,6 @@ function dispatchKey(type: 'keydown' | 'keyup', v: string) {
   const canvas = doc.querySelector('#game-canvas') as HTMLElement | null
   const event = new KeyboardEvent(type, { key, code, bubbles: true })
   if (canvas) {
-    // if (!canvas.hasAttribute('tabindex')) canvas.setAttribute('tabindex', '0')
-    // ;(canvas as HTMLElement).focus()
     canvas.focus()
     canvas.dispatchEvent(event)
   } else {
@@ -52,7 +50,11 @@ function dispatchKey(type: 'keydown' | 'keyup', v: string) {
     doc.dispatchEvent(event)
   }
 }
-
+// function dispatchKey(type: 'keydown' | 'keyup', v: string) {
+//   const { key, code } = toKeyAndCode(v)
+//   const event = new KeyboardEvent(type, { key, code, bubbles: true })
+//   dispatchEvent(event)
+// }
 let isPressed = false
 function press(down: boolean) {
 
@@ -69,7 +71,7 @@ function press(down: boolean) {
 
 <template>
 
-  <div v-if="props.active" class="ui-key-btn">{{ props.value }}</div>
+  <div v-if="!props.active" class="ui-key-btn">{{ props.value }}</div>
   <div v-else class="ui-key-btn" @pointerdown.prevent.stop="press(true)" @pointerup.prevent.stop="press(false)"
     @pointercancel.prevent.stop="press(false)" @pointerleave.prevent.stop="press(false)">
     {{ props.value }}

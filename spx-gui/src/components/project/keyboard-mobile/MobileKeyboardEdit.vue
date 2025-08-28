@@ -1,6 +1,6 @@
 <!-- KeyboardEditorModal.vue -->
 <template>
-    <UIFullScreenModal :visible="true" @close="cancel">
+    <UIFullScreenModal :visible="true">
         <div class="keyboard-editor">
             <div class="header">
                 <h1>{{ t({ en: 'Edit Keyboard', zh: '编辑键盘' }) }}</h1>
@@ -89,7 +89,7 @@
             </div>
 
             <div class="footer">
-                <UIButton @click="cancel" type="boring">{{ t({ en: 'Cancel', zh: '取消' }) }}</UIButton>
+
                 <UIButton type="primary" @click="confirm">{{ t({ en: 'Confirm', zh: '确定' }) }}</UIButton>
             </div>
         </div>
@@ -100,16 +100,13 @@
 import type { ModalComponentEmits, ModalComponentProps } from '@/components/ui/modal/UIModalProvider.vue'
 import { UIFullScreenModal, UIButton } from '../../ui'
 import { useI18n } from '@/utils/i18n'
-type KeyboardLayoutConfig = {
-    // 你的布局数据，比如：按键 → 绑定键值/位置
-    zones: Record<string, string | null>
-}
+type KeyboardLayoutConfig = Record<string, string | null>
+
 
 const props = defineProps<ModalComponentProps & { initial?: KeyboardLayoutConfig | null }>()
 const emit = defineEmits<ModalComponentEmits<KeyboardLayoutConfig>>()
 
 const { t } = useI18n()
-const draft = ref<KeyboardLayoutConfig>(props.initial ?? { zones: {} })
 import UIKeyBtn from './ui/UIKeyBtn.vue';
 import phone from '@/assets/images/mobile.png';
 import { reactive, ref } from 'vue'
@@ -122,9 +119,11 @@ const pool = ref<string[]>([
 ])
 const zones = ['lt', 'rt', 'lbUp', 'lbLeft', 'lbRight', 'lbDown', 'rbA', 'rbB', 'rbX', 'rbY']
 type ZoneId = typeof zones[number]
-const zoneToKey = reactive<Record<ZoneId, string | null>>({
-    lt: null, rt: null, lbUp: null, lbLeft: null, lbRight: null, lbDown: null, rbA: null, rbB: null, rbX: null, rbY: null
-})
+// const zoneToKey = reactive<Record<ZoneId, string | null>>({
+//     lt: null, rt: null, lbUp: null, lbLeft: null, lbRight: null, lbDown: null, rbA: null, rbB: null, rbX: null, rbY: null
+// })
+const zoneToKey = reactive<KeyboardLayoutConfig>(props.initial ?? {})
+
 const zoneRefs = Object.fromEntries(zones.map(id => [id, ref<HTMLElement | null>(null)])) as Record<ZoneId, ReturnType<typeof ref<HTMLElement | null>>>;
 const paletteRef = ref<HTMLElement | null>(null)
 const drag = ref<{ value: string, x: number, y: number, source: 'pool' | ZoneId } | null>(null)
@@ -180,8 +179,8 @@ function hit(el: HTMLElement | null, x: number, y: number) {
     return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom
 }
 
-function cancel() { emit('cancelled') }
-function confirm() { emit('resolved', draft.value) }
+// function confirm() { emit('resolved', draft.value) }
+function confirm() { emit('resolved', zoneToKey) }
 </script>
 <style lang="scss" scoped>
 .keyboard-editor {

@@ -2,7 +2,7 @@
 
 The HTTP APIs provided by spx-backend for mobileKeyboard management. provide to Edit and View
 
-See details in [`MobileKeyboard APIs`](./module_Keyboard.ts).
+See details in [`MobileKeyboard APIs`](./module_MobileKeyboardAPIs.ts).
 
 ## MobileKeyboard Edit
 

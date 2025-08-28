@@ -3,39 +3,7 @@ import type {
   Visibility,
 } from "../../../spx-gui/src/apis/common/index.ts";
 import { type ProjectRelease } from "../../../spx-gui/src/apis/project-release.ts";
-
-/**
- * Mobile keyboard type enumeration
- */
-export enum MobileKeyboardType {
-  NoKeyboard = 1,
-  CustomKeyboard = 2,
-}
-
-/**
- * Valid mobile keyboard zones
- */
-export const MOBILE_KEYBOARD_ZONES = [
-  "lt",
-  "rt",
-  "lbUp",
-  "lbLeft",
-  "lbRight",
-  "lbDown",
-  "rbA",
-  "rbB",
-  "rbX",
-  "rbY",
-] as const;
-
-export type MobileKeyboardZone = (typeof MOBILE_KEYBOARD_ZONES)[number];
-
-/**
- * Zone to key mapping for mobile keyboard
- */
-export type MobileKeyboardZoneToKeyMapping = {
-  [zone in MobileKeyboardZone]: string | null;
-};
+import { MobileKeyboardZoneToKeyMapping } from "./base";
 
 /**
  * Updated project data structure with mobile keyboard support

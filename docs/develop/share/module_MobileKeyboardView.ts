@@ -1,5 +1,5 @@
 import { UI } from "./base";
-import { MobileKeyboardZoneToKeyMapping } from "./module_MobileKeyboardAPIs";
+import { MobileKeyboardZoneToKeyMapping } from "./base";
 /**
  * Component MobileKeyboardView initializes the mobile keyboard instance.
  *
