@@ -7,8 +7,11 @@ import { Visibility } from '@/apis/common'
 import { createRelease } from '@/apis/project-release'
 import { saveFile } from '@/models/common/cloud'
 import type { Project } from '@/models/project'
-import { UIImg, UIFormModal, UIForm, UIFormItem, UITextInput, UIButton, useForm } from '@/components/ui'
+import { UIImg, UIFormModal, UIForm, UIFormItem, UITextInput, UIButton, useForm, useModal } from '@/components/ui'
 import { stringifyProjectFullName } from '@/apis/project'
+import { ref } from 'vue'
+import MobileKeyboardEdit from '@/components/project/keyboard-mobile/MobileKeyboardEdit.vue'
+type KeyboardLayoutConfig = Record<string, string | null>
 
 const props = defineProps<{
   project: Project
@@ -67,8 +70,8 @@ const handleSubmit = useMessageHandle(
     project.setVisibility(Visibility.Public)
     project.setDescription(form.value.projectDescription)
     project.setInstructions(form.value.projectInstructions)
-    project.mobileKeyboardType = 2
-    project.mobileKeyboardZoneToKey = { "lt": "s" }
+    project.mobileKeyboardType = keyboardMode.value
+    project.mobileKeyboardZoneToKey = mobileKeyboardZoneToKey.value || {}
     await project.saveToCloud()
     const thumbnailUniversalUrl = await saveFile(props.project.thumbnail!)
     await createRelease({
@@ -76,13 +79,23 @@ const handleSubmit = useMessageHandle(
       name: generateReleaseName(),
       description: form.value.releaseDescription,
       thumbnail: thumbnailUniversalUrl,
-      mobileKeyboardType: 2,
-      mobileKeyboardZoneToKey: {"lt":"s"}
+      mobileKeyboardType: keyboardMode.value,
+      mobileKeyboardZoneToKey: mobileKeyboardZoneToKey.value || {}
     })
     emit('resolved')
   },
   { en: 'Failed to publish project', zh: '项目发布失败' }
 )
+// mobile
+const keyboardMode = ref<number>(1)
+keyboardMode.value = props.project.mobileKeyboardType
+const mobileKeyboardZoneToKey = ref<KeyboardLayoutConfig | null>(null)
+mobileKeyboardZoneToKey.value = props.project.mobileKeyboardZoneToKey
+const openKeyboardEditor = useModal(MobileKeyboardEdit as any)
+async function handleEidtKeyboard() {
+  const result = await openKeyboardEditor({ initial: mobileKeyboardZoneToKey.value })
+  mobileKeyboardZoneToKey.value = result as KeyboardLayoutConfig
+}
 </script>
 
 <template>
@@ -105,6 +118,31 @@ const handleSubmit = useMessageHandle(
         <UITextInput v-model:value="form.value.releaseDescription"
           v-radar="{ name: 'Release description input', desc: 'Input field for release description' }" type="textarea"
           :placeholder="$t({ en: 'What is new in this release?', zh: '这次发布有什么新内容？' })" />
+      </UIFormItem>
+      <!-- mobile -->
+      <UIFormItem :label="$t({ en: 'Mobile keyboard', zh: '移动端键盘' })">
+        <div class="kb-cards">
+          <div class="kb-card" :class="{ active: keyboardMode === 1 }" @click="keyboardMode = 1">
+            <div class="kb-card-title">{{ $t({ en: 'Disabled', zh: '不启动' }) }}</div>
+            <div class="kb-card-desc">
+              {{ $t({ en: 'Do not show on-screen keyboard on mobile.', zh: '在移动端不显示屏幕按键' }) }}
+            </div>
+          </div>
+          <div class="kb-card" :class="{ active: keyboardMode === 2 }" @click="keyboardMode = 2">
+            <div class="kb-card-title">{{ $t({ en: 'Curstom keyboard', zh: '自定义键盘' }) }}</div>
+            <div class="kb-card-desc">
+              {{ $t({ en: 'Design your own on-screen buttons for mobile.', zh: '为移动端自定义屏幕按键布局' }) }}
+            </div>
+            <div v-if="keyboardMode === 2" class="kb-actions">
+              <UIButton size="small" type="primary" @click="handleEidtKeyboard">
+                {{ $t({ en: 'Edit keyboard', zh: '编辑键盘' }) }}
+              </UIButton>
+              <span v-if="mobileKeyboardZoneToKey && Object.keys(mobileKeyboardZoneToKey).length > 0" class="kb-hint">
+                {{ $t({ en: 'Configured', zh: '已配置' }) }}
+              </span>
+            </div>
+          </div>
+        </div>
       </UIFormItem>
       <UIFormItem :label="$t({ en: 'Project description', zh: '项目描述' })" path="projectDescription">
         <UITextInput ref="aboutProjectInput" v-model:value="form.value.projectDescription"
@@ -162,5 +200,45 @@ const handleSubmit = useMessageHandle(
   justify-content: flex-end;
   gap: 12px;
   margin-top: 20px;
+}
+
+// mobile
+.kb-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.kb-card {
+  border: 1px solid var(--ui-color-dividing-line-2);
+  border-radius: var(--ui-border-radius-1);
+  padding: 12px;
+  cursor: pointer;
+  background: var(--ui-color-grey-100);
+}
+
+.kb-card.active {
+  border-color: var(--ui-color-primary-main);
+  box-shadow: 0 0 0 2px rgba(11, 192, 207, 0.15);
+}
+
+.kb-card-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.kb-card-desc {
+  color: var(--ui-color-grey-800);
+}
+
+.kb-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kb-hint {
+  color: var(--ui-color-grey-800);
 }
 </style>
