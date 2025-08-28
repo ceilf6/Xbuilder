@@ -54,7 +54,7 @@ class QQPlatform implements PlatformConfig {
     basicInfo = {
         name: 'qq',
         label: { en: 'QQ', zh: 'QQ' },
-        color: '#FF6B35'
+        color: '#68a5e1'
     }
     
     shareType = {
@@ -83,7 +83,7 @@ class WeChatPlatform implements PlatformConfig {
     basicInfo = {
         name: 'wechat',
         label: { en: 'WeChat', zh: '微信' },
-        color: '#07C160'
+        color: '#28c445'
     }
     
     shareType = {
@@ -106,7 +106,7 @@ class DouyinPlatform implements PlatformConfig {
     basicInfo = {
         name: 'douyin',
         label: { en: 'Douyin', zh: '抖音' },
-        color: '#000000'
+        color: '#170b1a'
     }
     
     shareType = {
@@ -129,7 +129,7 @@ class XiaohongshuPlatform implements PlatformConfig {
     basicInfo = {
         name: 'xiaohongshu',
         label: { en: 'Xiaohongshu', zh: '小红书' },
-        color: '#FF2442'
+        color: '#ff0035'
     }
     
     shareType = {
@@ -149,7 +149,7 @@ class BilibiliPlatform implements PlatformConfig {
     basicInfo = {
         name: 'bilibili',
         label: { en: 'Bilibili', zh: 'Bilibili' },
-        color: '#FB7299'
+        color: '#d4237a'
     }
     
     shareType = {

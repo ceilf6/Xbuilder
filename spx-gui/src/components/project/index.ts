@@ -5,6 +5,7 @@ import type { Project } from '@/models/project'
 import ProjectCreateModal from './ProjectCreateModal.vue'
 import ProjectOpenModal from './ProjectOpenModal.vue'
 import ProjectSharingLinkModal from './ProjectSharingLinkModal.vue'
+import ProjectDirectSharing from './sharing/ProjectDirectSharing.vue'
 import ProjectPublishModal from './ProjectPublishModal.vue'
 import ProjectPublishedModal from './ProjectPublishedModal.vue'
 /**
@@ -60,7 +61,7 @@ export function useRemoveProject() {
 }
 
 export function useShareProject() {
-  const modal = useModal(ProjectSharingLinkModal)
+  const modal = useModal(ProjectDirectSharing)
 
   return async function shareProject(owner: string, name: string) {
     await modal({ owner, name })
