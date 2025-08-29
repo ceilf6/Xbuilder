@@ -8,21 +8,21 @@
     import bilibiliIcon from './logos/bilibili.svg'
 
     const props = defineProps<{
-        modelValue?: PlatformConfig
+        modelValue?: PlatformConfig | null
     }>()
 
     const emit = defineEmits<{
         /** 平台选择变化事件 */
         'change': [platform: PlatformConfig]
         /** v-model 更新 */
-        'update:modelValue': [platform: PlatformConfig]
+        'update:modelValue': [platform: PlatformConfig | null]
     }>()
 
     const selectedPlatform = ref<PlatformConfig>(props.modelValue ?? SocialPlatformConfigs[0])
 
     const handlePlatformChange = (platform: PlatformConfig) => {
         selectedPlatform.value = platform
-        emit('update:modelValue', platform)
+        emit('update:modelValue', platform as PlatformConfig)
         emit('change', platform)
     }
 
@@ -30,7 +30,7 @@
 
     // 初次加载时，将默认选择的平台传递给父组件
     onMounted(() => {
-        emit('update:modelValue', selectedPlatform.value)
+        emit('update:modelValue', selectedPlatform.value as PlatformConfig)
         emit('change', selectedPlatform.value)
     })
 

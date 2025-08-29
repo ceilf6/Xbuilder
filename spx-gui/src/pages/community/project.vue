@@ -311,7 +311,9 @@ const {
 const shareProject = useShareProject()
 
 const handleShare = useMessageHandle(() => {
-  shareProject(projectData.value)
+  if (projectData.value) {
+    shareProject(projectData.value)
+  }
 }, {
   en: 'Failed to share project',
   zh: '分享项目失败'
