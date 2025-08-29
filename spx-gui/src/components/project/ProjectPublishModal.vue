@@ -78,9 +78,7 @@ const handleSubmit = useMessageHandle(
       projectFullName: stringifyProjectFullName(project.owner!, project.name!),
       name: generateReleaseName(),
       description: form.value.releaseDescription,
-      thumbnail: thumbnailUniversalUrl,
-      mobileKeyboardType: keyboardMode.value,
-      mobileKeyboardZoneToKey: keyboardMode.value === 2 ? mobileKeyboardZoneToKey.value || {} : {}
+      thumbnail: thumbnailUniversalUrl
     })
     emit('resolved')
   },
