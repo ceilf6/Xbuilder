@@ -34,9 +34,3 @@ export type UI = any;
 export declare function useModal<T>(
   component: any
 ): (props?: any) => Promise<T>;
-//  key UI in Keyboard. provide to MobileKeyboardView and MobileKeyboardEidt
-// active is used to indicate whether a button has functionality.
-export declare function UIKeyBtn(props: {
-  value: string;
-  active?: boolean;
-}): UI;

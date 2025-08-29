@@ -1,7 +1,11 @@
-import { dispatchKeyToEvent } from "./projectRunner";
 import { UI } from "./base";
-
-export function UIKeyBtn(props: { value: string; active?: boolean }): UI {
+//  key UI in Keyboard. provide to MobileKeyboardView and MobileKeyboardEidt
+// active is used to indicate whether a button has functionality.
+export function UIKeyBtn(props: {
+  value: string;
+  active?: boolean;
+  onKeyEvent?: (type: "keydown" | "keyup", key: string, code: string) => void;
+}): UI {
   function toKeyAndCode(v: string) {
     // preprocessing
     return { key: v, code: v };
@@ -9,8 +13,9 @@ export function UIKeyBtn(props: { value: string; active?: boolean }): UI {
 
   function dispatchKey(type: "keydown" | "keyup", v: string) {
     const { key, code } = toKeyAndCode(v);
-    dispatchKeyToEvent(type, key, code);
+    props.onKeyEvent?.(type, key, code);
   }
+
   let isPressed = false;
   function press(down: boolean) {
     if (down && !isPressed) {

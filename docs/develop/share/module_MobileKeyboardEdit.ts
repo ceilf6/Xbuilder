@@ -11,9 +11,16 @@ import type { MobileKeyboardZoneToKeyMapping } from "./base";
  * ```vue
  * <KeyboardEditorModal
  *   :initial="{ zones: { lt: 'Q', rt: 'E' } }"
+ *   @resolved="handleResolved"
+ *
  * />
  * ```
  */
-export declare function KeyboardEditorModal(props: {
-  initial: MobileKeyboardZoneToKeyMapping;
-}): UI;
+export declare function KeyboardEditorModal(
+  props: {
+    initial: MobileKeyboardZoneToKeyMapping;
+  },
+  emits: {
+    resolved: (result: MobileKeyboardZoneToKeyMapping) => void;
+  }
+): UI;
