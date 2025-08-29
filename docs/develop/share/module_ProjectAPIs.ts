@@ -3,7 +3,7 @@ import type {
   Visibility,
 } from "../../../spx-gui/src/apis/common/index.ts";
 import { type ProjectRelease } from "../../../spx-gui/src/apis/project-release.ts";
-import { MobileKeyboardZoneToKeyMapping } from "./base";
+import { MobileKeyboardZoneToKeyMapping } from "./base.ts";
 
 /**
  * Updated project data structure with mobile keyboard support
@@ -113,13 +113,6 @@ export interface ProjectService {
     signal?: AbortSignal
   ): Promise<ProjectData>;
 
-  /** Get a specific project */
-  getProject(
-    owner: string,
-    name: string,
-    signal?: AbortSignal
-  ): Promise<ProjectData>;
-
   /** Update an existing project */
   updateProject(
     owner: string,
@@ -127,7 +120,4 @@ export interface ProjectService {
     params: UpdateProjectParams,
     signal?: AbortSignal
   ): Promise<ProjectData>;
-
-  /** Delete a project */
-  deleteProject(owner: string, name: string): Promise<void>;
 }
