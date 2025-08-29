@@ -71,7 +71,7 @@ const handleSubmit = useMessageHandle(
     project.setDescription(form.value.projectDescription)
     project.setInstructions(form.value.projectInstructions)
     project.mobileKeyboardType = keyboardMode.value
-    project.mobileKeyboardZoneToKey = mobileKeyboardZoneToKey.value || {}
+    project.mobileKeyboardZoneToKey = keyboardMode.value === 2 ? mobileKeyboardZoneToKey.value || {} : {}
     await project.saveToCloud()
     const thumbnailUniversalUrl = await saveFile(props.project.thumbnail!)
     await createRelease({
@@ -80,7 +80,7 @@ const handleSubmit = useMessageHandle(
       description: form.value.releaseDescription,
       thumbnail: thumbnailUniversalUrl,
       mobileKeyboardType: keyboardMode.value,
-      mobileKeyboardZoneToKey: mobileKeyboardZoneToKey.value || {}
+      mobileKeyboardZoneToKey: keyboardMode.value === 2 ? mobileKeyboardZoneToKey.value || {} : {}
     })
     emit('resolved')
   },
