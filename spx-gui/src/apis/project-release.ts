@@ -19,16 +19,9 @@ export type ProjectRelease = {
   thumbnail: string
   /** Number of times the release has been remixed. */
   remixCount: number
-  mobileKeyboardType: number
-  mobileKeyboardZoneToKey?: { [zone: string]: string | null }
 }
 
-export type CreateReleaseParams = Pick<ProjectRelease, 'projectFullName' | 'name' | 'description' | 'thumbnail'> & {
-  /** Mobile keyboard type */
-  mobileKeyboardType: number
-  /** Zone to key mapping for mobile keyboard */
-  mobileKeyboardZoneToKey?: { [zone: string]: string | null }
-}
+export type CreateReleaseParams = Pick<ProjectRelease, 'projectFullName' | 'name' | 'description' | 'thumbnail'>
 
 export function createRelease(params: CreateReleaseParams) {
   return client.post('/project-release', params) as Promise<ProjectRelease>

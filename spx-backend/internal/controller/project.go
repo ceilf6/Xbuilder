@@ -703,12 +703,12 @@ func (p *UpdateProjectParams) Diff(mProject *model.Project) map[string]any {
 	if p.Thumbnail != mProject.Thumbnail {
 		updates["thumbnail"] = p.Thumbnail
 	}
-	// if p.MobileKeyboardType != mProject.MobileKeyboardType {
-	// 	updates["mobile_keyboard_type"] = p.MobileKeyboardType
-	// }
-	// if !equalZoneToKeyMapping(p.MobileKeyboardZoneToKey, mProject.MobileKeyboardZoneToKey) {
-	// 	updates["mobile_keyboard_zone_to_key"] = convertToModelZoneToKeyMapping(p.MobileKeyboardZoneToKey)
-	// }
+	if p.MobileKeyboardType != mProject.MobileKeyboardType {
+		updates["mobile_keyboard_type"] = p.MobileKeyboardType
+	}
+	if !equalZoneToKeyMapping(p.MobileKeyboardZoneToKey, mProject.MobileKeyboardZoneToKey) {
+		updates["mobile_keyboard_zone_to_key"] = convertToModelZoneToKeyMapping(p.MobileKeyboardZoneToKey)
+	}
 	return updates
 }
 
@@ -726,29 +726,29 @@ func convertToModelZoneToKeyMapping(dtoMapping map[string]*string) model.MobileK
 }
 
 // equalZoneToKeyMapping 比较两个 ZoneToKey 映射是否相等
-// func equalZoneToKeyMapping(dtoMapping map[string]*string, modelMapping model.MobileKeyboardZoneToKeyMapping) bool {
-// 	if len(dtoMapping) != len(modelMapping) {
-// 		return false
-// 	}
+func equalZoneToKeyMapping(dtoMapping map[string]*string, modelMapping model.MobileKeyboardZoneToKeyMapping) bool {
+	if len(dtoMapping) != len(modelMapping) {
+		return false
+	}
 
-// 	for zoneStr, dtoKey := range dtoMapping {
-// 		zone := model.MobileKeyboardZoneId(zoneStr)
-// 		modelKey, exists := modelMapping[zone]
-// 		if !exists {
-// 			return false
-// 		}
+	for zoneStr, dtoKey := range dtoMapping {
+		zone := model.MobileKeyboardZoneId(zoneStr)
+		modelKey, exists := modelMapping[zone]
+		if !exists {
+			return false
+		}
 
-// 		// 比较指针指向的值
-// 		if (dtoKey == nil) != (modelKey == nil) {
-// 			return false
-// 		}
-// 		if dtoKey != nil && modelKey != nil && *dtoKey != *modelKey {
-// 			return false
-// 		}
-// 	}
+		// 比较指针指向的值
+		if (dtoKey == nil) != (modelKey == nil) {
+			return false
+		}
+		if dtoKey != nil && modelKey != nil && *dtoKey != *modelKey {
+			return false
+		}
+	}
 
-// 	return true
-// }
+	return true
+}
 
 // UpdateProject updates a project.
 func (ctrl *Controller) UpdateProject(ctx context.Context, fullName ProjectFullName, params *UpdateProjectParams) (*ProjectDTO, error) {
