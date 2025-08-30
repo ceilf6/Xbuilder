@@ -17,6 +17,7 @@ const projectUrlQRCode = computed(() =>
   `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(window.location.href)}`
 )
 
+<<<<<<< HEAD
 const imgUrl = computed(() => {
   if (props.img && props.img instanceof File) {
     return URL.createObjectURL(props.img)
@@ -25,6 +26,40 @@ const imgUrl = computed(() => {
     console.log('拿到缩略图')
     return props.projectData.thumbnail
   }
+=======
+// 处理用户上传的图片
+const uploadedImgUrl = computed(() => {
+    if (props.img && props.img instanceof File) {
+        return URL.createObjectURL(props.img)
+    }
+    return null
+})
+
+// 处理项目缩略图
+const thumbnailWebUrl = ref<string | null>(null)
+watch(() => props.projectData.thumbnail, async (thumbnail) => {
+    if (thumbnail) {
+        console.log('拿到缩略图:', thumbnail)
+        try {
+            // 将 kodo:// URL 转换为可用的 HTTP URL
+            const webUrl = await universalUrlToWebUrl(thumbnail)
+            thumbnailWebUrl.value = webUrl
+        } catch (error) {
+            console.error('转换缩略图URL失败:', error)
+            thumbnailWebUrl.value = null
+        }
+    } else {
+        thumbnailWebUrl.value = null
+    }
+}, { immediate: true })
+
+// 使用 useExternalUrl 处理跨域图片
+const safeImgUrl = useExternalUrl(thumbnailWebUrl)
+
+// 最终的图片URL
+const imgUrl = computed(() => {
+    return uploadedImgUrl.value || safeImgUrl.value || ''
+>>>>>>> 25285fae (feat: 解决kodo和CORS跨域问题)
 })
 
 const posterElementRef = ref<HTMLElement>()
@@ -172,6 +207,7 @@ defineExpose({
 </script>
 
 <template>
+<<<<<<< HEAD
   <div ref="posterElementRef" class="poster-background">
     <div class="screenshot-area">
       <img v-if="props.img || props.projectData.thumbnail" :src="imgUrl" :alt="props.projectData.name"
@@ -180,6 +216,51 @@ defineExpose({
         <UIIcon type="file" />
         <span>{{ $t({ en: 'No Image', zh: '暂无截屏' }) }}</span>
       </div>
+=======
+    <div ref="posterElementRef" class="poster-background">
+        <div class="screenshot-area">
+            <img v-if="imgUrl" :src="imgUrl" :alt="props.projectData.name" class="screenshot-image"/>
+            <div v-else class="screenshot-placeholder">
+                <UIIcon type="file" />
+                <span>{{ $t({ en: 'No Image', zh: '暂无截屏'}) }}</span>
+            </div>
+        </div>
+        <div class="poster-decoration">
+            <div class="project-info">
+                <div class="game-title">{{ props.projectData.name }}</div>
+                <div v-if="props.projectData.owner" class="creator-info">
+                    <UIIcon type="statePublic" />
+                    <span>{{ $t({ en: 'Created by', zh: '创作者'}) }}: {{ props.projectData.owner }}</span>
+                </div>
+                <div v-if="truncatedDescription" class="project-description">
+                    <UIIcon type="info" />
+                    <span>{{ truncatedDescription }}</span>
+                </div>
+                <div class="project-stats">
+                    <div class="stat-item" v-if="props.projectData.viewCount">
+                        <UIIcon type="eye" />
+                        <span>{{ props.projectData.viewCount }}</span>
+                    </div>
+                    <div class="stat-item" v-if="props.projectData.likeCount">
+                        <UIIcon type="heart" />
+                        <span>{{ props.projectData.likeCount }}</span>
+                    </div>
+                    <div class="stat-item" v-if="props.projectData.remixCount">
+                        <UIIcon type="remix" />
+                        <span>{{ props.projectData.remixCount }}</span>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                <div class="branding">
+                    <img :src="logo" alt="logo" class="branding-logo" style="height: 40px; vertical-align: middle;" />
+                </div>
+                <div v-if="projectUrlQRCode" class="project-qrcode">
+                    <canvas ref="projectQrCanvas" class="project-qr-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+>>>>>>> 25285fae (feat: 解决kodo和CORS跨域问题)
     </div>
     <div class="poster-decoration">
       <div class="project-info">
