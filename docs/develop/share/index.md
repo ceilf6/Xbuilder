@@ -47,6 +47,24 @@ spx-backend 提供的用于对 Recording 管理的 APIs
 
 项目页面上的录屏分享弹窗，用于接收录屏后分享到各个平台，调用 Recording APIs 创建并存储对应的 Recording 记录
 
+### RecordingItem
+
+录屏条目显示组件，用于在各种列表环境中展示单个录屏记录（公共录屏列表、用户录屏列表等）。支持不同的显示模式，为用户自己的录屏提供编辑/删除操作。
+
+See details in [`RecordingItem`](./module_RecordItem.ts).
+
+### RecordingEdit
+
+录屏元数据编辑弹窗，用于编辑录屏的标题和描述信息。提供表单验证功能，并与 Recording APIs 集成完成数据更新。
+
+See details in [`RecordingEdit`](./module_RecordEdit.ts).
+
+### RecordingStore
+
+录屏状态的中心化管理存储，负责管理整个应用中的录屏状态。处理录屏计时、跨组件状态同步，并为 UI 反馈提供响应式状态更新。
+
+See details in [`RecordingStore`](./module_RecordingStore.ts).
+
 ## 模块关系
 
 下图说明了分享策略中各个模块之间的关系：
