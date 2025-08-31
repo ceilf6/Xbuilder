@@ -3,10 +3,6 @@ import { RecordData, RecordService } from "./module_RecordingApis";
 export declare function RecordEditModal(
   props: {
     record: RecordData;
-
-    visible: boolean;
-
-    recordService: RecordService;
   },
 
   emits: {
@@ -42,7 +38,7 @@ export declare const formValidation: {
  * Form constraints
  */
 export declare const formConstraints: {
-  MAX_TITLE_LENGTH: 100;
+  MAX_TITLE_LENGTH: 20;
 
-  MAX_DESCRIPTION_LENGTH: 1000;
+  MAX_DESCRIPTION_LENGTH: 200;
 };

@@ -21,6 +21,8 @@ export declare function RecordItem(
   emits: {
     /** Emitted when record item is selected/clicked */
     selected: () => void;
+    removed: () => void;
+    updated: (updatedRecord: RecordData) => void;
   }
 );
 
