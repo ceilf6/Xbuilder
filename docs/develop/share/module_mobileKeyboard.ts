@@ -1,27 +1,5 @@
 import type { ProjectRunnerInstance } from "./projectRunner";
-/**
- * Valid mobile keyboard zones
- */
-export const MOBILE_KEYBOARD_ZONES = [
-  "lt",
-  "rt",
-  "lbUp",
-  "lbLeft",
-  "lbRight",
-  "lbDown",
-  "rbA",
-  "rbB",
-  "rbX",
-  "rbY",
-] as const;
-
-export type MobileKeyboardZone = (typeof MOBILE_KEYBOARD_ZONES)[number];
-/**
- * Zone to key mapping for mobile keyboard
- */
-export type MobileKeyboardZoneToKeyMapping = {
-  [zone in MobileKeyboardZone]: string | null;
-};
+import type { MobileKeyboardZoneToKeyMapping } from "./module_ProjectAPIs";
 export enum MobileKeyboardType {
   NoKeyboard = 1,
   CustomKeyboard = 2,
@@ -36,15 +14,9 @@ export declare function useModal<T>(
   component: any
 ): (props?: any) => Promise<T>;
 
-/**
- * ## Features
- * - expand phone Layout
- * - provide  key pool
- * - Supports key dragging, dropping, and overlap detection
- */
 export declare function KeyboardEditorModal(
   props: {
-    initial: MobileKeyboardZoneToKeyMapping;
+    ZoneToKeyMapping: MobileKeyboardZoneToKeyMapping;
   },
   emits: {
     resolved: (result: MobileKeyboardZoneToKeyMapping) => void;
@@ -57,14 +29,9 @@ export declare function KeyboardEditorModal(
  * Manages the mobile keyboard layout and handles key event dispatching to ProjectRunner.
  * This component acts as the bridge between UIKeyBtn components and ProjectRunner.
  *
- * ## Architecture:
- * 1. Receives ProjectRunner through gameView slot
- * 2. Gets reference to ProjectRunner component
- * 3. Creates handleKeyEvent function that calls projectRunnerRef.dispatchKeyToEvent
- * 4. Passes handleKeyEvent to all UIKeyBtn components via onKeyEvent prop
- *
  * ## Props:
- * - `initial`: Initial keyboard zone to key mapping configuration
+ * - `ZoneToKeyMapping`: ZoneToKeyMapping keyboard zone to key mapping configuration
+ * - `projectRunnerRef`: ProjectRunner component reference
  *
  * ## Slots:
  * - `gameView`: Should contain ProjectRunner component with ref
@@ -73,7 +40,7 @@ export declare function KeyboardEditorModal(
  * ```vue
  * let projectRunnerRef: ProjectRunnerInstance | null = null;
  *
- * <MobileKeyboardView :initial="{ zones: { lt: 'Q', rt: 'E' } }" :projectRunnerRef="projectRunnerRef">
+ * <MobileKeyboardView :ZoneToKeyMapping="{ zones: { lt: 'Q', rt: 'E' } }" :projectRunnerRef="projectRunnerRef">
  *   <template >
  *     <ProjectRunner ref="projectRunnerRef" :project="project" />
  *   </template>
@@ -81,38 +48,38 @@ export declare function KeyboardEditorModal(
  * ```
  */
 export type MobileKeyboardViewProps = {
-  initial: MobileKeyboardZoneToKeyMapping;
+  ZoneToKeyMapping: MobileKeyboardZoneToKeyMapping;
   projectRunnerRef: ProjectRunnerInstance | null;
 };
 
-export function MobileKeyboardView({
-  initial,
+export declare function MobileKeyboardView({
+  ZoneToKeyMapping,
   projectRunnerRef,
-}: MobileKeyboardViewProps): UI {
-  const zones = Object.keys(initial);
-  const zoneToKey = initial;
+}: MobileKeyboardViewProps): UI;
+//  {
+//   const zones = Object.keys(ZoneToKeyMapping);
+//   const zoneToKey = ZoneToKeyMapping;
+//   const handleKeyEvent = (type: string, key: string, code: string) => {
+//     projectRunnerRef?.dispatchKeyToEvent(type, key, code);
+//   };
 
-  const handleKeyEvent = (type: string, key: string, code: string) => {
-    projectRunnerRef?.dispatchKeyToEvent(type, key, code);
-  };
+//   const keyButtons = zones
+//     .map(
+//       (zone) =>
+//         `<UIKeyBtn key="${zone}" value="${zoneToKey[zone]}" active={true} onKeyEvent=${handleKeyEvent} />`
+//     )
+//     .join("");
 
-  const keyButtons = zones
-    .map(
-      (zone) =>
-        `<UIKeyBtn key="${zone}" value="${zoneToKey[zone]}" active={true} onKeyEvent=${handleKeyEvent} />`
-    )
-    .join("");
-
-  return `
-    <div className="phone-layout">
-      <slot name="gameView">
-      </slot>
-      <div className="keyboard-zones">
-        ${keyButtons}
-      </div>
-    </div>
-  `;
-}
+//   return `
+//     <div className="phone-layout">
+//       <slot name="gameView">
+//       </slot>
+//       <div className="keyboard-zones">
+//         ${keyButtons}
+//       </div>
+//     </div>
+//   `;
+// }
 
 //  key UI in Keyboard. provide to MobileKeyboardView and MobileKeyboardEidt
 // active is used to indicate whether a button has functionality（onKeyEvent）.
