@@ -53,17 +53,17 @@ spx-backend 提供的用于对 Recording 管理的 APIs
 
 See details in [`RecordingItem`](./module_RecordItem.ts).
 
-### RecordingEdit
+### MobileKeyboard
 
 录屏元数据编辑弹窗，用于编辑录屏的标题和描述信息。提供表单验证功能，并与 Recording APIs 集成完成数据更新。
 
 See details in [`RecordingEdit`](./module_RecordEdit.ts).
 
-### RecordingStore
+### MobileKeyboardApist
 
-录屏状态的中心化管理存储，负责管理整个应用中的录屏状态。处理录屏计时、跨组件状态同步，并为 UI 反馈提供响应式状态更新。
+录屏元数据编辑弹窗，用于编辑录屏的标题和描述信息。提供表单验证功能，并与 Recording APIs 集成完成数据更新。
 
-See details in [`RecordingStore`](./module_RecordingStore.ts).
+See details in [`RecordingEdit`](./module_RecordEdit.ts).
 
 ## 模块关系
 
