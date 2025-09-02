@@ -1,42 +1,42 @@
 import type { ByPage, PaginationParams } from '../../../spx-gui/src/apis/common'
 
 /**
- * Record data structure returned by the API
+ * Recording data structure returned by the API
  */
-export type RecordData = {
+export type RecordingData = {
     /** Unique identifier */
     id: string
     /** Creation timestamp */
     createdAt: string
     /** Last update timestamp */
     updatedAt: string
-    /** Unique username of the user who created the record */
+    /** Unique username of the user who created the recording */
     owner: string
     /** Full name of the project, in the format `owner/project` */
     projectFullName: string
-    /** Display title of the record */
+    /** Display title of the recording */
     title: string
-    /** Brief description of the record */
+    /** Brief description of the recording */
     description: string
-    /** URL of the recorded video file */
+    /** URL of the recordinged video file */
     videoUrl: string
     /** URL of the thumbnail image */
     thumbnailUrl: string
-    /** Number of times the record has been viewed */
+    /** Number of times the recording has been viewed */
     viewCount: number
-    /** Number of likes the record has received */
+    /** Number of likes the recording has received */
     likeCount: number
 }
 
 /**
- * Parameters for creating a new record
+ * Parameters for creating a new recording
  */
-export type CreateRecordParams = {
-    /** Full name of the project that the record is associated with */
+export type CreateRecordingParams = {
+    /** Full name of the project that the recording is associated with */
     projectFullName: string
-    /** Display title of the record */
+    /** Display title of the recording */
     title: string
-    /** Brief description of the record */
+    /** Brief description of the recording */
     description: string
     /** URL of the recorded video file */
     videoUrl: string
@@ -45,66 +45,66 @@ export type CreateRecordParams = {
 }
 
 /**
- * Parameters for updating an existing record
+ * Parameters for updating an existing recording
  */
-export type UpdateRecordParams = Partial<Pick<RecordData, 'title' | 'description'>>
+export type UpdateRecordingParams = Partial<Pick<RecordingData, 'title' | 'description'>>
 
 /**
- * Parameters for listing records with filtering and pagination
+ * Parameters for listing recordings with filtering and pagination
  */
-export type ListRecordParams = PaginationParams & {
+export type ListRecordingParams = PaginationParams & {
     /**
-     * Filter records by the owner's username.
-     * Defaults to the authenticated user if not specified. Use * to include records from all users.
+     * Filter recordings by the owner's username.
+     * Defaults to the authenticated user if not specified. Use * to include recordings from all users.
      **/
     owner?: string
-    /** Filter records by associated project (format: owner/project) */
+    /** Filter recordings by associated project (format: owner/project) */
     projectFullName?: string
-    /** Filter records by name pattern */
+    /** Filter recordings by name pattern */
     keyword?: string
     /** Field by which to order the results */
     orderBy?: 'createdAt' | 'updatedAt' | 'viewCount' | 'likeCount' | 'likedAt'
     /** Order in which to sort the results */
     sortOrder?: 'asc' | 'desc'
-    /** Filter records liked by the specified user */
+    /** Filter recordings liked by the specified user */
     liker?: string
 }
 
 /**
- * Record management interface
- * Provides CRUD operations for records
+ * Recording management interface
+ * Provides CRUD operations for recordings
  */
-export interface RecordService {
-    /** Create a new record */
-    createRecord(params: CreateRecordParams, signal?: AbortSignal): Promise<RecordData>
+export interface RecordingService {
+    /** Create a new recording */
+    createRecording(params: CreateRecordingParams, signal?: AbortSignal): Promise<RecordingData>
     
-    /** Get a specific record by ID */
-    getRecord(id: string, signal?: AbortSignal): Promise<RecordData>
+    /** Get a specific recording by ID */
+    getRecording(id: string, signal?: AbortSignal): Promise<RecordingData>
     
-    /** Update an existing record */
-    updateRecord(id: string, params: UpdateRecordParams, signal?: AbortSignal): Promise<RecordData>
+    /** Update an existing recording */
+    updateRecording(id: string, params: UpdateRecordingParams, signal?: AbortSignal): Promise<RecordingData>
     
-    /** Delete a record */
-    deleteRecord(id: string): Promise<void>
+    /** Delete a recording */
+    deleteRecording(id: string): Promise<void>
     
-    /** List records with filtering and pagination */
-    listRecord(params?: ListRecordParams): Promise<ByPage<RecordData>>
+    /** List recordings with filtering and pagination */
+    listRecording(params?: ListRecordingParams): Promise<ByPage<RecordingData>>
 }
 
 /**
- * Record interaction interface
+ * Recording interaction interface
  * Provides social features like views and likes
  */
-export interface RecordInteractionService {
-    /** Record a view for the specified record */
-    recordRecordView(id: string): Promise<void>
+export interface RecordingInteractionService {
+    /** Recording a view for the specified recording */
+    recordRecordingView(id: string): Promise<void>
     
-    /** Check if current user has liked the record */
-    isLikingRecord(id: string): Promise<boolean>
+    /** Check if current user has liked the recording */
+    isLikingRecording(id: string): Promise<boolean>
     
-    /** Like the record */
-    likeRecord(id: string): Promise<void>
+    /** Like the recording */
+    likeRecording(id: string): Promise<void>
     
-    /** Unlike the record */
-    unlikeRecord(id: string): Promise<void>
+    /** Unlike the recording */
+    unlikeRecording(id: string): Promise<void>
 }

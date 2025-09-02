@@ -1,7 +1,7 @@
 /**
- * Record Module Implementation
+ * Recording Module Implementation
  * 
- * This file contains the concrete implementation of the Record module interfaces.
+ * This file contains the concrete implementation of the Recording module interfaces.
  * It provides the actual business logic and API integration.
  */
 
@@ -9,44 +9,44 @@ import { client, ownerAll, Visibility } from '../../../spx-gui/src/apis/common'
 import { ApiException, ApiExceptionCode } from '../../../spx-gui/src/apis/common/exception'
 import type { ByPage } from '../../../spx-gui/src/apis/common'
 import type {
-    RecordData,
-    CreateRecordParams,
-    UpdateRecordParams,
-    ListRecordParams,
-    RecordService,
-    RecordInteractionService
+    RecordingData,
+    CreateRecordingParams,
+    UpdateRecordingParams,
+    ListRecordingParams,
+    RecordingService,
+    RecordingInteractionService
 } from './module_RecordingApis'
 
-class RecordServiceImpl implements RecordService {
-    async createRecord(params: CreateRecordParams, signal?: AbortSignal): Promise<RecordData> {
-        return client.post('/records', params, { signal }) as Promise<RecordData>
+class RecordingServiceImpl implements RecordingService {
+    async createRecording(params: CreateRecordingParams, signal?: AbortSignal): Promise<RecordingData> {
+        return client.post('/recordings', params, { signal }) as Promise<RecordingData>
     }
 
-    async getRecord(id: string, signal?: AbortSignal): Promise<RecordData> {
-        return client.get(`/record/${id}`, undefined, { signal }) as Promise<RecordData>
+    async getRecording(id: string, signal?: AbortSignal): Promise<RecordingData> {
+        return client.get(`/recording/${id}`, undefined, { signal }) as Promise<RecordingData>
     }
 
-    async updateRecord(id: string, params: UpdateRecordParams, signal?: AbortSignal): Promise<RecordData> {
-        return client.put(`/record/${id}`, params, { signal }) as Promise<RecordData>
+    async updateRecording(id: string, params: UpdateRecordingParams, signal?: AbortSignal): Promise<RecordingData> {
+        return client.put(`/recording/${id}`, params, { signal }) as Promise<RecordingData>
     }
 
-    async deleteRecord(id: string): Promise<void> {
-        return client.delete(`/record/${id}`) as Promise<void>
+    async deleteRecording(id: string): Promise<void> {
+        return client.delete(`/recording/${id}`) as Promise<void>
     }
 
-    async listRecord(params?: ListRecordParams): Promise<ByPage<RecordData>> {
-        return client.get('/records/list', params) as Promise<ByPage<RecordData>>
+    async listRecording(params?: ListRecordingParams): Promise<ByPage<RecordingData>> {
+        return client.get('/recordings/list', params) as Promise<ByPage<RecordingData>>
     }
 }
 
-class RecordInteractionServiceImpl implements RecordInteractionService {
-    async recordRecordView(id: string): Promise<void> {
-        return client.post(`/record/${id}/view`) as Promise<void>
+class RecordingInteractionServiceImpl implements RecordingInteractionService {
+    async recordRecordingView(id: string): Promise<void> {
+        return client.post(`/recording/${id}/view`) as Promise<void>
     }
 
-    async isLikingRecord(id: string): Promise<boolean> {
+    async isLikingRecording(id: string): Promise<boolean> {
         try {
-            await client.get(`/record/${id}/liking`)
+            await client.get(`/recording/${id}/liking`)
             return true
         } catch (e) {
             if (e instanceof ApiException) {
@@ -60,50 +60,50 @@ class RecordInteractionServiceImpl implements RecordInteractionService {
         }
     }
 
-    async likeRecord(id: string): Promise<void> {
-        return client.post(`/record/${id}/liking`) as Promise<void>
+    async likeRecording(id: string): Promise<void> {
+        return client.post(`/recording/${id}/liking`) as Promise<void>
     }
 
-    async unlikeRecord(id: string): Promise<void> {
-        return client.delete(`/record/${id}/liking`) as Promise<void>
+    async unlikeRecording(id: string): Promise<void> {
+        return client.delete(`/recording/${id}/liking`) as Promise<void>
     }
 }
 
-const recordService = new RecordServiceImpl()
-const recordInteractionService = new RecordInteractionServiceImpl()
+const recordingService = new RecordingServiceImpl()
+const recordingInteractionService = new RecordingInteractionServiceImpl()
 
-// Record Service functions
-export const createRecord = recordService.createRecord.bind(recordService)
-export const getRecord = recordService.getRecord.bind(recordService)
-export const updateRecord = recordService.updateRecord.bind(recordService)
-export const deleteRecord = recordService.deleteRecord.bind(recordService)
-export const listRecord = recordService.listRecord.bind(recordService)
+// Recording Service functions
+export const createRecording = recordingService.createRecording.bind(recordingService)
+export const getRecording = recordingService.getRecording.bind(recordingService)
+export const updateRecording = recordingService.updateRecording.bind(recordingService)
+export const deleteRecording = recordingService.deleteRecording.bind(recordingService)
+export const listRecording = recordingService.listRecording.bind(recordingService)
 
-// Record Interaction Service functions
-export const recordRecordView = recordInteractionService.recordRecordView.bind(recordInteractionService)
-export const isLikingRecord = recordInteractionService.isLikingRecord.bind(recordInteractionService)
-export const likeRecord = recordInteractionService.likeRecord.bind(recordInteractionService)
-export const unlikeRecord = recordInteractionService.unlikeRecord.bind(recordInteractionService)
+// Recording Interaction Service functions
+export const recordRecordingView = recordingInteractionService.recordRecordingView.bind(recordingInteractionService)
+export const isLikingRecording = recordingInteractionService.isLikingRecording.bind(recordingInteractionService)
+export const likeRecording = recordingInteractionService.likeRecording.bind(recordingInteractionService)
+export const unlikeRecording = recordingInteractionService.unlikeRecording.bind(recordingInteractionService)
 
 /**
- * Get the record service instance
+ * Get the recording service instance
  */
-export function getRecordService(): RecordService {
-    return recordService
+export function getRecordingService(): RecordingService {
+    return recordingService
 }
 
 /**
- * Get the record interaction service instance
+ * Get the recording interaction service instance
  */
-export function getRecordInteractionService(): RecordInteractionService {
-    return recordInteractionService
+export function getRecordingInteractionService(): RecordingInteractionService {
+    return recordingInteractionService
 }
 
 export type {
-    RecordData,
-    CreateRecordParams,
-    UpdateRecordParams,
-    ListRecordParams
+    RecordingData,
+    CreateRecordingParams,
+    UpdateRecordingParams,
+    ListRecordingParams
 } from './module_RecordingApis'
 
 export { Visibility, ownerAll }
