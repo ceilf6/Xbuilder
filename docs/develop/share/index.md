@@ -8,28 +8,54 @@
 * 游戏引擎方法暴露
 
 
-## 模块
-### PlatformShare
-负责与外部平台的集成。目前支持：QQ、微信、抖音、小红书、B站。为三种分享方式提供第三方平台的接口支持
-### PlatformSelector
-定义可复用的平台选择组件，向各弹窗提供被选择的社交平台信息
-### Poster
-用于生成海报，包含图片、二维码和项目信息
-### ProjectRunner
-通过 ProjectRunner 获取 runner 游戏引擎上暴露的方法，控制游戏画面
-### RecordingPage
-录屏业务的承载页面
-### Recording APIs
-spx-backend 提供的用于对 Recording 管理的 APIs
+## 核心功能模块
 
+### PlatformShare
+负责与外部平台的集成。目前支持：QQ、微信、抖音、小红书、B站。为三种分享方式提供第三方平台的接口支持。
+
+See API design in [`module_PlatformShare.ts`](./module_PlatformShare.ts).
+
+### PlatformSelector
+定义可复用的平台选择组件，向各弹窗提供被选择的社交平台信息。
+
+See API design in [`module_PlatformSelector.ts`](./module_PlatformSelector.ts).
+
+### Poster
+用于生成海报，包含图片、二维码和项目信息。
+
+See API design in [`module_Poster.ts`](./module_Poster.ts).
+
+### ProjectRunner
+通过 ProjectRunner 获取 runner 游戏引擎上暴露的方法，控制游戏画面。
+
+See API design in [`module_ProjectRunner.ts`](./module_ProjectRunner.ts).
+
+### RecordingPage
+录屏业务的承载页面。
+
+See API design in [`module_RecordingPage.ts`](./module_RecordingPage.ts).
+
+### Recording APIs
+spx-backend 提供的用于对 Recording 管理的 APIs。
+
+See API design in [`module_RecordingAPIs.ts`](./module_RecordingAPIs.ts).
 
 ## UI 层（分享弹窗）
+
 ### DirectSharing
-项目页面上的直接分享弹窗，用于直接分享项目到各个平台，调用 Poster 模块以生成海报图片
+项目页面上的直接分享弹窗，用于直接分享项目到各个平台，调用 Poster 模块以生成海报图片。
+
+See API design in [`module_DirectSharing.ts`](./module_DirectSharing.ts).
+
 ### ScreenShotSharing
-项目页面上的截屏分享弹窗，用于接收截屏图片（通过 ProjectRunner 模块）、调用Poster生成海报后分享到各个平台
+项目页面上的截屏分享弹窗，用于接收截屏图片（通过 ProjectRunner 模块）、调用Poster生成海报后分享到各个平台。
+
+See API design in [`module_ScreenShotSharing.ts`](./module_ScreenShotSharing.ts).
+
 ### ProjectRecordingSharing
-项目页面上的录屏分享弹窗，用于接收录屏后分享到各个平台，调用 Recording APIs 创建并存储对应的 Recording 记录
+项目页面上的录屏分享弹窗，用于接收录屏后分享到各个平台，调用 Recording APIs 创建并存储对应的 Recording 记录。
+
+See API design in [`module_ProjectRecordingSharing.ts`](./module_ProjectRecordingSharing.ts).
 
 ## 模块关系
 下图说明了分享策略中各个模块之间的关系：
