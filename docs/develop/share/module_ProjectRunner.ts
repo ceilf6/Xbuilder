@@ -7,56 +7,23 @@ interface IframeWindow extends Window {
   dispatchKeyToEvent?: (type: string, code: string)=>void
 }
 
-const iframeRef = ref<HTMLIFrameElement>()
-const iframeWindowRef = ref<IframeWindow | null>(null)
-
 defineExpose({
   async pauseGame() {
-    const iframe = iframeRef.value
-    if (!iframe) return
-    const win = iframe.contentWindow as IframeWindow
-    if (win && typeof win.pauseGame === 'function') {
-      return win.pauseGame()
-    }
+    // 暴露暂停方法
   },
   async resumeGame() {
-    const iframe = iframeRef.value
-    if (!iframe) return
-    const win = iframe.contentWindow as IframeWindow
-    if (win && typeof win.resumeGame === 'function') {
-      return win.resumeGame()
-    }
+    // 暴露恢复方法
   },
   async getScreenshot() {
-    const iframe = iframeRef.value
-    if (!iframe) return
-    const win = iframe.contentWindow as IframeWindow
-    if (win && typeof win.getScreenshot === 'function') {
-      return win.getScreenshot()
-    }
+    // 暴露截屏方法
   },
   async startRecording() {
-    const iframe = iframeRef.value
-    if (!iframe) return
-    const win = iframe.contentWindow as IframeWindow
-    if (win && typeof win.startRecording === 'function') {
-      return win.startRecording()
-    }
+    // 暴露开始录屏方法
   },
   async stopRecording() {
-    const iframe = iframeRef.value
-    if (!iframe) return
-    const win = iframe.contentWindow as IframeWindow
-    if (win && typeof win.stopRecording === 'function') {
-      return win.stopRecording()
-    }
+    // 暴露停止录屏方法
   },
   async dispatchKeyToEvent(type: string, code: string){
-    const iframe = iframeRef.value
-    if (!iframe) return
-    const win = iframe.contentWindow as IframeWindow
-    if (win && typeof win.dispatchKeyToEvent === 'function') {
-      return win.dispatchKeyToEvent(type, code)
-    }
+    // 暴露虚拟键盘绑定方法
   }
 })
