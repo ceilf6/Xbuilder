@@ -55,15 +55,20 @@ See details in [`RecordingItem`](./module_RecordItem.ts).
 
 ### MobileKeyboard
 
-录屏元数据编辑弹窗，用于编辑录屏的标题和描述信息。提供表单验证功能，并与 Recording APIs 集成完成数据更新。
+MobileKeyboard Edit
+用于编辑移动键盘布局。它提供了通用的按键池和固定的编辑区域，用户可以将对应的按键拖拽到目标区域
+MobileKeyboard View
+用于展示移动键盘布局。它会在相应区域显示已分配的按键，并反映当前键盘的状态。详情见
+UIKeyBtn
+键盘中的核心按键组件，负责单个按键的展示与交互逻辑。它同时服务于 编辑 和 查看 组件，并通过 projectRunner 与游戏画布交互，实现按键映射功能。
 
-See details in [`RecordingEdit`](./module_RecordEdit.ts).
+See details in [`MobileKeyboard`](./module_mobileKeyboard.ts).
 
-### MobileKeyboardApist
+### ProjectAPIs
 
-录屏元数据编辑弹窗，用于编辑录屏的标题和描述信息。提供表单验证功能，并与 Recording APIs 集成完成数据更新。
+包含：spx-backend 提供的用于移动键盘管理的 HTTP 接口。包括 编辑 和 查看 功能。
 
-See details in [`RecordingEdit`](./module_RecordEdit.ts).
+See details in [`ProjectAPIs`](./module_ProjectAPIs.ts).
 
 ## 模块关系
 
