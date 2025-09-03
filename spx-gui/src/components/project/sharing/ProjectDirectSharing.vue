@@ -38,7 +38,7 @@
       <div class="qrcode side">
         <img v-if="qrcodeURL" :src="qrcodeURL" alt="QR Code"/>
         <div v-else class="unsupported-container">
-          <img :src="unsupport" alt="Unsupport"/>
+          <div class="unsupport-icon">❌</div>
           <span class="unsupported-text">{{ $t({ en: 'Unsupported', zh: '暂不支持' }) }}</span>
         </div>
         <button
@@ -56,66 +56,16 @@
 </template>
 
 <script setup lang="ts">
-  import { UIButton, UIFormModal, UITextInput } from '@/components/ui'
-  import { useMessageHandle } from '@/utils/exception'
-  import { getProjectShareRoute } from '@/router'
-  import { computed, ref } from 'vue'
-  import type { PlatformConfig } from './platformShare'
-  import type { ProjectData } from '@/apis/project'
-  import PlatformSelector from './platformSelector.vue'
-  import Poster from './ProjectPoster.vue'
-  import QRCode from 'qrcode'
-
-  const props = defineProps<{
-    projectData: ProjectData    
-    visible: boolean
-  }>()
-  
-  const emit = defineEmits<{
-    cancelled: []
-    resolved: []
-  }>()
-
-  // 组件引用
-  const posterCompRef = ref<InstanceType<typeof Poster>>()
-  
-  const projectSharingLink = computed(() => {
-    console.log("projectSharingLink", props.projectData)
-    return `${location.origin}${getProjectShareRoute(props.projectData.owner, props.projectData.name)}`
-  })
-  
-  const handleCopy = useMessageHandle(
-    () => navigator.clipboard.writeText(projectSharingLink.value),
-    { en: 'Failed to copy link to clipboard', zh: '分享链接复制到剪贴板失败' },
-    { en: 'Link copied to clipboard', zh: '分享链接已复制到剪贴板' }
-  )
-  
-  const selectedPlatform = ref<PlatformConfig | undefined>(undefined)
-
-  const qrcodeURL = ref<string>('')
-
-  /**
-   * 生成二维码的可复用方法
-   * @param url 需要转换为二维码的URL
-   * @param options 二维码生成选项
-   * @returns Promise<string> 二维码的dataURL
-   */
-  const generateQRCode = async (url: string, options?: {
-    color?: {
-      dark: string
-      light: string
-    }
-    width?: number
-    margin?: number
-  }): Promise<string> => {
-    const defaultOptions = {
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      },
-      width: 200,
-      margin: 1
-    }
+import { UIButton, UIFormModal, UITextInput } from '@/components/ui'
+import { useMessageHandle } from '@/utils/exception'
+import { getProjectShareRoute } from '@/router'
+import { computed, ref, onUnmounted } from 'vue'
+import type { PlatformConfig } from './platformShare'
+import type { ProjectData } from '@/apis/project'
+import PlatformSelector from './platformSelector.vue'
+import Poster from './ProjectPoster.vue'
+import QRCode from 'qrcode'
+// import unsupport from '@/assets/unsupport.svg'
 
 const props = defineProps<{
   projectData: ProjectData    
@@ -233,8 +183,6 @@ onUnmounted(() => {
   })
   createdObjectUrls.clear()
 })
-
-
 </script>
 
 <style scoped lang="scss">
@@ -290,5 +238,10 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--ui-color-hint-2);
   text-align: center;
+}
+
+.unsupport-icon {
+  font-size: 48px;
+  opacity: 0.5;
 }
 </style>
