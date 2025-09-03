@@ -434,9 +434,11 @@ async function handleRecordingSharing() {
                 if (result.type === 'shared') {
                     toaster.success(`已分享到${result.platform}`)
                 } else if (result.type === 'rerecord') {
+                    // 先恢复游戏，然后开始新的录制
+                    await projectRunnerRef.value?.resumeGame()
                     isRecording.value = true
                     await projectRunnerRef.value?.startRecording?.()
-                    return // 不恢复游戏，继续录制
+                    return
                 }
             } catch (e) {
                 console.log(e)
