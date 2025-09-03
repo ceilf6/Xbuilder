@@ -184,11 +184,24 @@ const handleStop = useMessageHandle(
   async () => {
     await projectRunnerRef.value?.stop()
     runnerState.value = 'initial'
+    
+    // 重置录制状态
+    isRecording.value = false
+    recording.value = null
+    recordData.value = null
   },
   { en: 'Failed to stop project', zh: '停止项目失败' }
 )
 
-const handleRerun = useMessageHandle(async () => projectRunnerRef.value?.rerun(), {
+const handleRerun = useMessageHandle(async () => {
+  // 重置录制状态
+  isRecording.value = false
+  recording.value = null
+  recordData.value = null
+  
+  // 重新运行项目
+  await projectRunnerRef.value?.rerun()
+}, {
   en: 'Failed to rerun project',
   zh: '重新运行项目失败'
 })
