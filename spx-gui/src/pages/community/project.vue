@@ -389,9 +389,9 @@ async function handleRecordingSharing() {
     if (isRecording.value) {
         // 当前正在录制，停止录制
         try {
-            console.log('正在停止录制...')
+            await projectRunnerRef.value?.pauseGame() // 先暂停游戏，防止间隙
+            // console.log('正在停止录制...')
             const recordBlob = await projectRunnerRef.value?.stopRecording?.()
-            await projectRunnerRef.value?.pauseGame()
             
             console.log('录制已停止，获得 Blob:', recordBlob)
             
