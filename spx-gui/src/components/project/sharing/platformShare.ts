@@ -50,6 +50,8 @@ const platformUrl = 'https://example.com'
 declare global {
     interface Window {
         mqq: any
+        wx: any
+        sha1: any
     }
 }
 
@@ -71,6 +73,7 @@ class QQPlatform implements PlatformConfig {
     
     shareFunction = {
         shareURL: async (url: string) => {
+            console.log('shareURL: QQ platform:' + url);
             // 检查是否在 QQ 环境中
             if (typeof window !== 'undefined' && window.mqq && window.mqq.invoke) {
                 window.mqq.invoke("data","setShareInfo", {
@@ -111,8 +114,148 @@ class WeChatPlatform implements PlatformConfig {
     
     shareFunction = {
         shareURL: async (url: string) => {
+            console.log('shareURL: WeChat platform:' + url);
+            let currentAccessToken = '';
+            let currentTicket = '';
+            if (typeof window !== 'undefined' && window.wx && window.wx.config) {
+            // 微信配置
+            window.wx.config({
+                debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+                appId: 'wx5f7ad87518d77bf3', // 必填，服务号的唯一标识
+                timestamp: '', // 必填，生成签名的时间戳
+                nonceStr: '', // 必填，生成签名的随机串
+                signature: '',// 必填，签名
+                jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData'] // 必填，需要使用的JS接口列表
+            });
+            getWechatToken();
+            getJsapiTicket();
+            generateSignature();
+            // 获取微信Access Token的函数
+            async function getWechatToken() {
+                const appId = 'wx5f7ad87518d77bf3';
+                const appSecret = '0f62d3a8e4aec9eee4d02365d6ae0dda';
+                
+                console.log('getWechatToken：请求中');
+                
+                try {
+                // 使用后端代理API
+                const proxyUrl = `/api/wechat-token?appid=${appId}&secret=${appSecret}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    console.log('getWechatToken：请求成功' + data.access_token);
+                    // 存储access_token供后续使用
+                    currentAccessToken = data.access_token;
+                } else {
+                    console.log('getWechatToken：请求失败' + data.errmsg);
+                }
+                } catch (error: any) {
+                console.log('getWechatToken：请求失败' + error.message);
+                }
+            }
+
+                            // 获取微信JSAPI Ticket的函数
+            async function getJsapiTicket() {
+                if (!currentAccessToken) {
+                alert('请先获取Access Token！');
+                return;
+                }
+                
+                const accessToken = currentAccessToken;
+                
+                const resultDiv = document.getElementById('ticketResult');
+                console.log('getJsapiTicket：请求中');
+
+                try {
+                // 使用后端代理API
+                const proxyUrl = `/api/wechat-ticket?access_token=${accessToken}&type=jsapi`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                
+                if (data.ticket) {
+                    console.log('getJsapiTicket：请求成功' + data.ticket);
+                    // 存储ticket供后续使用
+                    currentTicket = data.ticket;
+                } else {
+                    console.log('getJsapiTicket：请求失败' + data.errmsg);
+                }
+                } catch (error: any) {
+                console.log('getJsapiTicket：请求失败' + error.message);
+                }
+            }
+
+                    // 生成微信JS接口签名的函数
+            async function generateSignature() {
+                if (!currentTicket) {
+                alert('请先获取JSAPI Ticket！');
+                return;
+                }
+                
+                const ticket = currentTicket;
+                const nonceStr = Math.random().toString(36).substr(2, 16); // 生成16位随机字符串
+                const timestamp = Math.floor(Date.now() / 1000);
+                const url = window.location.href.split('#')[0]; // 当前页面URL，去掉哈希部分
+
+                const string1 = `jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
+                const signature = window.sha1(string1);
+
+                console.log('generateSignature：签名生成成功！' + signature)
+                // 自动更新wx.config中的签名参数
+                updateWxConfig(timestamp, nonceStr, signature);
+            }
+
+            // 更新微信配置的函数
+            function updateWxConfig(timestamp: number, nonceStr: string, signature: string) {
+                // 更新wx.config中的签名参数
+                window.wx.config({
+                debug: true,
+                appId: 'wx5f7ad87518d77bf3',
+                timestamp: timestamp,
+                nonceStr: nonceStr,
+                signature: signature,
+                jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+                });
+                
+                // 配置成功后，设置分享数据
+                window.wx.ready(function() {
+                    console.log('微信JS-SDK配置成功！');
+                
+                // 更新配置状态显示
+                //updateWxConfigStatus('已配置', timestamp, nonceStr, signature);
+                
+                    // 设置分享给朋友的数据
+                    window.wx.updateAppMessageShareData({
+                        title: '微信分享测试页面',
+                        desc: '这是一个测试微信分享功能的页面',
+                        link: window.location.href.split('#')[0],
+                        imgUrl: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png',
+                        success: function() {
+                        console.log('分享给朋友设置成功');
+                        }
+                    });
+                
+                    // 设置分享到朋友圈的数据
+                    window.wx.updateTimelineShareData({
+                        title: '微信分享测试页面',
+                        link: window.location.href.split('#')[0],
+                        imgUrl: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png',
+                        success: function() {
+                        console.log('分享到朋友圈设置成功');
+                        }
+                    });
+                });
+
+                // 配置失败的处理
+                window.wx.error(function(res: any) {
+                console.error('微信JS-SDK配置失败:', res);
+                alert('微信JS-SDK配置失败: ' + JSON.stringify(res));
+                });
+            }}
+
             return `url:${url}`
         },
+
         shareImage: async (image: File) => {
             return `platformUrl:${platformUrl},image:${image}`
         }
