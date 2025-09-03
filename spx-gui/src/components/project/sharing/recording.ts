@@ -43,7 +43,7 @@ export type CreateRecordParams = {
 }
 
 export async function createRecord(params: CreateRecordParams, signal?: AbortSignal) {
-  return client.post('/records', params, { signal }) as Promise<RecordData>
+  return client.post('/recordings', params, { signal }) as Promise<RecordData>
 }
 
 export type UpdateRecordParams = Partial<Pick<RecordData, 'title' | 'description'>>
