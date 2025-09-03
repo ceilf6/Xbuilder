@@ -43,7 +43,7 @@ export type CreateRecordParams = {
 }
 
 export async function createRecord(params: CreateRecordParams, signal?: AbortSignal) {
-  return client.post('/recordings', params, { signal }) as Promise<RecordData>
+  return client.post('/records', params, { signal }) as Promise<RecordData>
 }
 
 export type UpdateRecordParams = Partial<Pick<RecordData, 'title' | 'description'>>
@@ -75,7 +75,7 @@ export type ListRecordParams = PaginationParams & {
 }
 
 export async function listRecord(params?: ListRecordParams) {
-  return client.get('/recordings/list', params) as Promise<ByPage<RecordData>>
+  return client.get('/records/list', params) as Promise<ByPage<RecordData>>
 }
 
 export async function getRecord(id: string, signal?: AbortSignal) {
