@@ -224,7 +224,8 @@ class WeChatPlatform implements PlatformConfig {
                         window.wx.updateAppMessageShareData({
                             title: '微信分享测试页面',
                             desc: '这是一个测试微信分享功能的页面',
-                            link: window.location.href.split('#')[0],
+                            // link: window.location.href.split('#')[0],
+                            link: url,
                             imgUrl: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png',
                             success: function() {
                             console.log('分享给朋友设置成功');
@@ -234,7 +235,8 @@ class WeChatPlatform implements PlatformConfig {
                         // 设置分享到朋友圈的数据
                         window.wx.updateTimelineShareData({
                             title: '微信分享测试页面',
-                            link: window.location.href.split('#')[0],
+                            // link: window.location.href.split('#')[0],
+                            link: url,
                             imgUrl: 'https://i.gtimg.cn/open/app_icon/05/58/35/77/1105583577_100_m.png',
                             success: function() {
                             console.log('分享到朋友圈设置成功');
@@ -252,6 +254,9 @@ class WeChatPlatform implements PlatformConfig {
                 getWechatToken();
                 getJsapiTicket();
                 generateSignature();
+            }
+            else{
+                console.warn('WeChat API not available in current environment');
             }
 
             return `url:${url}`
