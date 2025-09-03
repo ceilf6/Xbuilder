@@ -8,7 +8,7 @@ import { SocialPlatformConfigs } from './platformShare'
 import QRCode from 'qrcode'
 
 const props = defineProps<{
-    recording: RecordData,
+    recording: Promise<RecordData>,
     video?: globalThis.File
     visible: boolean
 }>()
@@ -30,6 +30,7 @@ const jumpUrl = ref<string>('')
 const qrCodeData = ref<string>('')
 const isGeneratingQR = ref(false)
 const isSharing = ref(false)
+const currentRecording = ref<RecordData | null>(null)
 
 // 清理 object URLs
 const createdObjectUrls = new Set<string>()
@@ -46,8 +47,19 @@ onUnmounted(() => {
 
 // 录制页面URL
 const recordPageUrl = computed(() => {
-    return props.recording ? `/record/${props.recording.id}` : ''
+    return currentRecording.value ? `/record/${currentRecording.value.id}` : ''
 })
+
+// 加载录制数据
+async function loadRecordingData() {
+    if (currentRecording.value) return
+    
+    try {
+        currentRecording.value = await props.recording
+    } catch (error) {
+        console.error('加载录制数据失败:', error)
+    }
+}
 
 // 处理平台选择变化
 function handlePlatformChange(platform: PlatformConfig) {
@@ -62,7 +74,12 @@ function getCurrentRecordUrl() {
 
 // 生成分享二维码
 async function generateShareQRCode() {
-    if (!selectedPlatform.value || !props.recording) return
+    if (!selectedPlatform.value) return
+    
+    // 确保录制数据已加载
+    await loadRecordingData()
+    
+    if (!currentRecording.value) return
     
     try {
         isGeneratingQR.value = true
@@ -118,7 +135,7 @@ async function handleReRecord(): Promise<void> {
 
 // 处理分享录制
 async function handleShareRecording(): Promise<void> {
-    if (!props.recording || !selectedPlatform.value) {
+    if (!currentRecording.value || !selectedPlatform.value) {
         emit('cancelled')
         return
     }
@@ -148,11 +165,11 @@ async function handleDownloadVideo(): Promise<void> {
         
         if (props.video) {
             videoFile = props.video
-        } else if (props.recording?.videoUrl) {
+        } else if (currentRecording.value?.videoUrl) {
             try {
-                const resp = await fetch(props.recording.videoUrl)
+                const resp = await fetch(currentRecording.value.videoUrl)
                 const blob = await resp.blob()
-                videoFile = new globalThis.File([blob], `${props.recording.id}.mp4`, { type: blob.type || 'video/mp4' })
+                videoFile = new globalThis.File([blob], `${currentRecording.value.id}.mp4`, { type: blob.type || 'video/mp4' })
             } catch {
                 console.error('获取视频文件失败')
                 return
@@ -189,6 +206,9 @@ watch(() => props.visible, (newVisible) => {
         jumpUrl.value = ''
         qrCodeData.value = ''
         
+        // 立即开始加载录制数据
+        loadRecordingData()
+        
         // 等待DOM更新后生成二维码
         nextTick(() => {
             if (selectedPlatform.value) {
@@ -197,6 +217,27 @@ watch(() => props.visible, (newVisible) => {
         })
     }
 })
+
+// 获取视频源地址
+function getVideoSrc(): string {
+    if (props.video) {
+        const url = URL.createObjectURL(props.video)
+        createdObjectUrls.add(url)
+        return url
+    }
+    return currentRecording.value?.videoUrl || ''
+}
+
+// 处理视频加载开始
+function handleVideoLoadStart(event: Event) {
+    const video = event.target as HTMLVideoElement
+    if (video.src.startsWith('blob:') && props.video) {
+        // 如果是通过 createObjectURL 创建的 URL，添加到清理列表
+        createdObjectUrls.add(video.src)
+    }
+}
+
+
 </script>
 
 <template>
@@ -211,11 +252,12 @@ watch(() => props.visible, (newVisible) => {
                     <div class="video-section">
                         <div class="video-preview">
                             <video 
-                                v-if="recording?.videoUrl || video" 
-                                :src="recording?.videoUrl" 
+                                v-if="video || currentRecording?.videoUrl" 
+                                :src="getVideoSrc()" 
                                 controls 
                                 class="video-player"
-                                :poster="recording?.thumbnailUrl"
+                                :poster="currentRecording?.thumbnailUrl"
+                                @loadstart="handleVideoLoadStart"
                             >
                                 您的浏览器不支持视频播放
                             </video>
@@ -224,14 +266,14 @@ watch(() => props.visible, (newVisible) => {
                             </div>
                         </div>
                         <div class="video-info">
-                            <h3 class="video-title">{{ recording?.title || $t({ en: 'Untitled Recording', zh: '未命名录制' }) }}</h3>
-                            <p class="video-description">{{ recording?.description || $t({ en: 'No description', zh: '暂无描述' }) }}</p>
+                            <h3 class="video-title">{{ currentRecording?.title || $t({ en: 'Untitled Recording', zh: '未命名录制' }) }}</h3>
+                            <p class="video-description">{{ currentRecording?.description || $t({ en: 'No description', zh: '暂无描述' }) }}</p>
                             <div class="video-stats">
                                 <span class="stat-item">
-                                    {{ $t({ en: 'Views', zh: '观看' }) }}: {{ recording?.viewCount || 0 }}
+                                    {{ $t({ en: 'Views', zh: '观看' }) }}: {{ currentRecording?.viewCount || 0 }}
                                 </span>
                                 <span class="stat-item">
-                                    {{ $t({ en: 'Likes', zh: '点赞' }) }}: {{ recording?.likeCount || 0 }}
+                                    {{ $t({ en: 'Likes', zh: '点赞' }) }}: {{ currentRecording?.likeCount || 0 }}
                                 </span>
                             </div>
                         </div>
@@ -250,7 +292,8 @@ watch(() => props.visible, (newVisible) => {
                                         class="qr-image" 
                                     />
                                     <div v-else class="qr-placeholder">
-                                        <span>{{ isGeneratingQR ? $t({ en: 'Generating...', zh: '生成中...' }) : $t({ en: 'Select platform to generate QR code', zh: '选择平台生成二维码' }) }}</span>
+                                        <span v-if="isGeneratingQR">{{ $t({ en: 'Generating...', zh: '生成中...' }) }}</span>
+                                        <span v-else>{{ $t({ en: 'Select platform to generate QR code', zh: '选择平台生成二维码' }) }}</span>
                                     </div>
                                 </div>
                                 <div class="qr-hint">
@@ -261,7 +304,7 @@ watch(() => props.visible, (newVisible) => {
                                 <button 
                                     class="download-btn"
                                     @click="handleDownloadVideo"
-                                    :disabled="!recording?.videoUrl && !video"
+                                    :disabled="!video && !currentRecording?.videoUrl"
                                 >
                                     {{ $t({ en: 'Download Video', zh: '下载视频' }) }}
                                 </button>
