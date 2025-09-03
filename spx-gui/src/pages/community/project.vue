@@ -127,7 +127,7 @@ interface ProjectRunnerExpose {
   stop: () => Promise<void>
   rerun: () => Promise<void>
   startRecording?: () => Promise<void>
-  stopRecording?: () => Promise<void>
+  stopRecording?: () => Promise<Blob>
   getRecordedVideo?: () => Promise<globalThis.File | null>
 }
 const projectRunnerRef = ref<ProjectRunnerExpose | null>(null)
@@ -382,10 +382,16 @@ async function handleRecordingSharing() {
             
             console.log('录制已停止，获得 Blob:', recordBlob)
             
+            if (!recordBlob) {
+                toaster.error('录制失败，未获得录制数据')
+                isRecording.value = false
+                return
+            }
+            
             // 将 Blob 转换为 File 对象
-            const fileExtension = recordBlob?.type?.includes('webm') ? 'webm' : 'mp4'
+            const fileExtension = recordBlob.type?.includes('webm') ? 'webm' : 'mp4'
             const recordFile = new globalThis.File([recordBlob], `recording_${Date.now()}.${fileExtension}`, { 
-                type: recordBlob?.type || 'video/webm' 
+                type: recordBlob.type || 'video/webm' 
             })
             
             recording.value = recordFile
