@@ -24,13 +24,14 @@ const emit = defineEmits<{
     resolved: [result: SharingResult]
 }>()
 
+const currentRecording = ref<RecordData | null>(null)
+
 // 组件状态
 const selectedPlatform = ref<PlatformConfig | null>(null)
 const jumpUrl = ref<string>('')
 const qrCodeData = ref<string>('')
 const isGeneratingQR = ref(false)
 const isSharing = ref(false)
-const currentRecording = ref<RecordData | null>(null)
 
 // 清理 object URLs
 const createdObjectUrls = new Set<string>()
