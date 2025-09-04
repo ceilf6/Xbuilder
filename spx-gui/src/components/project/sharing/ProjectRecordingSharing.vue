@@ -5,11 +5,12 @@ import PlatformSelector from './platformSelector.vue'
 import type { RecordData } from './recording'
 import type { PlatformConfig } from './platformShare'
 import { SocialPlatformConfigs } from './platformShare'
+import { universalUrlToWebUrl } from '@/models/common/cloud'
 import QRCode from 'qrcode'
 
 const props = defineProps<{
     recording: Promise<RecordData>,
-    video?: File
+    video?: globalThis.File
     visible: boolean
 }>()
 
@@ -30,7 +31,10 @@ const jumpUrl = ref<string>('')
 const qrCodeData = ref<string>('')
 const isGeneratingQR = ref(false)
 const isSharing = ref(false)
+
+// 录制数据和视频源
 const currentRecording = ref<RecordData | null>(null)
+const videoSrc = ref<string>('')
 
 // 清理 object URLs
 const createdObjectUrls = new Set<string>()
@@ -56,13 +60,35 @@ async function loadRecordingData() {
     
     try {
         currentRecording.value = await props.recording
+        await updateVideoSrc()
     } catch (error) {
         console.error('加载录制数据失败:', error)
     }
 }
 
+// 更新视频源地址 - 优先使用 props.video
+async function updateVideoSrc() {
+    if (props.video) {
+        // 优先使用父组件传入的视频文件
+        const url = URL.createObjectURL(props.video)
+        createdObjectUrls.add(url)
+        videoSrc.value = url
+    } else if (currentRecording.value?.videoUrl) {
+        // 其次使用录制数据中的视频URL，需要转换 kodo:// URL
+        try {
+            videoSrc.value = await universalUrlToWebUrl(currentRecording.value.videoUrl)
+        } catch (error) {
+            console.error('转换视频URL失败:', error)
+            videoSrc.value = ''
+        }
+    } else {
+        videoSrc.value = ''
+    }
+}
+
 // 处理平台选择变化
 function handlePlatformChange(platform: PlatformConfig) {
+    console.log('平台选择变化:', platform.basicInfo.label.zh)
     selectedPlatform.value = platform
     generateShareQRCode()
 }
@@ -74,12 +100,21 @@ function getCurrentRecordUrl() {
 
 // 生成分享二维码
 async function generateShareQRCode() {
-    if (!selectedPlatform.value) return
+    console.log('开始生成二维码, selectedPlatform:', selectedPlatform.value?.basicInfo.label.zh)
+    if (!selectedPlatform.value) {
+        console.log('未选择平台，跳过二维码生成')
+        return
+    }
     
     // 确保录制数据已加载
     await loadRecordingData()
     
-    if (!currentRecording.value) return
+    if (!currentRecording.value) {
+        console.log('录制数据未加载，跳过二维码生成')
+        return
+    }
+    
+    console.log('录制数据已加载:', currentRecording.value.id)
     
     try {
         isGeneratingQR.value = true
@@ -103,6 +138,7 @@ async function generateShareQRCode() {
         }
 
         jumpUrl.value = shareUrl
+        console.log('生成的分享链接:', shareUrl)
         
         // 使用 qrcode 库生成二维码
         try {
@@ -167,7 +203,7 @@ async function handleDownloadVideo(): Promise<void> {
             videoFile = props.video
         } else if (currentRecording.value?.videoUrl) {
             try {
-                const resp = await fetch(currentRecording.value.videoUrl)
+                const resp = await fetch(videoSrc.value)
                 const blob = await resp.blob()
                 videoFile = new globalThis.File([blob], `${currentRecording.value.id}.mp4`, { type: blob.type || 'video/mp4' })
             } catch {
@@ -206,27 +242,30 @@ watch(() => props.visible, (newVisible) => {
         jumpUrl.value = ''
         qrCodeData.value = ''
         
-        // 立即开始加载录制数据
+        // 立即更新视频源（优先使用 props.video）
+        updateVideoSrc()
+        
+        // 加载录制数据（用于分享参数）
         loadRecordingData()
         
-        // 等待DOM更新后生成二维码
+        // 等待DOM更新后，如果有选择的平台则生成二维码
         nextTick(() => {
+            console.log('弹窗打开，当前选择的平台:', selectedPlatform.value?.basicInfo.label.zh)
             if (selectedPlatform.value) {
                 generateShareQRCode()
+            } else {
+                // 如果没有选择平台，等待平台选择器的默认选择
+                console.log('等待平台选择器设置默认平台')
             }
         })
     }
 })
 
-// 获取视频源地址
-function getVideoSrc(): string {
-    if (props.video) {
-        const url = URL.createObjectURL(props.video)
-        createdObjectUrls.add(url)
-        return url
-    }
-    return currentRecording.value?.videoUrl || ''
-}
+// 监听 video prop 变化
+watch(() => props.video, () => {
+    updateVideoSrc()
+})
+
 
 // 处理视频加载开始
 function handleVideoLoadStart(event: Event) {
@@ -252,11 +291,10 @@ function handleVideoLoadStart(event: Event) {
                     <div class="video-section">
                         <div class="video-preview">
                             <video 
-                                v-if="video || currentRecording?.videoUrl" 
-                                :src="getVideoSrc()" 
+                                v-if="videoSrc" 
+                                :src="videoSrc" 
                                 controls 
                                 class="video-player"
-                                :poster="currentRecording?.thumbnailUrl"
                                 @loadstart="handleVideoLoadStart"
                             >
                                 您的浏览器不支持视频播放
@@ -266,19 +304,11 @@ function handleVideoLoadStart(event: Event) {
                             </div>
                         </div>
                         <div class="video-info">
-                            <h3 class="video-title">{{ currentRecording?.title || $t({ en: 'Untitled Recording', zh: '未命名录制' }) }}</h3>
-                            <p class="video-description">{{ currentRecording?.description || $t({ en: 'No description', zh: '暂无描述' }) }}</p>
-                            <div class="video-stats">
-                                <span class="stat-item">
-                                    {{ $t({ en: 'Views', zh: '观看' }) }}: {{ currentRecording?.viewCount || 0 }}
-                                </span>
-                                <span class="stat-item">
-                                    {{ $t({ en: 'Likes', zh: '点赞' }) }}: {{ currentRecording?.likeCount || 0 }}
-                                </span>
-                            </div>
+                            <h3 class="video-title">{{ $t({ en: 'Recording Video', zh: '录制视频' }) }}</h3>
+                            <p class="video-description">{{ $t({ en: 'Share your amazing recording!', zh: '分享你的精彩录制！' }) }}</p>
                         </div>
                         <div class="video-platform-selector">
-                            <PlatformSelector @change="handlePlatformChange" />
+                            <PlatformSelector @update:model-value="handlePlatformChange" />
                         </div>
                     </div>
                     <div class="qr-section">
@@ -304,7 +334,7 @@ function handleVideoLoadStart(event: Event) {
                                 <button 
                                     class="download-btn"
                                     @click="handleDownloadVideo"
-                                    :disabled="!video && !currentRecording?.videoUrl"
+                                    :disabled="!videoSrc"
                                 >
                                     {{ $t({ en: 'Download Video', zh: '下载视频' }) }}
                                 </button>
