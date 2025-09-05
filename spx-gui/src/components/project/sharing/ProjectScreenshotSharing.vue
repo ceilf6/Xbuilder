@@ -213,7 +213,9 @@ watch(() => props.visible, (newVisible) => {
                 </div>
             </div>
             <div class="actions">
-                <button @click="$emit('cancelled')">{{ $t({ en: 'Cancel', zh: '取消' }) }}</button>
+                <button class="cancel-btn" @click="$emit('cancelled')">
+                    {{ $t({ en: 'Cancel', zh: '取消' }) }}
+                </button>
             </div>
         </div>
     </div>
@@ -382,6 +384,7 @@ watch(() => props.visible, (newVisible) => {
     justify-content: center;
 }
 
+/*
 .actions button {
     padding: 8px 16px;
     border: 1px solid #ccc;
@@ -394,4 +397,22 @@ watch(() => props.visible, (newVisible) => {
         background: #e0e0e0;
     }
 }
+*/
+
+.cancel-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--ui-color-red-main);
+    border-radius: 6px;
+    background: white;
+    color: var(--ui-color-red-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+
+    &:hover {
+        background: var(--ui-color-red-tint);
+        border-color: var(--ui-color-red-main);
+    }
+}
+
 </style>
