@@ -303,12 +303,13 @@ function handleVideoLoadStart(event: Event) {
                                 <span>{{ $t({ en: 'No video available', zh: '暂无视频' }) }}</span>
                             </div>
                         </div>
-                        <div class="video-info">
-                            <h3 class="video-title">{{ $t({ en: 'Recording Video', zh: '录制视频' }) }}</h3>
-                            <p class="video-description">{{ $t({ en: 'Share your amazing recording!', zh: '分享你的精彩录制！' }) }}</p>
-                        </div>
-                        <div class="video-platform-selector">
-                            <PlatformSelector @update:model-value="handlePlatformChange" />
+                        <div class="rerecord-section">
+                            <div class="rerecord-hint">
+                                {{ $t({ en: 'If you are not satisfied with the current recording:', zh: '如果对当前录屏不满意：' }) }}
+                            </div>
+                            <button class="rerecord-btn" @click="handleReRecord">
+                                {{ $t({ en: 'Re-record', zh: '重新录制' }) }}
+                            </button>
                         </div>
                     </div>
                     <div class="qr-section">
@@ -338,22 +339,15 @@ function handleVideoLoadStart(event: Event) {
                                 >
                                     {{ $t({ en: 'Download Video', zh: '下载视频' }) }}
                                 </button>
-                                <button 
-                                    class="share-btn"
-                                    @click="handleShareRecording"
-                                    :disabled="!selectedPlatform || isSharing"
-                                >
-                                    {{ isSharing ? $t({ en: 'Sharing...', zh: '分享中...' }) : $t({ en: 'Share', zh: '分享' }) }}
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="platform-selector-container">
+                    <PlatformSelector @update:model-value="handlePlatformChange" />
+                </div>
             </div>
             <div class="actions">
-                <button class="secondary-btn" @click="handleReRecord">
-                    {{ $t({ en: 'Re-record', zh: '重新录制' }) }}
-                </button>
                 <button class="cancel-btn" @click="$emit('cancelled')">
                     {{ $t({ en: 'Cancel', zh: '取消' }) }}
                 </button>
@@ -487,10 +481,48 @@ function handleVideoLoadStart(event: Event) {
     align-items: center;
 }
 
-.video-platform-selector {
+.rerecord-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.rerecord-hint {
+    font-size: 12px;
+    color: var(--ui-color-hint-1);
+    text-align: center;
+}
+
+.rerecord-btn {
+    padding: 6px 16px;
+    border: 1px solid var(--ui-color-primary-main);
+    border-radius: 6px;
+    background: var(--ui-color-primary-main);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+
+    &:hover:not(:disabled) {
+        background: var(--ui-color-primary-shade);
+        border-color: var(--ui-color-primary-shade);
+    }
+
+    &:disabled {
+        background: var(--ui-color-hint-2);
+        border-color: var(--ui-color-hint-2);
+        cursor: not-allowed;
+    }
+}
+
+.platform-selector-container {
     width: 100%;
     display: flex;
     justify-content: center;
+    margin-top: 24px;
+    padding: 0 20px;
 }
 
 .qr-section {
@@ -591,12 +623,12 @@ function handleVideoLoadStart(event: Event) {
 }
 
 .download-btn {
-    background: var(--ui-color-grey-600);
-    border-color: var(--ui-color-grey-600);
+    background: var(--ui-color-primary-main);
+    border-color: var(--ui-color-primary-main);
 
     &:hover:not(:disabled) {
-        background: var(--ui-color-grey-700);
-        border-color: var(--ui-color-grey-700);
+        background: var(--ui-color-primary-shade);
+        border-color: var(--ui-color-primary-shade);
     }
 }
 
@@ -607,25 +639,15 @@ function handleVideoLoadStart(event: Event) {
     justify-content: center;
 }
 
-.secondary-btn, .cancel-btn {
+.cancel-btn {
     padding: 8px 16px;
-    border: 1px solid var(--ui-color-dividing-line-1);
+    border: 1px solid var(--ui-color-red-main);
     border-radius: 6px;
     background: white;
-    color: var(--ui-color-hint-1);
+    color: var(--ui-color-red-main);
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 14px;
-
-    &:hover {
-        background: var(--ui-color-grey-100);
-        border-color: var(--ui-color-grey-300);
-    }
-}
-
-.cancel-btn {
-    color: var(--ui-color-red-main);
-    border-color: var(--ui-color-red-main);
 
     &:hover {
         background: var(--ui-color-red-tint);

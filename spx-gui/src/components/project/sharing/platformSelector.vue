@@ -94,6 +94,8 @@
 
 <style scoped lang="scss">
 .share-platform {
+  text-align: center;
+  
   .section-label {
     font-size: 14px;
     font-weight: 500;

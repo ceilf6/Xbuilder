@@ -180,9 +180,6 @@ watch(() => props.visible, (newVisible) => {
                             :img="screenshot" 
                             :project-data="projectData" 
                         />
-                        <div class="poster-platform-selector">
-                            <PlatformSelector @update:modelValue="handlePlatformChange" />
-                        </div>
                     </div>
                     <div class="qr-section">
                         <div class="qr-section-inner">
@@ -210,6 +207,9 @@ watch(() => props.visible, (newVisible) => {
                             </button>
                         </div>
                     </div>
+                </div>
+                <div class="platform-selector-container">
+                    <PlatformSelector @update:modelValue="handlePlatformChange" />
                 </div>
             </div>
             <div class="actions">
@@ -276,10 +276,12 @@ watch(() => props.visible, (newVisible) => {
     gap: 16px;
 }
 
-.poster-platform-selector {
+.platform-selector-container {
     width: 100%;
     display: flex;
     justify-content: center;
+    margin-top: 24px;
+    padding: 0 20px;
 }
 
 .qr-section {
