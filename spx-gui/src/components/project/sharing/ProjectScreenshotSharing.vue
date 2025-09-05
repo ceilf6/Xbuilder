@@ -363,6 +363,7 @@ watch(() => props.visible, (newVisible) => {
 
     &:hover:not(:disabled) {
         background: var(--ui-color-primary-shade);
+        color: var(--ui-color-primary-main); // hover时文字显示为主题色
     }
 
     &:disabled {

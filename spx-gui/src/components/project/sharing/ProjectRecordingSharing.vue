@@ -507,7 +507,7 @@ function handleVideoLoadStart(event: Event) {
 
     &:hover:not(:disabled) {
         background: var(--ui-color-primary-shade);
-        border-color: var(--ui-color-primary-shade);
+        color: var(--ui-color-primary-main);
     }
 
     &:disabled {
@@ -599,8 +599,9 @@ function handleVideoLoadStart(event: Event) {
     margin-top: 8px;
 }
 
-.download-btn, .share-btn {
+.download-btn {
     width: 100%;
+    margin-top: 8px;
     border-radius: 6px;
     padding: 8px 16px;
     border: 1px solid var(--ui-color-primary-main);
@@ -608,27 +609,16 @@ function handleVideoLoadStart(event: Event) {
     color: white;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 14px;
 
     &:hover:not(:disabled) {
         background: var(--ui-color-primary-shade);
-        border-color: var(--ui-color-primary-shade);
+        color: var(--ui-color-primary-main);
     }
 
     &:disabled {
         background: var(--ui-color-hint-2);
         border-color: var(--ui-color-hint-2);
         cursor: not-allowed;
-    }
-}
-
-.download-btn {
-    background: var(--ui-color-primary-main);
-    border-color: var(--ui-color-primary-main);
-
-    &:hover:not(:disabled) {
-        background: var(--ui-color-primary-shade);
-        border-color: var(--ui-color-primary-shade);
     }
 }
 
