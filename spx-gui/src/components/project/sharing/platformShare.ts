@@ -1,5 +1,4 @@
 import img from '@/assets/logo.svg'
-import testSrc from '@/assets/test.png'
 
 
 /**
@@ -79,15 +78,15 @@ class QQPlatform implements PlatformConfig {
         shareURL: async (url: string) => {
             console.log('shareURL: QQ platform:' + url);
             // 查看logo图片在服务器上的URL
-            console.log('Logo图片URL:' + 'https://xbuilder-sharing-test.gopluscdn.com' + img)
-            console.log('Test图片URL:', testSrc)
+            console.log('Logo图片URL (import):', img)
+            console.log('测试图片URL:', 'https://xbuilder-sharing-test.gopluscdn.com/test.png')
             // 检查是否在 QQ 环境中
             if (typeof window !== 'undefined' && window.mqq && window.mqq.invoke) {
                 window.mqq.invoke("data","setShareInfo", {
                     share_url: url,
                     title: 'XBuilder',
                     desc: 'XBuilder分享你的创意作品',
-                    image_url: testSrc
+                    image_url: img
                 });
             } else {
                 console.warn('QQ API not available in current environment');
