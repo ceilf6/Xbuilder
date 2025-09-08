@@ -1,4 +1,7 @@
 import img from '@/assets/logo.svg'
+import testSrc from '@/assets/test.png'
+
+
 /**
  * 社交平台配置
  */
@@ -75,6 +78,9 @@ class QQPlatform implements PlatformConfig {
     shareFunction = {
         shareURL: async (url: string) => {
             console.log('shareURL: QQ platform:' + url);
+            // 查看logo图片在服务器上的URL
+            console.log('Logo图片URL:', img)
+            console.log('Test图片URL:', testSrc)
             // 检查是否在 QQ 环境中
             if (typeof window !== 'undefined' && window.mqq && window.mqq.invoke) {
                 window.mqq.invoke("data","setShareInfo", {
