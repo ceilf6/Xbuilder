@@ -1,4 +1,10 @@
 import img from '@/assets/logo.svg'
+import testSrc from '@/assets/test.png'
+
+// 查看logo图片在服务器上的URL
+console.log('Logo图片URL:', img)
+console.log('Test图片URL:', testSrc)
+
 /**
  * 社交平台配置
  */
