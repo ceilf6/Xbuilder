@@ -86,7 +86,7 @@ class QQPlatform implements PlatformConfig {
                     share_url: url,
                     title: 'XBuilder',
                     desc: 'XBuilder分享你的创意作品',
-                    image_url: 'https://xbuilder-sharing-test.gopluscdn.com/test.png'
+                    image_url: 'https://xbuilder-sharing-test.gopluscdn.com/logo.svg'
                 });
             } else {
                 console.warn('QQ API not available in current environment');
