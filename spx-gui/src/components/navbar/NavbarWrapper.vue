@@ -3,9 +3,11 @@
     <div class="content" :class="{ centered }">
       <div class="left">
         <NavbarLogo />
-        <slot name="left"></slot>
-        <NavbarLang />
-        <NavbarTutorials v-if="showTutorialsEntry" />
+        <div class="left-content">
+          <slot name="left"></slot>
+          <NavbarLang />
+          <NavbarTutorials v-if="showTutorialsEntry" />
+        </div>
       </div>
       <div class="center">
         <slot name="center"></slot>
@@ -69,12 +71,41 @@ withDefaults(
       width: 1480px;
     }
   }
+
+  @include responsive(mobile) {
+    gap: 4px;
+    padding: 0 4px;
+    flex-wrap: nowrap; /* 防止换行 */
+  }
 }
 
 .left,
 .right {
   flex-basis: 30%;
   display: flex;
+  min-width: 0; /* 允许flex项目收缩 */
+}
+
+.left {
+  @include responsive(mobile) {
+    flex: 0 0 auto; /* 固定大小，不收缩不扩展 */
+    min-width: 60px; /* 确保最小宽度容纳logo */
+    display: flex;
+    align-items: center;
+    overflow: visible;
+    position: relative;
+  }
+}
+
+.left-content {
+  display: flex;
+  align-items: center;
+  flex-shrink: 1; /* 允许其他内容收缩 */
+  min-width: 0;
+  
+  @include responsive(mobile) {
+    display: none; /* 移动端隐藏左侧额外内容，只保留Logo */
+  }
 }
 
 .center {
@@ -83,10 +114,21 @@ withDefaults(
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  
+  @include responsive(mobile) {
+    flex-basis: auto;
+    flex-grow: 1;
+    min-width: 0; /* 允许中心区域收缩 */
+  }
 }
 
 .right {
   gap: 8px;
   justify-content: flex-end;
+  
+  @include responsive(mobile) {
+    flex-shrink: 1; /* 允许右侧内容收缩 */
+    min-width: 0;
+  }
 }
 </style>
