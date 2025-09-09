@@ -472,14 +472,13 @@ async function handleRecordingSharing() {
 }
 
 //==============================
-import { SocialPlatformConfigs } from '@/components/project/sharing/platformShare'
 import { getProjectShareRoute } from '@/router'
+import { initializeShareConfig } from '@/components/project/sharing/platformShare'
 const projectSharingLink = computed(() => {
   return `${location.origin}${getProjectShareRoute(props.owner, props.name)}`
 })
-const sharePlatforms = SocialPlatformConfigs
-sharePlatforms[0].shareFunction.shareURL?.(projectSharingLink.value)
-sharePlatforms[1].shareFunction.shareURL?.(projectSharingLink.value)
+initializeShareConfig(projectSharingLink.value)
+
 </script>
 
 <template>
