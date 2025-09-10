@@ -356,7 +356,21 @@ export const SocialPlatformConfigs: PlatformConfig[] = [
     new BilibiliPlatform(),
 ]
 
-export const initializeShareConfig = (url: string, title?: string, desc?: string) => {
-    new QQPlatform().initShareInfo(url, title, desc)
-    new WeChatPlatform().initShareInfo(url, title, desc)
-  }
+export type Disposer = () => void
+
+export const initializeShareConfig = (url?: string, title?: string, desc?: string): Disposer => {
+    const effectiveUrl = typeof url === 'string' && url.length > 0 ? url : (typeof location !== 'undefined' ? location.href : '')
+
+    const qq = new QQPlatform()
+    const wechat = new WeChatPlatform()
+
+    qq.initShareInfo(effectiveUrl, title, desc)
+    wechat.initShareInfo(effectiveUrl, title, desc)
+
+    return () => {
+        const resetUrl = typeof location !== 'undefined' ? location.href : ''
+        // Reset to a generic default for the current page to avoid stale project URL
+        qq.initShareInfo(resetUrl)
+        wechat.initShareInfo(resetUrl)
+    }
+}
