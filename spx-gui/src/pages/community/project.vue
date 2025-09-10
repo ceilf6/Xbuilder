@@ -474,10 +474,15 @@ async function handleRecordingSharing() {
 //==============================
 import { getProjectShareRoute } from '@/router'
 import { initializeShareConfig } from '@/components/project/sharing/platformShare'
+import { watchEffect } from 'vue'
 const projectSharingLink = computed(() => {
   return `${location.origin}${getProjectShareRoute(props.owner, props.name)}`
 })
-initializeShareConfig(projectSharingLink.value)
+
+watchEffect((onCleanup) => {
+  const dispose = initializeShareConfig(projectSharingLink.value)
+  onCleanup(dispose)
+})
 
 </script>
 
