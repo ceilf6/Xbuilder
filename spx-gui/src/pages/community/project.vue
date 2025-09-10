@@ -480,7 +480,7 @@ const projectSharingLink = computed(() => {
 })
 
 watchEffect((onCleanup) => {
-  const dispose = initializeShareConfig(projectSharingLink.value)
+  const dispose = initializeShareConfig()
   onCleanup(dispose)
 })
 

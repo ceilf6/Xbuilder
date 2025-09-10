@@ -87,15 +87,15 @@ class QQPlatform implements PlatformConfig {
         }
     }
 
-    initShareInfo = async (url: string, title?: string, desc?: string) => {
-        console.log('shareURL: QQ platform:' + url);
+    initShareInfo = async (title?: string, desc?: string) => {
+        console.log('shareURL: QQ platform:' + (typeof location !== 'undefined' ? location.href : ''));
         // 查看logo图片在服务器上的URL
         console.log('Logo图片URL (import):', img)
         console.log('测试图片URL:', 'https://xbuilder-sharing-test.gopluscdn.com/test.png')
         // 检查是否在 QQ 环境中
         if (typeof window !== 'undefined' && window.mqq && window.mqq.invoke) {
             window.mqq.invoke("data","setShareInfo", {
-                share_url: url,
+                share_url: typeof location !== 'undefined' ? location.href : '',
                 title: title || 'XBuilder',
                 desc: desc || 'XBuilder分享你的创意作品',
                 image_url: 'https://xbuilder-sharing-test.gopluscdn.com/logo.png'
@@ -133,8 +133,8 @@ class WeChatPlatform implements PlatformConfig {
         // 不实现 shareVideo，因为不支持
     }
 
-    initShareInfo = async (url: string, title?: string, desc?: string) => {
-        console.log('shareURL: WeChat platform:' + url);
+    initShareInfo = async (title?: string, desc?: string) => {
+        console.log('shareURL: WeChat platform:' + (typeof location !== 'undefined' ? location.href : ''));
         let currentAccessToken = '';
         let currentTicket = '';
         if (typeof window !== 'undefined' && window.wx && window.wx.config) {
@@ -203,7 +203,7 @@ class WeChatPlatform implements PlatformConfig {
                 const ticket = currentTicket;
                 const nonceStr = Math.random().toString(36).substr(2, 16); // 生成16位随机字符串
                 const timestamp = Math.floor(Date.now() / 1000);
-                const url = window.location.href.split('#')[0]; // 当前页面URL，去掉哈希部分
+                const url = (typeof location !== 'undefined' ? location.href : '').split('#')[0]; // 当前页面URL，去掉哈希部分
 
                 const string1 = `jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
                 const signature = window.sha1(string1);
@@ -237,7 +237,7 @@ class WeChatPlatform implements PlatformConfig {
                         title: 'XBuilder',
                         desc: 'XBuilder分享你的创意作品',
                         // link: window.location.href.split('#')[0],
-                        link: url,
+                        link: typeof location !== 'undefined' ? location.href : '',
                         imgUrl: img,
                         success: function() {
                         console.log('分享给朋友设置成功');
@@ -248,7 +248,7 @@ class WeChatPlatform implements PlatformConfig {
                     window.wx.updateTimelineShareData({
                         title: 'XBuilder',
                         desc: 'XBuilder分享你的创意作品',
-                        link: url,
+                        link: typeof location !== 'undefined' ? location.href : '',
                         imgUrl: img,
                         success: function() {
                         console.log('分享到朋友圈设置成功');
@@ -359,18 +359,16 @@ export const SocialPlatformConfigs: PlatformConfig[] = [
 export type Disposer = () => void
 
 export const initializeShareConfig = (url?: string, title?: string, desc?: string): Disposer => {
-    const effectiveUrl = typeof url === 'string' && url.length > 0 ? url : (typeof location !== 'undefined' ? location.href : '')
 
     const qq = new QQPlatform()
     const wechat = new WeChatPlatform()
 
-    qq.initShareInfo(effectiveUrl, title, desc)
-    wechat.initShareInfo(effectiveUrl, title, desc)
+    qq.initShareInfo(title, desc)
+    wechat.initShareInfo(title, desc)
 
     return () => {
-        const resetUrl = typeof location !== 'undefined' ? location.href : ''
         // Reset to a generic default for the current page to avoid stale project URL
-        qq.initShareInfo(resetUrl)
-        wechat.initShareInfo(resetUrl)
+        qq.initShareInfo()
+        wechat.initShareInfo()
     }
 }
