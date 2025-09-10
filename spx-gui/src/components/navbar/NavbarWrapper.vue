@@ -10,6 +10,7 @@
         </div>
       </div>
       <div class="center">
+        <NavbarLogo />
         <slot name="center"></slot>
       </div>
       <div class="right">
