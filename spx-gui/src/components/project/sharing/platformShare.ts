@@ -87,15 +87,15 @@ class QQPlatform implements PlatformConfig {
         }
     }
 
-    initShareInfo = async (url: string, title?: string, desc?: string) => {
-        console.log('shareURL: QQ platform:' + url);
+    initShareInfo = async (title?: string, desc?: string) => {
+        console.log('shareURL: QQ platform:' + (typeof location !== 'undefined' ? location.href : ''));
         // 查看logo图片在服务器上的URL
         console.log('Logo图片URL (import):', img)
         console.log('测试图片URL:', 'https://xbuilder-sharing-test.gopluscdn.com/test.png')
         // 检查是否在 QQ 环境中
         if (typeof window !== 'undefined' && window.mqq && window.mqq.invoke) {
             window.mqq.invoke("data","setShareInfo", {
-                share_url: url,
+                share_url: typeof location !== 'undefined' ? location.href : '',
                 title: title || 'XBuilder',
                 desc: desc || 'XBuilder分享你的创意作品',
                 image_url: 'https://xbuilder-sharing-test.gopluscdn.com/logo.png'
@@ -133,143 +133,92 @@ class WeChatPlatform implements PlatformConfig {
         // 不实现 shareVideo，因为不支持
     }
 
-    initShareInfo = async (url: string, title?: string, desc?: string) => {
-        console.log('shareURL: WeChat platform:' + url);
-        let currentAccessToken = '';
-        let currentTicket = '';
+    initShareInfo = async (title?: string, desc?: string) => {
+        console.log('shareURL: WeChat platform:' + (typeof location !== 'undefined' ? location.href : ''));
+        
         if (typeof window !== 'undefined' && window.wx && window.wx.config) {
-            
-            // 获取微信Access Token的函数
-            const getWechatToken = async () => {
+            try {
+                // 发送appId到后端获取签名参数
                 const appId = 'wx5f7ad87518d77bf3';
-                const appSecret = '0f62d3a8e4aec9eee4d02365d6ae0dda';
+                const currentUrl = typeof location !== 'undefined' ? location.href.split('#')[0] : '';
                 
-                console.log('getWechatToken：请求中');
+                console.log('请求微信签名参数...');
                 
-                try {
-                // 使用后端代理API
-                const proxyUrl = `/api/wechat-token?appid=${appId}&secret=${appSecret}`;
-                const response = await fetch(proxyUrl);
+                const response = await fetch('/api/wechat-signature', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        appId: appId,
+                        url: currentUrl
+                    })
+                });
+                
                 const data = await response.json();
                 
-                if (data.access_token) {
-                    console.log('getWechatToken：请求成功' + data.access_token);
-                    // 存储access_token供后续使用
-                    currentAccessToken = data.access_token;
-                } else {
-                    console.log('getWechatToken：请求失败' + data.errmsg);
+                if (data.errcode && data.errcode !== 0) {
+                    console.error('获取微信签名失败:', data.errmsg);
+                    return;
                 }
-                } catch (error: any) {
-                    console.log('getWechatToken：请求失败' + error.message);
-                }
+                
+                console.log('微信签名参数获取成功:', data);
+                
+                // 使用后端返回的签名参数配置微信JS-SDK
+                this.updateWxConfig(data.timestamp, data.nonceStr, data.signature, title, desc);
+                
+            } catch (error: any) {
+                console.error('请求微信签名失败:', error.message);
             }
-
-                            // 获取微信JSAPI Ticket的函数
-            const getJsapiTicket = async () => {
-                // if (!currentAccessToken) {
-                //     alert('请先获取Access Token！');
-                //     return;
-                // }
-                
-                const accessToken = currentAccessToken;
-                
-                console.log('getJsapiTicket：请求中');
-
-                try {
-                // 使用后端代理API
-                const proxyUrl = `/api/wechat-ticket?access_token=${accessToken}&type=jsapi`;
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
-                
-                if (data.ticket) {
-                    console.log('getJsapiTicket：请求成功' + data.ticket);
-                    // 存储ticket供后续使用
-                    currentTicket = data.ticket;
-                } else {
-                    console.log('getJsapiTicket：请求失败' + data.errmsg);
-                }
-                } catch (error: any) {
-                    console.log('getJsapiTicket：请求失败' + error.message);
-                }
-            }
-
-                    // 生成微信JS接口签名的函数
-            const generateSignature = async () => {
-                // if (!currentTicket) {
-                //     alert('请先获取JSAPI Ticket！');
-                //     return;
-                // }
-                
-                const ticket = currentTicket;
-                const nonceStr = Math.random().toString(36).substr(2, 16); // 生成16位随机字符串
-                const timestamp = Math.floor(Date.now() / 1000);
-                const url = window.location.href.split('#')[0]; // 当前页面URL，去掉哈希部分
-
-                const string1 = `jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
-                const signature = window.sha1(string1);
-
-                console.log('generateSignature：签名生成成功！' + signature)
-                // 自动更新wx.config中的签名参数
-                updateWxConfig(timestamp, nonceStr, signature);
-            }
-
-            // 更新微信配置的函数
-            const updateWxConfig = (timestamp: number, nonceStr: string, signature: string) => {
-                // 更新wx.config中的签名参数
-                window.wx.config({
-                debug: true,
-                appId: 'wx5f7ad87518d77bf3',
-                timestamp: timestamp,
-                nonceStr: nonceStr,
-                signature: signature,
-                jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
-                });
-                
-                // 配置成功后，设置分享数据
-                window.wx.ready(function() {
-                    console.log('微信JS-SDK配置成功！');
-                
-                // 更新配置状态显示
-                //updateWxConfigStatus('已配置', timestamp, nonceStr, signature);
-                
-                    // 设置分享给朋友的数据
-                    window.wx.updateAppMessageShareData({
-                        title: 'XBuilder',
-                        desc: 'XBuilder分享你的创意作品',
-                        // link: window.location.href.split('#')[0],
-                        link: url,
-                        imgUrl: img,
-                        success: function() {
-                        console.log('分享给朋友设置成功');
-                        }
-                    });
-                
-                    // 设置分享到朋友圈的数据
-                    window.wx.updateTimelineShareData({
-                        title: 'XBuilder',
-                        desc: 'XBuilder分享你的创意作品',
-                        link: url,
-                        imgUrl: img,
-                        success: function() {
-                        console.log('分享到朋友圈设置成功');
-                        }
-                    });
-                });
-
-                // 配置失败的处理
-                window.wx.error(function(res: any) {
-                    console.error('微信JS-SDK配置失败:', res);
-                    alert('微信JS-SDK配置失败: ' + JSON.stringify(res));
-                });
-            }
-
-            await getWechatToken();
-            await getJsapiTicket();
-            await generateSignature();
-        }
-        else{
+        } else {
             console.warn('WeChat API not available in current environment');
         }
+    }
+
+    // 更新微信配置的函数
+    private updateWxConfig = (timestamp: number, nonceStr: string, signature: string, title?: string, desc?: string) => {
+        // 更新wx.config中的签名参数
+        window.wx.config({
+            debug: true,
+            appId: 'wx5f7ad87518d77bf3',
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+        });
+        
+        // 配置成功后，设置分享数据
+        window.wx.ready(() => {
+            console.log('微信JS-SDK配置成功！');
+            
+            // 设置分享给朋友的数据
+            window.wx.updateAppMessageShareData({
+                title: title || 'XBuilder',
+                desc: desc || 'XBuilder分享你的创意作品',
+                link: typeof location !== 'undefined' ? location.href : '',
+                imgUrl: img,
+                success: function() {
+                    console.log('分享给朋友设置成功');
+                }
+            });
+        
+            // 设置分享到朋友圈的数据
+            window.wx.updateTimelineShareData({
+                title: title || 'XBuilder',
+                desc: desc || 'XBuilder分享你的创意作品',
+                link: typeof location !== 'undefined' ? location.href : '',
+                imgUrl: img,
+                success: function() {
+                    console.log('分享到朋友圈设置成功');
+                }
+            });
+        });
+
+        // 配置失败的处理
+        window.wx.error((res: any) => {
+            console.error('微信JS-SDK配置失败:', res);
+            alert('微信JS-SDK配置失败: ' + JSON.stringify(res));
+        });
     }
 }
 class DouyinPlatform implements PlatformConfig {
@@ -359,18 +308,16 @@ export const SocialPlatformConfigs: PlatformConfig[] = [
 export type Disposer = () => void
 
 export const initializeShareConfig = (url?: string, title?: string, desc?: string): Disposer => {
-    const effectiveUrl = typeof url === 'string' && url.length > 0 ? url : (typeof location !== 'undefined' ? location.href : '')
 
     const qq = new QQPlatform()
     const wechat = new WeChatPlatform()
 
-    qq.initShareInfo(effectiveUrl, title, desc)
-    wechat.initShareInfo(effectiveUrl, title, desc)
+    qq.initShareInfo(title, desc)
+    wechat.initShareInfo(title, desc)
 
     return () => {
-        const resetUrl = typeof location !== 'undefined' ? location.href : ''
         // Reset to a generic default for the current page to avoid stale project URL
-        qq.initShareInfo(resetUrl)
-        wechat.initShareInfo(resetUrl)
+        qq.initShareInfo()
+        wechat.initShareInfo()
     }
 }
