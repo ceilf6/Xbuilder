@@ -90,7 +90,7 @@ class QQPlatform implements PlatformConfig {
     initShareInfo = async (title?: string, desc?: string) => {
         console.log('shareURL: QQ platform:' + (typeof location !== 'undefined' ? location.href : ''));
         // 查看logo图片在服务器上的URL
-        console.log('Logo图片URL (import):', img)
+        console.log('Logo图片URL (import):', location.origin + '/logo.png')
         console.log('测试图片URL:', 'https://xbuilder-sharing-test.gopluscdn.com/test.png')
         // 检查是否在 QQ 环境中
         if (typeof window !== 'undefined' && window.mqq && window.mqq.invoke) {
@@ -103,7 +103,6 @@ class QQPlatform implements PlatformConfig {
             console.log(location.origin + '/logo.png')
         } else {
             console.warn('QQ API not available in current environment');
-            console.log(location.origin + '/logo.png')
         }
     }
 }
