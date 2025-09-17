@@ -93,9 +93,9 @@ class QQPlatform implements PlatformConfig {
         console.log('Logo图片URL (import):', location.origin + '/logo.png')
         console.log('测试图片URL:', 'https://xbuilder-sharing-test.gopluscdn.com/test.png')
         // 检查是否在 QQ 环境中
-        if (typeof window !== 'undefined' && window.mqq && window.mqq.invoke) {
+        if (window.mqq && window.mqq.invoke) {
             window.mqq.invoke("data","setShareInfo", {
-                share_url: typeof location !== 'undefined' ? location.href : '',
+                share_url: location.href + '#/share-to-platform=qq',
                 title: title || 'XBuilder',
                 desc: desc || 'XBuilder分享你的创意作品',
                 image_url: location.origin + '/logo.png',
@@ -137,11 +137,11 @@ class WeChatPlatform implements PlatformConfig {
     initShareInfo = async (title?: string, desc?: string) => {
         console.log('shareURL: WeChat platform:' + (typeof location !== 'undefined' ? location.href : ''));
         
-        if (typeof window !== 'undefined' && window.wx && window.wx.config) {
+        if (window.wx && window.wx.config) {
             try {
                 // 发送appId到后端获取签名参数
                 const appId = 'wx5f7ad87518d77bf3';
-                const currentUrl = typeof location !== 'undefined' ? location.href.split('#')[0] : '';
+                const currentUrl = location.href + '#/share-to-platform=wechat';
                 
                 console.log('请求微信签名参数...');
                 
@@ -196,7 +196,7 @@ class WeChatPlatform implements PlatformConfig {
             window.wx.updateAppMessageShareData({
                 title: title || 'XBuilder',
                 desc: desc || 'XBuilder分享你的创意作品',
-                link: typeof location !== 'undefined' ? location.href : '',
+                link: location.href + '#/share-to-platform=wechat',
                 imgUrl: img,
                 success: function() {
                     console.log('分享给朋友设置成功');
@@ -207,7 +207,7 @@ class WeChatPlatform implements PlatformConfig {
             window.wx.updateTimelineShareData({
                 title: title || 'XBuilder',
                 desc: desc || 'XBuilder分享你的创意作品',
-                link: typeof location !== 'undefined' ? location.href : '',
+                link: location.href + '#/share-to-platform=wechat',
                 imgUrl: img,
                 success: function() {
                     console.log('分享到朋友圈设置成功');
@@ -321,4 +321,12 @@ export const initializeShareConfig = (url?: string, title?: string, desc?: strin
         qq.initShareInfo()
         wechat.initShareInfo()
     }
+}
+
+export function analyzeProjectShareUrl(): string | null {
+    const currentUrl = location.href
+    if (currentUrl.includes('#/share-to-platform=')) {
+        return currentUrl.split('#/share-to-platform=')[1]
+    }
+    return null
 }
