@@ -5,6 +5,8 @@ import UIKeyBtn from './UIKeyBtn.vue'
 import { reactive } from 'vue'
 import type { KeyboardEventType, WebKeyValue } from './mobile-keyboard'
 import { zones, systemKeys, getKeyStyle } from './mobile-keyboard'
+import { onMounted } from 'vue'
+import { object } from 'zod'
 defineOptions({ name: 'MobileKeyboardView' })
 const props = defineProps<{
   zoneToKeyMapping: MobileKeyboardZoneToKeyMapping
@@ -20,6 +22,39 @@ const zoneToKeys = reactive<MobileKeyboardZoneToKeyMapping>(props.zoneToKeyMappi
 function dispatchKeyEvent(type: KeyboardEventType, key: WebKeyValue) {
   emit('key', type, key)
 }
+onMounted(() => {
+  let test = {
+    "lt": [],
+    "rt": [
+      {
+        "webKeyValue": " ",
+        "posx": 113.42262268066406,
+        "posy": 85.21034240722656
+      }
+    ],
+    "lb": [
+      {
+        "webKeyValue": "ArrowRight",
+        "posx": 187.07342529296875,
+        "posy": 79.15472412109375
+      },
+      {
+        "webKeyValue": "ArrowLeft",
+        "posx": 38.501953125,
+        "posy": 75.34521484375
+      }
+    ],
+    "rb": [
+      {
+        "webKeyValue": "ArrowDown",
+        "posx": 93.10523986816406,
+        "posy": 84.8690185546875
+      }
+    ]
+  }
+  Object.assign(zoneToKeys, test)
+})
+
 </script>
 
 <template>
@@ -27,33 +62,21 @@ function dispatchKeyEvent(type: KeyboardEventType, key: WebKeyValue) {
     <slot name="gameView" class="game-view"></slot>
     <div class="stage-vTZqo">
       <div class="system-key sysA">
-        <UIButton
-          v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }"
-          class="button"
-          :icon="systemKeys?.[0]?.icon"
-          @click="emit('rerun')"
-        >
+        <UIButton v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }" class="button"
+          :icon="systemKeys?.[0]?.icon" @click="emit('rerun')">
           {{ $t({ en: systemKeys?.[0]?.textEn ?? '', zh: systemKeys?.[0]?.textZh ?? '' }) }}
         </UIButton>
       </div>
       <div class="system-key sysB">
-        <UIButton
-          v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
-          class="button"
-          :icon="systemKeys?.[1]?.icon"
-          @click="emit('close')"
-        >
+        <UIButton v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
+          class="button" :icon="systemKeys?.[1]?.icon" @click="emit('close')">
           {{ $t({ en: systemKeys?.[1]?.textEn ?? '', zh: systemKeys?.[1]?.textZh ?? '' }) }}
         </UIButton>
       </div>
 
       <div v-for="z in zones" :key="z" class="zone" :class="z">
-        <div
-          v-for="btn in zoneToKeys[z] ?? []"
-          :key="btn.webKeyValue"
-          class="key"
-          :style="getKeyStyle(z, btn.posx, btn.posy)"
-        >
+        <div v-for="btn in zoneToKeys[z] ?? []" :key="btn.webKeyValue" class="key"
+          :style="getKeyStyle(z, btn.posx, btn.posy)">
           <UIKeyBtn :web-key-value="btn.webKeyValue" :active="true" @key="dispatchKeyEvent" />
         </div>
       </div>

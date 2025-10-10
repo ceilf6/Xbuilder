@@ -2,6 +2,7 @@
 import type { KeyboardEventType, WebKeyValue } from '@/components/project/sharing/MobileKeyboard/mobile-keyboard'
 
 import { webKeyToTextMap } from '@/utils/spx'
+import { onUnmounted } from 'vue'
 defineOptions({ name: 'UIKeyBtn' })
 
 const props = withDefaults(
@@ -43,6 +44,22 @@ function getKeyDisplayText(webKeyValue: string): string {
 }
 
 let isPressed = false
+let repeatTimer: number | null = null
+let delayTimer: number | null = null
+const INITIAL_DELAY_MS = 300
+const REPEAT_INTERVAL_MS = 50
+
+function clearTimers() {
+  if (delayTimer !== null) {
+    clearTimeout(delayTimer)
+    delayTimer = null
+  }
+  if (repeatTimer !== null) {
+    clearInterval(repeatTimer)
+    repeatTimer = null
+  }
+}
+
 function press(down: boolean) {
   function dispatchKey(type: KeyboardEventType, v: string) {
     emit('key', type, v)
@@ -50,26 +67,32 @@ function press(down: boolean) {
   if (down && !isPressed) {
     isPressed = true
     dispatchKey('keydown', props.webKeyValue)
+    // Start auto-repeat after an initial delay
+    delayTimer = window.setTimeout(() => {
+      repeatTimer = window.setInterval(() => {
+        if (isPressed) dispatchKey('keydown', props.webKeyValue)
+      }, REPEAT_INTERVAL_MS)
+    }, INITIAL_DELAY_MS)
   } else if (!down && isPressed) {
     isPressed = false
+    clearTimers()
     dispatchKey('keyup', props.webKeyValue)
   }
 }
+
+onUnmounted(() => {
+  isPressed = false
+  clearTimers()
+})
 </script>
 
 <template>
   <div v-if="!props.active" class="ui-key-btn" :style="{ width: props.size + 'px', height: props.size + 'px' }">
     {{ getKeyDisplayText(props.webKeyValue) }}
   </div>
-  <div
-    v-else
-    class="ui-key-btn"
-    :style="{ width: props.size + 'px', height: props.size + 'px' }"
-    @pointerdown.prevent.stop="press(true)"
-    @pointerup.prevent.stop="press(false)"
-    @pointercancel.prevent.stop="press(false)"
-    @pointerleave.prevent.stop="press(false)"
-  >
+  <div v-else class="ui-key-btn" :style="{ width: props.size + 'px', height: props.size + 'px' }"
+    @pointerdown.prevent.stop="press(true)" @pointerup.prevent.stop="press(false)"
+    @pointercancel.prevent.stop="press(false)" @pointerleave.prevent.stop="press(false)">
     {{ getKeyDisplayText(props.webKeyValue) }}
   </div>
 </template>
