@@ -67,7 +67,6 @@ function press(down: boolean) {
   if (down && !isPressed) {
     isPressed = true
     dispatchKey('keydown', props.webKeyValue)
-    // Start auto-repeat after an initial delay
     delayTimer = window.setTimeout(() => {
       repeatTimer = window.setInterval(() => {
         if (isPressed) dispatchKey('keydown', props.webKeyValue)
@@ -90,7 +89,8 @@ onUnmounted(() => {
   <div v-if="!props.active" class="ui-key-btn" :style="{ width: props.size + 'px', height: props.size + 'px' }">
     {{ getKeyDisplayText(props.webKeyValue) }}
   </div>
-  <div v-else class="ui-key-btn" :style="{ width: props.size + 'px', height: props.size + 'px' }"
+  <div
+v-else class="ui-key-btn" :style="{ width: props.size + 'px', height: props.size + 'px' }"
     @pointerdown.prevent.stop="press(true)" @pointerup.prevent.stop="press(false)"
     @pointercancel.prevent.stop="press(false)" @pointerleave.prevent.stop="press(false)">
     {{ getKeyDisplayText(props.webKeyValue) }}

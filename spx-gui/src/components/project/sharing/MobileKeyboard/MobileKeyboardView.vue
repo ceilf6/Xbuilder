@@ -62,20 +62,23 @@ onMounted(() => {
     <slot name="gameView" class="game-view"></slot>
     <div class="stage-vTZqo">
       <div class="system-key sysA">
-        <UIButton v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }" class="button"
+        <UIButton
+v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }" class="button"
           :icon="systemKeys?.[0]?.icon" @click="emit('rerun')">
           {{ $t({ en: systemKeys?.[0]?.textEn ?? '', zh: systemKeys?.[0]?.textZh ?? '' }) }}
         </UIButton>
       </div>
       <div class="system-key sysB">
-        <UIButton v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
+        <UIButton
+v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
           class="button" :icon="systemKeys?.[1]?.icon" @click="emit('close')">
           {{ $t({ en: systemKeys?.[1]?.textEn ?? '', zh: systemKeys?.[1]?.textZh ?? '' }) }}
         </UIButton>
       </div>
 
       <div v-for="z in zones" :key="z" class="zone" :class="z">
-        <div v-for="btn in zoneToKeys[z] ?? []" :key="btn.webKeyValue" class="key"
+        <div
+v-for="btn in zoneToKeys[z] ?? []" :key="btn.webKeyValue" class="key"
           :style="getKeyStyle(z, btn.posx, btn.posy)">
           <UIKeyBtn :web-key-value="btn.webKeyValue" :active="true" @key="dispatchKeyEvent" />
         </div>

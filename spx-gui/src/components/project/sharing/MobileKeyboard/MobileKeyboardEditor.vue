@@ -10,7 +10,8 @@
           <div class="key-pool-side">
             <div class="pool-header">{{ t({ en: 'Recognized Keys', zh: '识别的按键' }) }}</div>
             <div ref="paletteAutoRef" class="palette">
-              <div v-for="k in autoPool" :key="`P-${k}`" class="palette-item"
+              <div
+v-for="k in autoPool" :key="`P-${k}`" class="palette-item"
                 @pointerdown.stop="startDragPool('autoPool', k, $event as PointerEvent)">
                 <UIKeyBtn :web-key-value="k" :active="false" :size="BtnSize" />
               </div>
@@ -20,24 +21,28 @@
             <div class="phone-1YZxt">
               <img :src="phone" alt="phone" style="transform: rotate(180deg)" />
               <div class="stage" :class="{ dragging: !!drag }">
-                <div v-for="z in zones" :key="z" :ref="(el) => (zoneRefs[z].value = el as HTMLElement)" class="zone"
+                <div
+v-for="z in zones" :key="z" :ref="(el) => (zoneRefs[z].value = el as HTMLElement)" class="zone"
                   :class="z">
                   <!-- 系统键：在 lt 区域显示重新运行按钮 -->
                   <div v-if="z === 'lt'" class="system-key sysA">
-                    <UIButton v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }"
+                    <UIButton
+v-radar="{ name: 'Rerun button', desc: 'Click to rerun the project in full screen' }"
                       :icon="systemKeys?.[0]?.icon">
                       {{ t({ en: systemKeys?.[0]?.textEn ?? '', zh: systemKeys?.[0]?.textZh ?? '' }) }}
                     </UIButton>
                   </div>
                   <!-- 系统键：在 rt 区域显示关闭按钮 -->
                   <div v-if="z === 'rt'" class="system-key sysB">
-                    <UIButton v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
+                    <UIButton
+v-radar="{ name: 'Close full screen', desc: 'Click to close full screen project runner' }"
                       :icon="systemKeys?.[1]?.icon">
                       {{ t({ en: systemKeys?.[1]?.textEn ?? '', zh: systemKeys?.[1]?.textZh ?? '' }) }}
                     </UIButton>
                   </div>
                   <!-- 用户自定义键 -->
-                  <div v-for="(k, i) in zoneTokeys[z]" :key="k.keyValue + '-' + i" class="key"
+                  <div
+v-for="(k, i) in zoneTokeys[z]" :key="k.keyValue + '-' + i" class="key"
                     :class="{ dragging: drag?.kind === 'key' && drag.zone === z && drag.index === i }"
                     :style="getKeyStyle(z, k.posx, k.posy)" @pointerdown.stop="startDragKey(z, i, $event)">
                     <UIKeyBtn :web-key-value="k.keyValue" :active="false" :size="BtnSize" />
@@ -45,7 +50,8 @@
                 </div>
 
                 <!-- 拖拽中的浮层（跟随指针） -->
-                <div v-if="drag" class="floating"
+                <div
+v-if="drag" class="floating"
                   :style="{ transform: `translate(${drag.x - BtnSize / 2}px, ${drag.y - BtnSize / 2}px)` }">
                   <UIKeyBtn :web-key-value="drag.keyValue" :active="false" :size="BtnSize" />
                 </div>
@@ -67,7 +73,8 @@
             <n-collapse-transition :show="show">
               <div class="pool-header"></div>
               <div ref="paletteAllRef" class="palette">
-                <div v-for="k in allPool" :key="`P-${k}`" class="palette-item"
+                <div
+v-for="k in allPool" :key="`P-${k}`" class="palette-item"
                   @pointerdown.stop="startDragPool('allPool', k, $event as PointerEvent)">
                   <UIKeyBtn :web-key-value="k" :active="false" :size="BtnSize" />
                 </div>
